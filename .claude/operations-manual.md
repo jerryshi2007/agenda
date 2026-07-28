@@ -96,7 +96,7 @@ Stage 4 归档: openspec archive（任何人）
   检查：是否有明确的用户角色/场景？功能边界？成功标准？
   ├── 全部否 →【模糊】→ 调用 req-brainstorming skill（发散探索）
   │   ⚠️ 用户未批准设计前，禁止创建 OpenSpec change
-  ├── 部分满足 →【方向明确，未结构化】→ 调用 req-analysis skill（收敛梳理）
+  ├── 部分满足 →【方向明确，未结构化】→ agent 自身执行结构化分析（澄清 → GWT → 边界 → 优先级）
   └── 全部满足 →【完整】→ 进入 Gate 1
   ↓
 【Gate 1: OpenSpec 过程管理】
@@ -109,9 +109,14 @@ Stage 4 归档: openspec archive（任何人）
 | Skill | 用途 | 触发条件 |
 |-------|------|---------|
 | `req-brainstorming` | 发散探索，理解用户意图，设计方案 | 需求模糊，方向不清 |
-| `req-analysis` | 收敛梳理，结构化需求规格 | 方向明确，但缺验收标准/GWT |
 | `openspec-propose` | 创建 OpenSpec change 脚手架 | 需求完整，Gate 1 通过 |
 | `openspec-explore` | 探查代码库/现有实现（辅助） | 需要了解现有功能时 |
+
+**Agent 自身能力**（非 Skill）：
+
+| 能力 | 用途 | 触发条件 |
+|------|------|---------|
+| 结构化分析 | 收敛梳理，澄清模糊词 → 描述业务流程 → 拆分用户故事 + GWT → 识别边界异常 → 优先级标注 | 方向明确，但缺验收标准/GWT |
 
 **关联 Rule**：
 - `req-spec` — 需求文档规范（每条可验证、含验收标准、边界异常、优先级分级、去歧义）
@@ -535,8 +540,8 @@ Rule 不自动加载，由 Skill 在 frontmatter 中声明 `rules: [...]`，被�
 
 | Rule | 引用它的 Skill |
 |------|---------------|
-| req-spec | req-analysis, req-brainstorming, req-review |
-| openspec-workflow | req-brainstorming, req-analysis, req-review, dev-planning, dev-finishing-branch, dev-code-review, arch-review, arch-review-check |
+| req-spec | req-brainstorming, req-review |
+| openspec-workflow | req-brainstorming, req-review, dev-planning, dev-finishing-branch, dev-code-review, arch-review, arch-review-check |
 | design-ui-standards | design-web, dev-vue3-tdd, arch-review, arch-review-check |
 | dev-code-quality | dev-planning, dev-code-review, dev-refactoring, dev-dotnet-tdd, dev-vue3-tdd, arch-review, arch-review-check |
 | dev-security | dev-debugging, dev-dotnet-tdd, dev-code-review, arch-review, arch-review-check |

@@ -6,7 +6,7 @@ rules: [req-spec, openspec-workflow]
 
 # req-brainstorming · 设计先行
 
-**与 `req-analysis` 的关系**：brainstorming 负责发散（探索可能性、理解用户意图、设计方案），analysis 负责收敛（将确定方向梳理为结构化需求规格）。brainstorming 产出方向性结论，交接给 analysis 写 spec。
+**与 `req-analyst` agent 的关系**：brainstorming 负责发散（探索可能性、理解用户意图、设计方案），req-analyst agent 负责收敛（将确定方向执行结构化分析：GWT、优先级、边界异常）。brainstorming 产出方向性结论，交接给 req-analyst agent 继续处理。
 
 ## 硬 Gate
 

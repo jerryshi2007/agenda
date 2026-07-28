@@ -8,7 +8,7 @@ rules: [dev-dotnet-standards, dev-vue3-standards, design-ui-standards, dev-code-
 
 ## 在流程中的位置
 
-`req-analysis` / `openspec-propose` → **arch-review**（架构设计 → `openspec/changes/<name>/design.md`）→ `dev-planning`（任务分解）→ `dev-sdd`（执行）
+req-analyst agent / `openspec-propose` → **arch-review**（架构设计 → `openspec/changes/<name>/design.md`）→ `dev-planning`（任务分解）→ `dev-sdd`（执行）
 
 ## 何时使用
 

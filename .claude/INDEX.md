@@ -6,7 +6,7 @@
 
 | Track | Rule（约束） | Skill（方法） | Agent（角色） |
 |---|---|---|---|
-| 需求 `req-` | [req-spec](rules/req-spec.md), [openspec-workflow](rules/openspec-workflow.md) | [req-brainstorming](skills/req-brainstorming/SKILL.md), [req-analysis](skills/req-analysis/SKILL.md), [req-review](skills/req-review/SKILL.md), [openspec-propose](skills/openspec-propose/SKILL.md), [openspec-explore](skills/openspec-explore/SKILL.md) | [req-analyst](agents/req-analyst.md), [req-reviewer](agents/req-reviewer.md) |
+| 需求 `req-` | [req-spec](rules/req-spec.md), [openspec-workflow](rules/openspec-workflow.md) | [req-brainstorming](skills/req-brainstorming/SKILL.md), [req-review](skills/req-review/SKILL.md), [openspec-propose](skills/openspec-propose/SKILL.md), [openspec-explore](skills/openspec-explore/SKILL.md) | [req-analyst](agents/req-analyst.md), [req-reviewer](agents/req-reviewer.md) |
 | 架构 `arch-` | （复用 dev- rules） | [arch-review](skills/arch-review/SKILL.md), [arch-review-check](skills/arch-review-check/SKILL.md) | [dev-architect](agents/dev-architect.md), [dev-architect-reviewer](agents/dev-architect-reviewer.md) |
 | 设计 `design-` | [design-ui-standards](rules/design-ui-standards.md) | [design-web](skills/design-web/SKILL.md) | [ui-designer](agents/ui-designer.md) |
 | 研发 `dev-` | [dev-code-quality](rules/dev-code-quality.md), [dev-security](rules/dev-security.md), [dev-refactor](rules/dev-refactor.md), [dev-dotnet-standards](rules/dev-dotnet-standards.md), [dev-vue3-standards](rules/dev-vue3-standards.md) | [dev-superpowers-bootstrap](skills/dev-superpowers-bootstrap/SKILL.md), [dev-planning](skills/dev-planning/SKILL.md), [dev-sdd](skills/dev-sdd/SKILL.md), [dev-code-review](skills/dev-code-review/SKILL.md), [dev-debugging](skills/dev-debugging/SKILL.md), [dev-refactoring](skills/dev-refactoring/SKILL.md), [dev-verification](skills/dev-verification/SKILL.md), [dev-finishing-branch](skills/dev-finishing-branch/SKILL.md), [dev-dotnet-tdd](skills/dev-dotnet-tdd/SKILL.md), [dev-vue3-tdd](skills/dev-vue3-tdd/SKILL.md), [openspec-apply-change](skills/openspec-apply-change/SKILL.md), [openspec-archive-change](skills/openspec-archive-change/SKILL.md) | [dev-planning](agents/dev-planning.md), [dev-reviewer](agents/dev-reviewer.md), [dev-dotnet](agents/dev-dotnet.md), [dev-vue3](agents/dev-vue3.md) |
@@ -17,7 +17,7 @@
 
 > **编排模式：agent 内含决策流程（Gate 机制）**。agent 自主评估输入 → 条件分支 → 决定调用哪个 skill、跳过哪个阶段。每个 agent 正文的「决策流程」章节定义了完整的 gate 逻辑。以下是各 track 主要路径速查：
 
-- **需求·评估+分流**：派 `req-analyst` → Gate 0「需求完整度评估」→ 模糊走 `req-brainstorming` / 方向明确走 `req-analysis` / 完整走 `openspec-propose`。**brainstorming 未批准前禁止创建 OpenSpec change。**
+- **需求·评估+分流**：派 `req-analyst` → Gate 0「需求完整度评估」→ 模糊走 `req-brainstorming` / 方向明确由 agent 自身执行结构化分析 / 完整走 `openspec-propose`。**brainstorming 未批准前禁止创建 OpenSpec change。**
 - **需求·审核**：派 `req-reviewer` → 前置检查 proposal+delta specs → 调用 `req-review` skill（强制）→ review.md → 三判决 → 人审批
 - **架构·评估+设计**：派 `dev-architect` → Gate 0「变更规模评估」→ 纯单模块小改动跳过 / 非平凡变更走 `arch-review`。**划分原则未确认前禁止进入设计。**
 - **架构·审核**：派 `dev-architect-reviewer` → 前置检查 design.md → 调用 `arch-review-check` skill（强制）→ design-review.md → 三判决 → 人审批 → 交接 dev-planning
@@ -41,8 +41,8 @@
 
 | Rule | 引用它的 skill |
 |---|---|
-| req-spec | req-analysis, req-brainstorming, req-review |
-| openspec-workflow | req-brainstorming, req-analysis, req-review, dev-planning, dev-finishing-branch, dev-code-review, arch-review, arch-review-check |
+| req-spec | req-brainstorming, req-review |
+| openspec-workflow | req-brainstorming, req-review, dev-planning, dev-finishing-branch, dev-code-review, arch-review, arch-review-check |
 | design-ui-standards | design-web, dev-vue3-tdd, arch-review, arch-review-check |
 | dev-code-quality | dev-planning, dev-code-review, dev-refactoring, dev-dotnet-tdd, dev-vue3-tdd, arch-review, arch-review-check |
 | dev-security | dev-debugging, dev-dotnet-tdd, dev-code-review, arch-review, arch-review-check |

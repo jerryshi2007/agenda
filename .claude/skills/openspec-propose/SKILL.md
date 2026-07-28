@@ -12,7 +12,7 @@ metadata:
 
 Propose a new change - create the change and generate all artifacts in one step.
 
-如果 `req-analysis` 已产出内容，在此基础上创建 change 目录脚手架；如果未产出，则本 skill 同时负责内容和脚手架。
+如果 req-analyst agent 已产出需求文档，在此基础上创建 change 目录脚手架；如果未产出，则本 skill 同时负责内容和脚手架。
 
 I'll create a change with artifacts:
 - proposal.md (what & why)

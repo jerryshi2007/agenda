@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **家庭日程协作工具（agenda）** — 微信小程序，帮助家长规划和安排孩子的日程，孩子查看并执行。覆盖课后活动、日常作息、作业任务三种场景，适配 3-14 岁不同年龄段。
 
 - **技术栈**：微信小程序（前端）+ 云函数/云开发（后端）— 首期仅小程序，后续评估 Web 端
-- **产品文档**：[`production/docs/requirements.md`](production/docs/requirements.md) — 完整产品需求，含功能模块、日程类型设计、展示模式、分期规划
+- **产品文档**：[`production/requirements/index.md`](production/requirements/index.md) — 完整产品需求，含功能模块、日程类型设计、展示模式、分期规划
 - **当前阶段**：产品规划阶段，尚未开始编码
 
 ## 三层结构与加载机制
@@ -43,7 +43,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   ```
   详细流程见 `pm-workflow.md`（流水线参考文档）。
 - **agent 内含决策流程（Gate 机制）**——每个 agent 正文包含「决策流程」章节，定义入口评估 → 条件分支 → skill 调用规则。关键 gate：
-  - **req-analyst**：Gate 0「需求完整度评估」→ 模糊走 brainstorming / 方向明确走 analysis / 完整走 Gate 1。Gate 1「需求文档产出」→ 先 Write `production/docs/requirements.md`，用户确认后进入 Gate 2。Gate 2「OpenSpec 过程管理」→ `openspec-propose`。**brainstorming 未批准前禁止创建 OpenSpec change；requirements.md 未确认前禁止进入 Gate 2。**
+  - **req-analyst**：Gate 0「需求完整度评估」→ 模糊走 brainstorming / 方向明确走 analysis / 完整走 Gate 1。Gate 1「需求文档产出」→ 先 Write `production/requirements/index.md`，用户确认后进入 Gate 2。Gate 2「OpenSpec 过程管理」→ `openspec-propose`。**brainstorming 未批准前禁止创建 OpenSpec change；index.md 未确认前禁止进入 Gate 2。**
   - **dev-architect**：Gate 0「变更规模评估」→ 纯单模块小改动跳过架构设计；非平凡变更走 arch-review。**划分原则（项目/命名空间/数据库）必须用 AskUserQuestion 确认后才能进入设计。**
   - **dev-dotnet / dev-vue3**：Gate 0「任务规模评估」→ task ≤2 且每 task ≤3 文件走轻量 openspec-apply-change；task >2 或有大 task 走 SDD（dev-sdd skill）。**SDD 完成后必须走收尾链（dev-verification → dev-code-review → dev-finishing-branch），跳步 = 未完成。**
   - **ui-designer**：Gate 0「需求清晰度评估」→ 需求模糊需澄清或走 req-analyst；Gate 1「需求分解 → 原型任务拆分」→ 按页面/状态/角色拆分独立任务；Gate 2「风格选型」→ 用户未选定 Element Plus / Ant Design / 项目标准风格前禁止开始设计。**仅做原型，不做生产代码实现。**
