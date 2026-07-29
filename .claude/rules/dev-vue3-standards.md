@@ -21,11 +21,11 @@ description: Vue 3 编码规范——编写或审查 Vue 3 代码时遵循。
 ### 组件组织
 - **SFC 结构固定为 `<script setup>` → `<template>` → `<style scoped>`**——脚本、模板、样式严格按此顺序排列。顺序统一让团队扫读组件时形成肌肉记忆，先看逻辑再看渲染再看样式。
 - **文件名 PascalCase**——单文件组件（SFC）文件用 PascalCase（如 `UserList.vue`），目录用 kebab-case（如 `user-list/`）。PascalCase 文件名在编辑器中按首字母跳转友好，kebab-case 目录在 URL 和路由路径中自然。
-- **目录约定**：`web/src/components/` 放通用组件，`web/src/views/` 放路由页面，`web/src/composables/` 放组合式函数，`web/src/stores/` 放 Pinia store，`web/src/api/` 放 API 调用封装，`web/src/types/` 放共享 TypeScript 类型。
+- **目录约定**：`app/src/components/` 放通用组件，`app/src/views/` 放路由页面，`app/src/composables/` 放组合式函数，`app/src/stores/` 放 Pinia store，`app/src/api/` 放 API 调用封装，`app/src/types/` 放共享 TypeScript 类型。
 
 ### Composition API
 - **`<script setup>` 优先**——新组件只用 `<script setup lang="ts">`，语义更简洁、类型推断更好、无需手动 `return` 暴露给模板。
-- **Composables 提取复用逻辑**——将可复用状态逻辑抽取为 `useXxx` 组合式函数，放在 `web/src/composables/`。composable 命名以 `use` 开头，返回值用 `ref`/`reactive`/`computed`，遵循"输入→逻辑→输出"单一职责。
+- **Composables 提取复用逻辑**——将可复用状态逻辑抽取为 `useXxx` 组合式函数，放在 `app/src/composables/`。composable 命名以 `use` 开头，返回值用 `ref`/`reactive`/`computed`，遵循"输入→逻辑→输出"单一职责。
 - **ref vs reactive 选择**：基本类型和需要替换整个值的对象用 `ref`；不需要替换整体的复杂对象（如表单数据）用 `reactive`。避免对 `reactive` 对象做解构（会丢失响应性），若需解构用 `toRefs`。
 - **`computed` 用于派生状态**——能从已有状态计算得出的值不另存为 `ref`，避免状态同步不一致。
 
@@ -50,7 +50,7 @@ description: Vue 3 编码规范——编写或审查 Vue 3 代码时遵循。
 - **校验失败反馈**——校验错误信息明确、中文描述，提示用户具体哪错了、怎么改。不显示"输入无效"这种无信息量的通用错误。
 
 ### API 调用
-- **统一封装 axios**——所有 HTTP 请求通过 `web/src/api/` 下的统一实例发出，含 baseURL、超时、请求/响应拦截器。不在组件里直接 `import axios` 裸调。
+- **统一封装 axios**——所有 HTTP 请求通过 `app/src/api/` 下的统一实例发出，含 baseURL、超时、请求/响应拦截器。不在组件里直接 `import axios` 裸调。
 - **错误拦截**——响应拦截器中统一处理 401（跳登录）、403（提示无权限）、5xx（提示服务异常），业务代码只关心成功路径。
 - **请求取消**——长时间请求或页面离开时用 `AbortController` 或 axios `CancelToken` 取消，避免内存泄漏和过期响应覆盖当前数据。
 
@@ -67,14 +67,14 @@ description: Vue 3 编码规范——编写或审查 Vue 3 代码时遵循。
 - **大列表虚拟滚动**——超 100 条的可视列表用虚拟滚动组件（如 `vue-virtual-scroller`），不一次渲染全量 DOM。
 
 ### 样式
-- **`<style scoped>` 优先**——组件样式默认 scoped，防止样式泄漏到其他组件。全局样式只放设计令牌、Reset、公共布局（`web/src/styles/` 下）。
+- **`<style scoped>` 优先**——组件样式默认 scoped，防止样式泄漏到其他组件。全局样式只放设计令牌、Reset、公共布局（`app/src/styles/` 下）。
 - **深度选择器 `:deep()`**——需穿透自定义子组件根节点时用 `:deep(.child-class)`，避免用已废弃的 `>>>` 或 `/deep/`。**禁止**用 `:deep()` 覆盖 UI 框架组件（Element Plus / Ant Design Vue）内部样式（框架升级时内部样式可能变化，见 `design-ui-standards` rule）。
-- **CSS 变量做设计令牌**——在 `web/src/styles/tokens.css` 中定义 CSS 变量，变量值映射到 UI 框架主题变量（如 `--color-primary: var(--el-color-primary)`）。组件中通过自定义变量名引用（`var(--color-primary)`），不直接使用裸值。令牌定义策略见 `design-ui-standards` rule。
+- **CSS 变量做设计令牌**——在 `app/src/styles/tokens.css` 中定义 CSS 变量，变量值映射到 UI 框架主题变量（如 `--color-primary: var(--el-color-primary)`）。组件中通过自定义变量名引用（`var(--color-primary)`），不直接使用裸值。令牌定义策略见 `design-ui-standards` rule。
 
 ## 示例
 
 ### 组件组织
-- ✅ `web/src/components/user/UserCard.vue`：`<script setup lang="ts">` → `<template>` → `<style scoped>`
+- ✅ `app/src/components/user/UserCard.vue`：`<script setup lang="ts">` → `<template>` → `<style scoped>`
 - ❌ `<template>` 放最前，或 `<script>` 不用 `setup`，或样式不加 scoped
 
 ### 可测试性
@@ -93,12 +93,12 @@ const emit = defineEmits<{ (e: 'delete', id: number): void }>()
 - ❌ `defineProps({ userId: Number })` —— 无类型约束，传字符串不会报错
 
 ### 状态管理
-- ✅ `web/src/stores/user.ts`：`defineStore('user', () => { ... })` 存登录用户信息、菜单折叠状态等客户端状态
+- ✅ `app/src/stores/user.ts`：`defineStore('user', () => { ... })` 存登录用户信息、菜单折叠状态等客户端状态
 - ❌ 在 Pinia store 里存 `allUsers: User[]` 然后手工写 `fetchUsers`、`refreshUsers`（应走服务端缓存方案）
 - ❌ `const users = reactive(await fetchUsers())` 直接存组件里——页面切换数据丢失且每个组件各自请求
 
 ### API 调用
-- ✅ `web/src/api/request.ts` 导出 `request` 实例，组件中 `import { request } from '@/api/request'`
+- ✅ `app/src/api/request.ts` 导出 `request` 实例，组件中 `import { request } from '@/api/request'`
 - ❌ 组件里 `import axios from 'axios'; axios.get('/api/users')` 裸调
 
 ### 样式

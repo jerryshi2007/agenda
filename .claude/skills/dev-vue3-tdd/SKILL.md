@@ -30,8 +30,8 @@ rules: [dev-vue3-standards, test-standards, dev-code-quality, design-ui-standard
    - 若涉及 auth / token / 输入处理，另 Read `rules/dev-security.md`
 
 2. **探查项目结构**
-   - Read 项目根目录的 `CLAUDE.md`，了解 `web/` 下源码目录与测试目录的约定
-   - 确认已有测试文件位置：测试文件与源码同结构放置（`web/src/components/Xxx.vue` ↔ `web/src/components/__tests__/Xxx.test.ts`）
+   - Read 项目根目录的 `CLAUDE.md`，了解 `app/` 下源码目录与测试目录的约定
+   - 确认已有测试文件位置：测试文件与源码同结构放置（`app/src/components/Xxx.vue` ↔ `app/src/components/__tests__/Xxx.test.ts`）
    - 用 `pnpm test run` 了解已有测试命名风格与通过状态
    - 确认 `vite.config.ts` 中 Vitest 测试配置（`test` 字段，jsdom 环境、路径别名 `@` 映射）。Vitest 配置可嵌入 `vite.config.ts` 或独立 `vitest.config.ts`，优先查 `vite.config.ts`
 
@@ -49,7 +49,7 @@ rules: [dev-vue3-standards, test-standards, dev-code-quality, design-ui-standard
    - 遵循 `dev-vue3-standards`：`<script setup lang="ts">`、`defineProps<T>()`、`defineEmits<T>()`、`<style scoped>`
    - **每个可交互元素必须添加 `data-id`**，遵循 `<组件缩写>-<元素角色>` 命名规范。`data-id` 是开发与测试的共同契约——组件中写了，测试中用，任何一方改需要双方对齐
    - 运行 `pnpm test run <测试文件>` 确认通过
-   - 若需要新建文件，按 `web/src/components/` / `web/src/composables/` / `web/src/stores/` / `web/src/api/` 等约定目录创建
+   - 若需要新建文件，按 `app/src/components/` / `app/src/composables/` / `app/src/stores/` / `app/src/api/` 等约定目录创建
 
 5. **重构——在不改行为的前提下清理**
    - 提取重复逻辑为 composable、改善变量/函数命名、拆分大组件
@@ -122,7 +122,7 @@ rules: [dev-vue3-standards, test-standards, dev-code-quality, design-ui-standard
 
 ### 红阶段
 ```ts
-// 文件：web/src/components/__tests__/UserCard.test.ts
+// 文件：app/src/components/__tests__/UserCard.test.ts
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import UserCard from '../UserCard.vue'
@@ -153,11 +153,11 @@ describe('UserCard', () => {
   })
 })
 ```
-→ `pnpm test run web/src/components/__tests__/UserCard.test.ts` — 失败（点击按钮后未 emit 'delete' 事件）
+→ `pnpm test run app/src/components/__tests__/UserCard.test.ts` — 失败（点击按钮后未 emit 'delete' 事件）
 
 ### 绿阶段
 ```vue
-<!-- 文件：web/src/components/UserCard.vue -->
+<!-- 文件：app/src/components/UserCard.vue -->
 <script setup lang="ts">
 interface Props { userId: number; userName: string }
 defineProps<Props>()
@@ -175,7 +175,7 @@ const emit = defineEmits<{ (e: 'delete', id: number): void }>()
 .user-card { display: flex; align-items: center; gap: var(--space-sm); }
 </style>
 ```
-→ `pnpm test run web/src/components/__tests__/UserCard.test.ts` — 通过
+→ `pnpm test run app/src/components/__tests__/UserCard.test.ts` — 通过
 
 ### E2E 测试复用同一 `data-id`
 > 以下示例展示项目后续引入 E2E 测试（如 Playwright）时，如何与单元测试共用 `data-id` 定位符。当前项目可能尚未配置 E2E 框架，此处作为规范参考。

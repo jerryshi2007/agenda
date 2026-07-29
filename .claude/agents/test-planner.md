@@ -43,7 +43,7 @@ skills: [test-case-design]
    - proposal.md + delta specs（了解需求细节）
    - production/prototypes/ 下的 HTML 原型（提取用户交互流程）
 
-2. Grep/Glob 探查 web/src/views/ 和 web/src/components/
+2. Grep/Glob 探查 app/src/views/ 和 app/src/components/
    → 了解已有页面结构和 data-id 使用情况
 
 3. 调用 Skill `test-case-design`（强制 Invoke）

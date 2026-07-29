@@ -13,7 +13,7 @@ req-analyst agent / `openspec-propose` → **arch-review**（架构设计 → `o
 ## 何时使用
 
 - 非平凡需求确认后、动手编码前，需要做架构设计时
-- 跨模块变更（涉及 api/ + web/ 两端时）
+- 跨模块变更（涉及 api/ + app/ 两端时）
 - 涉及认证授权、数据流、模块边界等架构决策时
 - 新技术引入或技术选型需要权衡时
 - 已有架构需要评审或调整时
@@ -36,7 +36,7 @@ req-analyst agent / `openspec-propose` → **arch-review**（架构设计 → `o
    - 识别跨切面关注点（认证、审计、缓存、错误处理——哪些模块都需要的？）
 
 3. **现状分析**
-   - 探查 `api/` 和 `web/` 下已有代码结构（如有）
+   - 探查 `api/` 和 `app/` 下已有代码结构（如有）
    - 识别已有分层模式、命名约定、组件组织方式
    - 标注可复用部分（哪些不改、哪些扩展、哪些新建）
    - 不推翻现有模式——在已有约定上增量设计
@@ -233,7 +233,7 @@ req-analyst agent / `openspec-propose` → **arch-review**（架构设计 → `o
 
 ### 输入
 - OpenSpec change: `expand-app-management` — 扩展应用管理（应用注册、功能点树、角色管理、角色-岗位关系、应用入口）
-- 现有代码：项目尚未初始化（api/ 和 web/ 为空）
+- 现有代码：项目尚未初始化（api/ 和 app/ 为空）
 
 ### 产出
 - 技术设计：`openspec/changes/expand-app-management/design.md`

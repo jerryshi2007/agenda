@@ -16,7 +16,7 @@ description: UI 标准与原型规范——出原型或实现前端界面时遵�
 - **仅框架无对应组件时才自研**——自研前先评审"是否确实无此组件"、"是否可组合现有组件实现"。自研组件需遵守设计令牌、可访问性、响应式等相同标准。
 
 **设计令牌优先**
-- 颜色、间距、字号、圆角、阴影统一走设计令牌（token），不硬编码裸值。保证全局一致与主题切换。令牌定义应与所选 UI 框架的主题变量对接（如映射到 Element Plus 的 `--el-color-primary` 或 Ant Design Vue 的 `token.colorPrimary`），避免维护两套独立变量体系。Vue 3 实现方式：在 `web/src/styles/tokens.css` 中将自定义 CSS 变量映射到框架主题变量（如 `--color-primary: var(--el-color-primary)`），详见 `dev-vue3-standards` rule。
+- 颜色、间距、字号、圆角、阴影统一走设计令牌（token），不硬编码裸值。保证全局一致与主题切换。令牌定义应与所选 UI 框架的主题变量对接（如映射到 Element Plus 的 `--el-color-primary` 或 Ant Design Vue 的 `token.colorPrimary`），避免维护两套独立变量体系。Vue 3 实现方式：在 `app/src/styles/tokens.css` 中将自定义 CSS 变量映射到框架主题变量（如 `--color-primary: var(--el-color-primary)`），详见 `dev-vue3-standards` rule。
 - 组件复用优先（遵循 `dev-code-quality` rule 复用优先原则）——框架组件能实现就别重造，避免 UI 分裂。
 
 **响应式与可访问性底线**
