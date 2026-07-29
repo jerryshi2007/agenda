@@ -141,7 +141,7 @@ change`                  test-standards /
 
 ## 输出
 
-- Vue 3 功能实现代码（按 CLAUDE.md 约定的 `web/src/` 目录结构）
+- Vue 3 功能实现代码（按 CLAUDE.md 约定的 `app/src/` 目录结构）
 - 测试代码（`__tests__/` 下，与源码同结构放置）
 - pnpm test run 运行结果（全部通过）
 - pnpm build 无构建错误

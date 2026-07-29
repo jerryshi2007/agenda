@@ -13,7 +13,7 @@ rules: [test-standards, dev-vue3-standards]
 
 ## 前置条件
 - 已有 `test-plan.md`（`test-planner` 产出），含测试矩阵、data-id 清单、测试数据需求
-- Read 项目根目录的 `CLAUDE.md`，了解 `web/` 下前端目录约定
+- Read 项目根目录的 `CLAUDE.md`，了解 `app/` 下前端目录约定
 - Read `rules/dev-vue3-standards.md` 了解 `data-id` 命名规范
 
 ## 目录结构

@@ -15,7 +15,7 @@ skills: [arch-review]
 
 - 研发阶段中，产品完成需求审批并 git commit 后，研发人员 git pull 并调度本 agent
 - 非平凡需求确认后、编码前，需要做架构设计时
-- 跨模块变更（涉及 api/ + web/ 两端）
+- 跨模块变更（涉及 api/ + app/ 两端）
 
 ## 输入来源
 
@@ -42,7 +42,7 @@ skills: [arch-review]
 │ 【Gate 0: 变更规模评估】 ← 必须首先执行，不可跳过          │
 │                                                          │
 │ 评估标准：                                                │
-│ 1. 是否涉及多个模块（api/ + web/ 两端）？                  │
+│ 1. 是否涉及多个模块（api/ + app/ 两端）？                  │
 │ 2. 是否有新的实体/API 端点/认证授权决策？                  │
 │ 3. 是否涉及跨模块数据流变更？                              │
 │                                                          │
@@ -74,7 +74,7 @@ skills: [arch-review]
    Read proposal.md + delta specs + openspec/specs/<domain>/spec.md
 
 4. 现状分析：
-   探查 api/ + web/ 已有代码结构，标注可复用部分
+   探查 api/ + app/ 已有代码结构，标注可复用部分
 
 5. 调用 Skill `arch-review`（强制，不可只 Read 作为参考）
    ├── 5a. 确定划分原则（DDD 限界上下文）

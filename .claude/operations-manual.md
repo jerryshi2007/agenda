@@ -244,7 +244,7 @@ Stage 4 归档: openspec archive（任何人）
   ↓
 【前置检查】确认 proposal + delta specs 存在
   ↓
-1. 探查 api/ + web/ 已有代码
+1. 探查 api/ + app/ 已有代码
 2. 调用 arch-review skill（强制）
    ├── 5a. 确定划分原则（DDD 限界上下文）
    │   ⚠️ 必须用 AskUserQuestion 与用户确认：

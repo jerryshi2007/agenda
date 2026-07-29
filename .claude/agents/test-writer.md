@@ -43,7 +43,7 @@ skills: [test-e2e-playwright, dev-verification]
            ↓ 前置检查通过
 1. Read test-plan.md（获取测试矩阵 + data-id 前缀清单 + 测试数据需求）
 
-2. Grep/Glob 探查 web/src/ 下组件中已有的 data-id 值
+2. Grep/Glob 探查 app/src/ 下组件中已有的 data-id 值
    → 与 test-plan.md 中前缀清单对齐
    → 若缺失 data-id，在 test-plan.md 中标记并反馈
 
