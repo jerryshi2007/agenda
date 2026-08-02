@@ -63,8 +63,8 @@ rules: [dev-code-quality, openspec-workflow]
    - **依赖**：Task N-1, Task N-2（无依赖则写"无"）
    - **输入**：<依赖 task 产出的文件/接口>
    - **产出文件**：
-     - `api/src/Uniauth.Domain/xxx/Xxx.cs`
-     - `api/src/Uniauth.Application/xxx/XxxService.cs`
+     - `api/src/<Project>.Domain/xxx/Xxx.cs`
+     - `api/src/<Project>.Application/xxx/XxxService.cs`
    - **完成标准**：
      1. <具体可验证的条件 1>
      2. <具体可验证的条件 2>

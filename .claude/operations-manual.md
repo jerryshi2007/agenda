@@ -1,4 +1,4 @@
-# 统一权限管理系统 2.0 — Claude Code 操作手册
+# Claude Code 开发框架 — 操作手册
 
 > **适用对象**：产品经理、研发工程师、测试工程师
 > **版本**：2026-07-27
@@ -32,8 +32,7 @@
 ├── skills/         # 方法（"怎么做"）—— 被 agent 调用，定义具体流程
 ├── rules/          # 约束（"不能越界"）—— 被 skill 声明引用，定义标准底线
 ├── CLAUDE.md       # Agent 编排手册（每次会话加载）
-├── INDEX.md        # Track × 层 工具速查表
-└── pm-workflow.md  # 四阶段流水线参考
+└── INDEX.md        # Track × 层 工具速查表
 ```
 
 **三层协作关系**：Agent 调度 → Agent 内含决策流程（Gate 机制）→ 条件分支决定调用哪个 Skill → Skill 显式 Read 其声明的 Rule 文件。
@@ -578,10 +577,10 @@ Rule 不自动加载，由 Skill 在 frontmatter 中声明 `rules: [...]`，被�
 
 ```bash
 # 后端
-dotnet build api/Uniauth.sln                   # 构建
-dotnet test api/Uniauth.sln                     # 全部测试
+dotnet build api/<Project>.sln                   # 构建
+dotnet test api/<Project>.sln                     # 全部测试
 dotnet test --filter "FullyQualifiedName~Xxx"   # 单个测试
-dotnet run --project api/src/Uniauth.Api        # 启动 API
+dotnet run --project api/src/<Project>.Api        # 启动 API
 
 # 前端
 cd web && pnpm dev                              # 启动 dev server
@@ -595,10 +594,10 @@ npx playwright test --config testing/e2e/playwright.config.ts
 npx playwright test --config testing/e2e/playwright.config.ts --grep "规则"
 
 # EF Core 迁移
-cd api/src/Uniauth.Infrastructure
-dotnet ef migrations add <Name> --startup-project ../Uniauth.Api
-dotnet ef migrations script --startup-project ../Uniauth.Api
-dotnet ef database update --startup-project ../Uniauth.Api
+cd api/src/<Project>.Infrastructure
+dotnet ef migrations add <Name> --startup-project ../<Project>.Api
+dotnet ef migrations script --startup-project ../<Project>.Api
+dotnet ef database update --startup-project ../<Project>.Api
 
 # OpenSpec
 openspec list                                    # 查看活跃变更

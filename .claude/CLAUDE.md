@@ -4,11 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目
 
-**家庭日程协作工具（agenda）** — 微信小程序，帮助家长规划和安排孩子的日程，孩子查看并执行。覆盖课后活动、日常作息、作业任务三种场景，适配 3-14 岁不同年龄段。
+**<项目名称>** — <项目简要描述，说明业务领域和覆盖模块>。
 
-- **技术栈**：微信小程序（前端）+ 云函数/云开发（后端）— 首期仅小程序，后续评估 Web 端
-- **产品文档**：[`production/requirements/index.md`](production/requirements/index.md) — 完整产品需求，含功能模块、日程类型设计、展示模式、分期规划
-- **当前阶段**：产品规划阶段，尚未开始编码
+- **技术栈**：.NET 10 + ABP Framework 10.4（后端）+ Vue 3 + TypeScript + Element Plus（前端）
+- **项目概览**：详见根 [`CLAUDE.md`](../CLAUDE.md)（项目概况、启动流程、验证命令）
+- **需求文档**：[`production/requirements/index.md`](../production/requirements/index.md) — 需求文档索引
+- **架构说明**：[`docs/architecture.md`](../docs/architecture.md)
 
 ## 三层结构与加载机制
 
@@ -22,7 +23,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 快捷命令
 
-[`commands/opsx/`](commands/opsx/) 提供 OpenSpec 快捷斜杠命令（`/opsx:explore`、`/opsx:propose`、`/opsx:apply`、`/opsx:archive`），映射到对应的 skill。
+OpenSpec 快捷斜杠命令（`/opsx:explore`、`/opsx:propose`、`/opsx:apply`、`/opsx:archive`），映射到对应的 skill，由 Harness 内置支持。
 
 ## 横切 rule
 
@@ -34,23 +35,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 默认行为
 
-- **非平凡需求 → 按阶段分派**——用户提出非平凡功能需求或变更请求时，主代理根据当前阶段分派对应 agent。产品、研发、测试各自使用 Claude Code，通过 OpenSpec 文件（git 仓库共享）完成阶段交接：
-  ```
-  Stage 1 产品: req-analyst → req-reviewer → 人审批 → git commit
-  Stage 2 研发: git pull → dev-architect → dev-architect-reviewer → 人审批 → dev-planning → dev-dotnet + dev-vue3 (并行) → git commit
-  Stage 3 测试: git pull → test-planner → test-writer → test-reviewer → test-runner → 人审批
-  Stage 4 归档: openspec archive（任何人）
-  ```
-  详细流程见 `pm-workflow.md`（流水线参考文档）。
-- **agent 内含决策流程（Gate 机制）**——每个 agent 正文包含「决策流程」章节，定义入口评估 → 条件分支 → skill 调用规则。关键 gate：
-  - **req-analyst**：Gate 0「需求完整度评估」→ 模糊走 brainstorming / 方向明确走 analysis / 完整走 Gate 1。Gate 1「需求文档产出」→ 先 Write `production/requirements/index.md`，用户确认后进入 Gate 2。Gate 2「OpenSpec 过程管理」→ `openspec-propose`。**brainstorming 未批准前禁止创建 OpenSpec change；index.md 未确认前禁止进入 Gate 2。**
-  - **dev-architect**：Gate 0「变更规模评估」→ 纯单模块小改动跳过架构设计；非平凡变更走 arch-review。**划分原则（项目/命名空间/数据库）必须用 AskUserQuestion 确认后才能进入设计。**
-  - **dev-dotnet / dev-vue3**：Gate 0「任务规模评估」→ task ≤2 且每 task ≤3 文件走轻量 openspec-apply-change；task >2 或有大 task 走 SDD（dev-sdd skill）。**SDD 完成后必须走收尾链（dev-verification → dev-code-review → dev-finishing-branch），跳步 = 未完成。**
-  - **ui-designer**：Gate 0「需求清晰度评估」→ 需求模糊需澄清或走 req-analyst；Gate 1「需求分解 → 原型任务拆分」→ 按页面/状态/角色拆分独立任务；Gate 2「风格选型」→ 用户未选定 Element Plus / Ant Design / 项目标准风格前禁止开始设计。**仅做原型，不做生产代码实现。**
-  - **test-runner**：Gate 0「环境就绪检查」→ 被测应用/浏览器/seed 任一未就绪禁止执行。
-- **需求/架构/计划/测试阶段**的 agent（req-analyst、req-reviewer、dev-architect、dev-architect-reviewer、dev-planning、test-planner、test-writer、test-reviewer、test-runner）端到端执行，含 openspec CLI 操作（自己跑 `openspec new/status/instructions/archive` 等命令）。**skill 调用由 agent 决策流程的 gate 控制，不自由裁量。**
-- **dev-dotnet / dev-vue3** 各自编排各自技术栈的 SDD（dev-sdd + dev-verification），可 dispatch 子代理实现、dispatch dev-reviewer 审查。
-- **bug / 测试失败 / 异常**，由当前 agent（dev-dotnet / dev-vue3）直接调用 `dev-debugging` skill 系统化定位根因，不经过已删除的 dev-debugger agent。不要直接猜改。
-- **重构**，由当前 agent 直接调用 `dev-refactoring` skill，不经过已删除的 dev-refactorer agent。
-- **改动前先查复用点**（详见 `rules/dev-code-quality.md` 复用优先约束）——搜索现有函数/组件，能复用就不新写。
-- 需要专门角色时，派对应 agent；agent 通过 skill 间接获得 rule 约束。
+- **非平凡需求 -> 主代理直接编排全链路**——用户提出非平凡功能需求或变更请求时，主代理直接按 SDLC 链路顺序调度各 agent（req-analyst -> req-reviewer -> dev-architect -> dev-architect-reviewer -> dev-planning -> test-planner -> dev-dotnet + dev-vue3 -> test-writer -> test-reviewer -> test-runner -> 收尾 -> 归档），含三道人审批硬 gate。简单 bug 修复、格式调整、文档更新等平凡变更可豁免，直接处理。
+- **需求/架构/计划/测试阶段**的角色（req-analyst、req-reviewer、dev-architect、dev-architect-reviewer、dev-planning、test-planner、test-writer、test-reviewer、test-runner）端到端执行，含 openspec CLI 操作（自己跑 `openspec-cn new/status/instructions/archive` 等命令）。
+- **dev-dotnet / dev-vue3** 各自编排各自技术栈的 SDD（dev-sdd + dev-verification），角色规格模式下由主代理扮演实现与自审（dev-reviewer 角色也由主代理切换扮演）。
+- **bug / 测试失败 / 异常**，先用 `dev-debugging` skill 系统化定位根因，不要直接猜改。
+- **改动前先查复用点**——搜索现有函数/组件，能复用就不新写。
+- 需要专门角色时，读对应 `agents/*.md` 扮演；agent 通过 skill 间接获得 rule 约束。
