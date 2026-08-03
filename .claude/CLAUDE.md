@@ -4,12 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目
 
-**<项目名称>** — <项目简要描述，说明业务领域和覆盖模块>。
+**家庭日程协作工具（agenda）** — 微信小程序，帮家长规划孩子日程、孩子查看执行。覆盖课后活动、日常作息、作业任务三种场景，适配 3-14 岁儿童。
 
-- **技术栈**：.NET 10 + ABP Framework 10.4（后端）+ Vue 3 + TypeScript + Element Plus（前端）
-- **项目概览**：详见根 [`CLAUDE.md`](../CLAUDE.md)（项目概况、启动流程、验证命令）
-- **需求文档**：[`production/requirements/index.md`](../production/requirements/index.md) — 需求文档索引
-- **架构说明**：[`docs/architecture.md`](../docs/architecture.md)
+- **技术栈**：微信小程序（前端）+ 云函数/云开发（后端）。具体前端框架（原生/uni-app/Taro）和运行时栈在 Stage 2 架构设计阶段确定。
+- **项目概览**：详见根 [`CLAUDE.md`](../CLAUDE.md)（项目概况、目录导航、工作流）
+- **需求文档**：[`production/requirements/index.md`](../production/requirements/index.md) — 产品需求总纲，含定位、角色、模块、非功能需求、分期规划
+- **当前阶段**：产品规划阶段（Stage 1），代码尚未开始编码。日程管理模块需求已完成，其余模块待创建。
 
 ## 三层结构与加载机制
 
