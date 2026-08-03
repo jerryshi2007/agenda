@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家庭日程协作工具 · UI 设计总览</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  body { background: #f0f1f3; padding: 40px 20px; }
+  .showcase { max-width: 1400px; margin: 0 auto; }
+  .showcase-header { text-align: center; margin-bottom: 60px; }
+  .showcase-header h1 { font-size: 32px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
+  .showcase-header p { font-size: 16px; color: #6b7280; }
+  .section-title { font-size: 22px; font-weight: 700; color: #1f2937; margin: 48px 0 8px; padding-left: 4px; }
+  .section-desc { font-size: 14px; color: #9ca3af; margin-bottom: 24px; padding-left: 4px; }
+  .screen-row { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; margin-bottom: 48px; }
+  .screen-item { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .screen-label { font-size: 14px; font-weight: 600; color: #4b5563; }
+  .screen-sublabel { font-size: 12px; color: #9ca3af; }
+
+  /* Design System Preview */
+  .ds-section { background: #fff; border-radius: 20px; padding: 40px; margin-bottom: 48px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+  .ds-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; }
+  .ds-group h4 { font-size: 13px; color: #9ca3af; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .color-swatch { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .color-chip { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; }
+  .color-info { font-size: 13px; }
+  .color-info b { display: block; color: #1f2937; }
+  .color-info span { color: #9ca3af; font-size: 11px; }
+
+  /* Phone adjustments for showcase */
+  .phone-frame { transform: scale(0.85); transform-origin: top center; margin-bottom: -100px; }
+
+  /* Week View specific */
+  .week-header { display: flex; align-items: center; justify-content: space-between; padding: 0 16px 12px; background: #fff; }
+  .week-month { font-size: 18px; font-weight: 700; color: #1f2937; }
+  .week-today-btn { font-size: 13px; color: #6366f1; font-weight: 600; padding: 4px 12px; background: #eef2ff; border-radius: 20px; }
+  .week-days { display: grid; grid-template-columns: repeat(7, 1fr); background: #fff; padding-bottom: 8px; }
+  .week-day { text-align: center; padding: 4px 0; }
+  .week-day .dow { font-size: 11px; color: #9ca3af; margin-bottom: 2px; }
+  .week-day .day-num { font-size: 15px; font-weight: 600; color: #374151; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; }
+  .week-day.today .day-num { background: #6366f1; color: #fff; }
+  .week-day.other-month .day-num { color: #d1d5db; }
+
+  .filter-bar { display: flex; gap: 8px; padding: 8px 16px; background: #fff; border-top: 1px solid #f3f4f6; overflow-x: auto; }
+  .filter-chip { display: flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; background: #f9fafb; color: #6b7280; white-space: nowrap; }
+  .filter-chip.active { background: #eef2ff; color: #4f46e5; }
+  .filter-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #f3f4f6; flex: 1; overflow-y: auto; }
+  .week-col { background: #fff; display: flex; flex-direction: column; gap: 4px; padding: 4px 2px; min-height: 100%; }
+  .mini-card { border-radius: 6px; padding: 4px 5px; font-size: 10px; line-height: 1.3; position: relative; overflow: hidden; }
+  .mini-card .mc-time { font-size: 9px; opacity: 0.7; font-weight: 500; }
+  .mini-card .mc-title { font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+  .mc-activity { background: #eff6ff; color: #1d4ed8; border-left: 3px solid #3b82f6; }
+  .mc-routine { background: #f0fdf4; color: #15803d; border-left: 3px solid #22c55e; }
+  .mc-homework { background: #fffbeb; color: #b45309; border-left: 3px solid #f59e0b; }
+  .mc-done { opacity: 0.5; text-decoration: line-through; }
+  .mc-cancelled { opacity: 0.4; text-decoration: line-through; }
+</style>
+</head>
+<body>
+<div class="showcase">
+
+  <!-- Header -->
+  <div class="showcase-header">
+    <h1>家庭日程协作工具</h1>
+    <p>微信小程序 · 高保真 UI 设计 · 家长端 + 孩子端</p>
+  </div>
+
+  <!-- Design System -->
+  <div class="ds-section">
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:20px;color:#1f2937;">设计系统</h3>
+    <div class="ds-grid">
+      <div class="ds-group">
+        <h4>品牌色</h4>
+        <div class="color-swatch"><div class="color-chip" style="background:#6366f1"></div><div class="color-info"><b>Indigo 500</b><span>#6366F1 · 主色</span></div></div>
+        <div class="color-swatch"><div class="color-chip" style="background:#4f46e5"></div><div class="color-info"><b>Indigo 600</b><span>#4F46E5 · 按钮按压</span></div></div>
+      </div>
+      <div class="ds-group">
+        <h4>日程类型色</h4>
+        <div class="color-swatch"><div class="color-chip" style="background:#3b82f6"></div><div class="color-info"><b>课后活动</b><span>#3B82F6 · 蓝</span></div></div>
+        <div class="color-swatch"><div class="color-chip" style="background:#22c55e"></div><div class="color-info"><b>日常作息</b><span>#22C55E · 绿</span></div></div>
+        <div class="color-swatch"><div class="color-chip" style="background:#f59e0b"></div><div class="color-info"><b>作业任务</b><span>#F59E0B · 橙</span></div></div>
+      </div>
+      <div class="ds-group">
+        <h4>语义色</h4>
+        <div class="color-swatch"><div class="color-chip" style="background:#22c55e"></div><div class="color-info"><b>Success</b><span>已完成</span></div></div>
+        <div class="color-swatch"><div class="color-chip" style="background:#ef4444"></div><div class="color-info"><b>Error</b><span>逾期/删除</span></div></div>
+        <div class="color-swatch"><div class="color-chip" style="background:#9ca3af"></div><div class="color-info"><b>Neutral</b><span>已取消</span></div></div>
+      </div>
+      <div class="ds-group">
+        <h4>排版</h4>
+        <div style="font-size:11px;color:#9ca3af;">字体族: PingFang SC / System</div>
+        <div style="font-size:28px;font-weight:700;color:#1f2937;">28px Bold</div>
+        <div style="font-size:18px;font-weight:600;color:#1f2937;">18px Semibold</div>
+        <div style="font-size:14px;color:#374151;">14px Regular · 正文</div>
+        <div style="font-size:12px;color:#6b7280;">12px · 辅助文字</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Parent Calendar Views -->
+  <div class="section-title">家长端 · 日历视图</div>
+  <div class="section-desc">周视图（默认首页）、日视图、月视图 — 三种视图切换，按类型着色，按孩子/类型筛选</div>
+  <div class="screen-row">
+
+    <!-- Screen 1: Week View -->
+    <div class="screen-item">
+      <div class="phone-frame">
+        <!-- Status Bar -->
+        <div class="status-bar">
+          <span class="status-time">9:41</span>
+          <div class="status-icons">
+            <svg viewBox="0 0 16 10"><path d="M1 4h2v5H1zm4-2h2v7H5zm4-2h2v9H9zm4-2h2v11h-2z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 16 12"><path d="M8 2C5 2 2.5 3 1 4.5L0 3.5C1.8 1.8 4.8 0 8 0s6.2 1.8 8 3.5L15 4.5C13.5 3 11 2 8 2zm0 4C6.5 6 5 6.8 4 7.5L3 6.5C4.3 5.3 6 4 8 4s3.7 1.3 5 2.5L12 7.5C11 6.8 9.5 6 8 6zm0 4c-.8 0-1.5.3-2 .8L5 9.8C5.8 9 6.8 8 8 8s2.2 1 3 1.8L10 10.8c-.5-.5-1.2-.8-2-.8z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 24 12"><rect x="1" y="2" width="20" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1"/><rect x="3" y="4" width="14" height="4" rx="1" fill="currentColor"/><rect x="22" y="4" width="1.5" height="4" rx="1" fill="currentColor"/></svg>
+          </div>
+        </div>
+        <!-- Week Header -->
+        <div class="week-header">
+          <div class="week-month">2026年8月</div>
+          <div class="week-today-btn">今天</div>
+        </div>
+        <!-- View Switch -->
+        <div style="padding:0 16px 8px;background:#fff;">
+          <div class="segmented">
+            <div class="segmented-item">月</div>
+            <div class="segmented-item active">周</div>
+            <div class="segmented-item">日</div>
+          </div>
+        </div>
+        <!-- Week Days -->
+        <div class="week-days">
+          <div class="week-day"><div class="dow">一</div><div class="day-num">28</div></div>
+          <div class="week-day"><div class="dow">二</div><div class="day-num">29</div></div>
+          <div class="week-day"><div class="dow">三</div><div class="day-num">30</div></div>
+          <div class="week-day"><div class="dow">四</div><div class="day-num">31</div></div>
+          <div class="week-day today"><div class="dow">五</div><div class="day-num">1</div></div>
+          <div class="week-day"><div class="dow">六</div><div class="day-num">2</div></div>
+          <div class="week-day"><div class="dow">日</div><div class="day-num">3</div></div>
+        </div>
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+          <div class="filter-chip active"><div class="dot" style="background:#6366f1"></div>全部孩子</div>
+          <div class="filter-chip"><div class="dot" style="background:#3b82f6"></div>小明</div>
+          <div class="filter-chip"><div class="dot" style="background:#ec4899"></div>小红</div>
+          <div class="filter-chip" style="background:#f0fdf4;color:#15803d;">全部类型</div>
+        </div>
+        <!-- Week Grid -->
+        <div class="week-grid">
+          <div class="week-col">
+            <div class="mini-card mc-routine"><div class="mc-time">7:00</div><div class="mc-title">起床</div></div>
+            <div class="mini-card mc-routine mc-done"><div class="mc-time">16:00</div><div class="mc-title">练琴</div></div>
+          </div>
+          <div class="week-col">
+            <div class="mini-card mc-activity"><div class="mc-time">16:00</div><div class="mc-title">钢琴课</div></div>
+            <div class="mini-card mc-routine"><div class="mc-time">20:00</div><div class="mc-title">阅读</div></div>
+          </div>
+          <div class="week-col">
+            <div class="mini-card mc-routine"><div class="mc-time">7:00</div><div class="mc-title">起床</div></div>
+            <div class="mini-card mc-homework"><div class="mc-time">15:00</div><div class="mc-title">数学P32</div></div>
+            <div class="mini-card mc-routine"><div class="mc-time">16:00</div><div class="mc-title">练琴</div></div>
+          </div>
+          <div class="week-col">
+            <div class="mini-card mc-activity"><div class="mc-time">16:00</div><div class="mc-title">钢琴课</div></div>
+            <div class="mini-card mc-routine"><div class="mc-time">20:00</div><div class="mc-title">阅读</div></div>
+          </div>
+          <div class="week-col">
+            <div class="mini-card mc-routine"><div class="mc-time">7:00</div><div class="mc-title">起床</div></div>
+            <div class="mini-card mc-activity"><div class="mc-time">15:30</div><div class="mc-title">游泳课</div></div>
+            <div class="mini-card mc-routine"><div class="mc-time">16:00</div><div class="mc-title">练琴</div></div>
+            <div class="mini-card mc-homework"><div class="mc-time">19:00</div><div class="mc-title">语文作文</div></div>
+          </div>
+          <div class="week-col">
+            <div class="mini-card mc-activity"><div class="mc-time">9:00</div><div class="mc-title">画画课</div></div>
+            <div class="mini-card mc-routine mc-cancelled"><div class="mc-time">10:00</div><div class="mc-title">练琴</div></div>
+            <div class="mini-card mc-routine"><div class="mc-time">20:00</div><div class="mc-title">阅读</div></div>
+          </div>
+          <div class="week-col">
+            <div class="mini-card mc-routine"><div class="mc-time">8:00</div><div class="mc-title">起床</div></div>
+          </div>
+        </div>
+        <!-- FAB -->
+        <button class="fab">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+          <div class="tab-item active">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+            <span class="tab-label">日程</span>
+          </div>
+          <div class="tab-item">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            <span class="tab-label">模板</span>
+          </div>
+          <div class="tab-item">
+            <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>
+            <span class="tab-label">家庭</span>
+          </div>
+          <div class="tab-item">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
+            <span class="tab-label">我的</span>
+          </div>
+        </div>
+      </div>
+      <div class="screen-label">周视图（默认首页）</div>
+      <div class="screen-sublabel">7列时间线 · 按类型着色 · 筛选栏</div>
+    </div>
+
+    <!-- Screen 2: Day View -->
+    <div class="screen-item">
+      <div class="phone-frame">
+        <div class="status-bar">
+          <span class="status-time">9:41</span>
+          <div class="status-icons">
+            <svg viewBox="0 0 16 10"><path d="M1 4h2v5H1zm4-2h2v7H5zm4-2h2v9H9zm4-2h2v11h-2z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 16 12"><path d="M8 2C5 2 2.5 3 1 4.5L0 3.5C1.8 1.8 4.8 0 8 0s6.2 1.8 8 3.5L15 4.5C13.5 3 11 2 8 2zm0 4C6.5 6 5 6.8 4 7.5L3 6.5C4.3 5.3 6 4 8 4s3.7 1.3 5 2.5L12 7.5C11 6.8 9.5 6 8 6zm0 4c-.8 0-1.5.3-2 .8L5 9.8C5.8 9 6.8 8 8 8s2.2 1 3 1.8L10 10.8c-.5-.5-1.2-.8-2-.8z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 24 12"><rect x="1" y="2" width="20" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1"/><rect x="3" y="4" width="14" height="4" rx="1" fill="currentColor"/><rect x="22" y="4" width="1.5" height="4" rx="1" fill="currentColor"/></svg>
+          </div>
+        </div>
+        <div class="week-header">
+          <div style="font-size:18px;font-weight:700;">8月1日 周五</div>
+          <div class="week-today-btn">今天</div>
+        </div>
+        <div style="padding:0 16px 8px;background:#fff;">
+          <div class="segmented">
+            <div class="segmented-item">月</div>
+            <div class="segmented-item">周</div>
+            <div class="segmented-item active">日</div>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <div class="filter-chip active"><div class="dot" style="background:#6366f1"></div>全部孩子</div>
+          <div class="filter-chip"><div class="dot" style="background:#3b82f6"></div>小明</div>
+          <div class="filter-chip"><div class="dot" style="background:#ec4899"></div>小红</div>
+        </div>
+        <div class="page-content" style="padding:8px 12px;display:flex;flex-direction:column;gap:8px;">
+          <!-- Time labels -->
+          <div style="text-align:center;font-size:11px;color:#d1d5db;padding:4px 0;">— 上午 —</div>
+          <div class="schedule-card type-routine">
+            <div class="color-bar"></div>
+            <div class="card-body">
+              <div class="card-time">7:00 - 7:30</div>
+              <div class="card-title">起床</div>
+              <div class="card-meta">
+                <div class="avatar avatar-sm avatar-teal" style="background:#14b8a6">明</div> 小明 · 日常作息
+                <span style="margin-left:auto;font-size:11px;color:#22c55e;">✓ 已完成</span>
+              </div>
+            </div>
+          </div>
+          <div class="schedule-card type-routine">
+            <div class="color-bar"></div>
+            <div class="card-body">
+              <div class="card-time">7:30 - 8:00</div>
+              <div class="card-title">早餐</div>
+              <div class="card-meta">
+                <div class="avatar avatar-sm avatar-teal" style="background:#14b8a6">明</div> 小明 · 日常作息
+                <span style="margin-left:auto;font-size:11px;color:#22c55e;">✓ 已完成</span>
+              </div>
+            </div>
+          </div>
+          <div style="text-align:center;font-size:11px;color:#d1d5db;padding:4px 0;">— 下午 —</div>
+          <div class="schedule-card type-activity">
+            <div class="color-bar"></div>
+            <div class="card-body">
+              <div class="card-time">15:30 - 16:30</div>
+              <div class="card-title">游泳课</div>
+              <div class="card-meta">
+                <div class="avatar avatar-sm avatar-teal" style="background:#14b8a6">明</div> 小明 · 课后活动
+                <span style="margin-left:auto;font-size:11px;color:#22c55e;">✓ 已到场</span>
+              </div>
+              <div style="font-size:11px;color:#9ca3af;margin-top:4px;">市体育馆 2楼游泳池</div>
+            </div>
+          </div>
+          <div class="schedule-card type-routine" style="opacity:0.5;text-decoration:line-through;">
+            <div class="color-bar"></div>
+            <div class="card-body">
+              <div class="card-time">16:00 - 16:30</div>
+              <div class="card-title">练琴</div>
+              <div class="card-meta">
+                <div class="avatar avatar-sm avatar-teal" style="background:#14b8a6">明</div> 小明 · 日常作息
+                <span style="margin-left:auto;font-size:11px;color:#d1d5db;">已取消</span>
+              </div>
+            </div>
+          </div>
+          <div class="schedule-card type-homework">
+            <div class="color-bar"></div>
+            <div class="card-body">
+              <div class="card-time">19:00 截止</div>
+              <div class="card-title">语文作文《我的家庭》</div>
+              <div class="card-meta">
+                <div class="avatar avatar-sm avatar-teal" style="background:#14b8a6">明</div> 小明 · 作业任务
+                <span style="margin-left:auto;font-size:11px;color:#f59e0b;">未完成</span>
+              </div>
+              <div style="font-size:11px;color:#9ca3af;margin-top:4px;">建议 15:00-16:00 完成</div>
+            </div>
+          </div>
+          <div class="schedule-card type-routine">
+            <div class="color-bar"></div>
+            <div class="card-body">
+              <div class="card-time">20:00 - 20:30</div>
+              <div class="card-title">阅读</div>
+              <div class="card-meta">
+                <div class="avatar avatar-sm avatar-teal" style="background:#14b8a6">明</div> 小明 · 日常作息
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="fab" style="bottom:100px;">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <div class="tab-bar">
+          <div class="tab-item active">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+            <span class="tab-label">日程</span>
+          </div>
+          <div class="tab-item"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span class="tab-label">模板</span></div>
+          <div class="tab-item"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg><span class="tab-label">家庭</span></div>
+          <div class="tab-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span class="tab-label">我的</span></div>
+        </div>
+      </div>
+      <div class="screen-label">日视图</div>
+      <div class="screen-sublabel">时间线布局 · 完整日程信息 · 状态标签</div>
+    </div>
+
+    <!-- Screen 3: Month View -->
+    <div class="screen-item">
+      <div class="phone-frame">
+        <div class="status-bar">
+          <span class="status-time">9:41</span>
+          <div class="status-icons">
+            <svg viewBox="0 0 16 10"><path d="M1 4h2v5H1zm4-2h2v7H5zm4-2h2v9H9zm4-2h2v11h-2z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 16 12"><path d="M8 2C5 2 2.5 3 1 4.5L0 3.5C1.8 1.8 4.8 0 8 0s6.2 1.8 8 3.5L15 4.5C13.5 3 11 2 8 2z"/></svg>
+            <svg viewBox="0 0 24 12"><rect x="1" y="2" width="20" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1"/><rect x="3" y="4" width="14" height="4" rx="1" fill="currentColor"/></svg>
+          </div>
+        </div>
+        <div class="week-header">
+          <div class="week-month">2026年8月</div>
+          <div class="week-today-btn">今天</div>
+        </div>
+        <div style="padding:0 16px 8px;background:#fff;">
+          <div class="segmented">
+            <div class="segmented-item active">月</div>
+            <div class="segmented-item">周</div>
+            <div class="segmented-item">日</div>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <div class="filter-chip active"><div class="dot" style="background:#6366f1"></div>全部孩子</div>
+          <div class="filter-chip"><div class="dot" style="background:#3b82f6"></div>小明</div>
+        </div>
+        <!-- Month Grid -->
+        <div class="page-content" style="padding:0 8px;">
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:11px;color:#9ca3af;padding:8px 0 4px;">
+            <div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div><div>日</div>
+          </div>
+          <!-- Week 1 -->
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;">
+            <div style="padding:6px 2px;color:#d1d5db;font-size:13px;">28</div>
+            <div style="padding:6px 2px;color:#d1d5db;font-size:13px;">29</div>
+            <div style="padding:6px 2px;color:#d1d5db;font-size:13px;">30</div>
+            <div style="padding:6px 2px;color:#d1d5db;font-size:13px;">31</div>
+            <div style="padding:6px 2px;"><div style="background:#6366f1;color:#fff;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">1</div><div style="display:flex;justify-content:center;gap:3px;margin-top:2px;"><div style="width:5px;height:5px;border-radius:50%;background:#22c55e;"></div><div style="width:5px;height:5px;border-radius:50%;background:#3b82f6;"></div><div style="width:5px;height:5px;border-radius:50%;background:#f59e0b;"></div></div></div>
+            <div style="padding:6px 2px;font-size:13px;font-weight:600;">2<div style="display:flex;justify-content:center;gap:3px;margin-top:2px;"><div style="width:5px;height:5px;border-radius:50%;background:#22c55e;"></div><div style="width:5px;height:5px;border-radius:50%;background:#3b82f6;"></div></div></div>
+            <div style="padding:6px 2px;font-size:13px;font-weight:600;">3<div style="display:flex;justify-content:center;gap:3px;margin-top:2px;"><div style="width:5px;height:5px;border-radius:50%;background:#22c55e;"></div></div></div>
+          </div>
+          <!-- Week 2 -->
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;">
+            <div style="padding:6px 2px;font-size:13px;font-weight:600;">4<div style="display:flex;justify-content:center;gap:3px;margin-top:2px;"><div style="width:5px;height:5px;border-radius:50%;background:#22c55e;"></div></div></div>
+            <div style="padding:6px 2px;font-size:13px;font-weight:600;">5<div style="display:flex;justify-content:center;gap:3px;margin-top:2px;"><div style="width:5px;height:5px;border-radius:50%;background:#3b82f6;"></div><div style="width:5px;height:5px;border-radius:50%;background:#22c55e;"></div></div></div>
+            <div style="padding:6px 2px;font-size:13px;font-weight:600;">6<div style="display:flex;justify-content:center;gap:3px;margin-top:2px;"><div style="width:5px;height:5px;border-radius:50%;background:#22c55e;"></div><div style="width:5px;height:5px;border-radius:50%;background:#f59e0b;"></div></div></div>
+            <div style="padding:6px 2px;font-size:13px;font-weight:600;">7<div style="display:flex;justify-content:center;gap:3px;margin-top:2px;"><div style="width:5px;height:5px;border-radius:50%;background:#3b82f6;"></div></div></div>
+            <div style="padding:6px 2px;font-size:13px;font-weight:600;">8<div style="display:flex;justify-content:center;gap:3px;margin-top:2px;"><div style="width:5px;height:5px;border-radius:50%;background:#22c55e;"></div><div style="width:5px;height:5px;border-radius:50%;background:#3b82f6;"></div></div></div>
+            <div style="padding:6px 2px;font-size:13px;font-weight:600;">9<div style="display:flex;justify-content:center;gap:3px;margin-top:2px;"><div style="width:5px;height:5px;border-radius:50%;background:#3b82f6;"></div></div></div>
+            <div style="padding:6px 2px;font-size:13px;font-weight:600;">10<div style="display:flex;justify-content:center;gap:3px;margin-top:2px;"><div style="width:5px;height:5px;border-radius:50%;background:#22c55e;"></div></div></div>
+          </div>
+          <!-- Week 3 -->
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;">
+            <div style="padding:6px 2px;font-size:13px;font-weight:600;">11</div>
+            <div style="padding:6px 2px;font-size:13px;font-weight:600;">12<div style="display:flex;justify-content:center;gap:3px;margin-top:2px;"><div style="width:5px;height:5px;border-radius:50%;background:#3b82f6;"></div></div></div>
+            <div style="padding:6px 2px;font-size:13px;font-weight:600;">13<div style="display:flex;justify-content:center;gap:3px;margin-top:2px;"><div style="width:5px;height:5px;border-radius:50%;background:#22c55e;"></div><div style="width:5px;height:5px;border-radius:50%;background:#f59e0b;"></div></div></div>
+            <div style="padding:6px 2px;font-size:13px;font-weight:600;">14<div style="display:flex;justify-content:center;gap:3px;margin-top:2px;"><div style="width:5px;height:5px;border-radius:50%;background:#22c55e;"></div><div style="width:5px;height:5px;border-radius:50%;background:#3b82f6;"></div></div></div>
+            <div style="padding:6px 2px;font-size:13px;font-weight:600;">15</div>
+            <div style="padding:6px 2px;font-size:13px;font-weight:600;">16<div style="display:flex;justify-content:center;gap:3px;margin-top:2px;"><div style="width:5px;height:5px;border-radius:50%;background:#3b82f6;"></div></div></div>
+            <div style="padding:6px 2px;font-size:13px;font-weight:600;">17</div>
+          </div>
+          <!-- Bottom legend -->
+          <div style="display:flex;gap:16px;justify-content:center;padding:16px 0;font-size:11px;color:#9ca3af;">
+            <span><span style="color:#3b82f6;">●</span> 课后活动</span>
+            <span><span style="color:#22c55e;">●</span> 日常作息</span>
+            <span><span style="color:#f59e0b;">●</span> 作业任务</span>
+          </div>
+        </div>
+        <button class="fab" style="bottom:100px;">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <div class="tab-bar">
+          <div class="tab-item active"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="tab-label">日程</span></div>
+          <div class="tab-item"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg><span class="tab-label">模板</span></div>
+          <div class="tab-item"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg><span class="tab-label">家庭</span></div>
+          <div class="tab-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span class="tab-label">我的</span></div>
+        </div>
+      </div>
+      <div class="screen-label">月视图</div>
+      <div class="screen-sublabel">日历网格 · 色点标识 · 点击跳日视图</div>
+    </div>
+
+  </div>
+
+  <!-- Schedule Detail + Create Flow -->
+  <div class="section-title">家长端 · 日程详情与创建</div>
+  <div class="section-desc">日程详情页、创建日程 4 步流程（选孩子 → 选类型 → 填字段 → 确认）</div>
+  <div class="screen-row">
+
+    <!-- Screen 4: Schedule Detail -->
+    <div class="screen-item">
+      <div class="phone-frame">
+        <div class="status-bar">
+          <span class="status-time">9:41</span>
+          <div class="status-icons">
+            <svg viewBox="0 0 16 10"><path d="M1 4h2v5H1zm4-2h2v7H5z"/></svg>
+            <svg viewBox="0 0 16 12"><path d="M8 2C5 2 2.5 3 1 4.5"/></svg>
+            <svg viewBox="0 0 24 12"><rect x="1" y="2" width="20" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+          </div>
+        </div>
+        <div class="nav-bar">
+          <div class="nav-left">
+            <div class="nav-back">
+              <svg viewBox="0 0 11 20"><path d="M10 1L1 10l9 9"/></svg>
+            </div>
+          </div>
+          <div class="nav-title">日程详情</div>
+          <div class="nav-right">
+            <span class="nav-action">编辑</span>
+          </div>
+        </div>
+        <div class="page-content" style="padding:16px;">
+          <!-- Status Banner -->
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:40px;height:40px;border-radius:50%;background:#22c55e;display:flex;align-items:center;justify-content:center;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg>
+            </div>
+            <div>
+              <div style="font-weight:700;font-size:15px;color:#15803d;">已完成 ✓</div>
+              <div style="font-size:12px;color:#22c55e;">打卡时间 17:05 · 小明打卡</div>
+            </div>
+          </div>
+          <!-- Info Card -->
+          <div style="background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+              <div class="tag tag-activity">课后活动</div>
+              <div style="font-size:18px;font-weight:700;color:#1f2937;">钢琴课</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;align-items:center;gap:12px;"><div style="width:20px;text-align:center;font-size:13px;">📅</div><span style="font-size:14px;color:#374151;">8月1日 周五</span></div>
+              <div style="display:flex;align-items:center;gap:12px;"><div style="width:20px;text-align:center;font-size:13px;">🕐</div><span style="font-size:14px;color:#374151;">16:00 - 17:00</span></div>
+              <div style="display:flex;align-items:center;gap:12px;"><div style="width:20px;text-align:center;font-size:13px;">📍</div><span style="font-size:14px;color:#374151;">少年宫3楼钢琴教室</span></div>
+              <div style="display:flex;align-items:center;gap:12px;"><div style="width:20px;text-align:center;font-size:13px;">👤</div><div class="avatar avatar-sm avatar-teal" style="background:#14b8a6;margin-right:4px;">明</div><span style="font-size:14px;color:#374151;">小明</span></div>
+              <div style="display:flex;align-items:center;gap:12px;"><div style="width:20px;text-align:center;font-size:13px;">📝</div><span style="font-size:14px;color:#6b7280;">记得带琴谱</span></div>
+            </div>
+          </div>
+          <!-- Repeat Info -->
+          <div style="background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <div style="font-size:12px;color:#9ca3af;font-weight:600;margin-bottom:8px;">重复信息</div>
+            <div style="font-size:14px;color:#374151;">每周二、周四</div>
+            <div style="font-size:14px;color:#6b7280;margin-top:4px;">重复至 2026年12月31日</div>
+          </div>
+          <!-- Check-in Record -->
+          <div style="background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <div style="font-size:12px;color:#9ca3af;font-weight:600;margin-bottom:8px;">打卡记录</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;">
+              <div style="display:flex;align-items:center;gap:8px;"><div class="avatar avatar-sm avatar-teal" style="background:#14b8a6;">明</div><span style="font-size:14px;">小明</span></div>
+              <span style="font-size:13px;color:#22c55e;font-weight:600;">已完成 · 17:05</span>
+            </div>
+          </div>
+          <!-- Action Buttons -->
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+            <button class="btn btn-primary btn-block btn-lg" style="font-size:15px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+              撤销打卡
+            </button>
+            <div style="display:flex;gap:8px;">
+              <button style="flex:1;padding:12px;border-radius:12px;font-size:14px;font-weight:600;border:none;background:#f3f4f6;color:#6b7280;cursor:pointer;">编辑</button>
+              <button style="flex:1;padding:12px;border-radius:12px;font-size:14px;font-weight:600;border:none;background:#f3f4f6;color:#6b7280;cursor:pointer;">取消本次</button>
+              <button style="flex:1;padding:12px;border-radius:12px;font-size:14px;font-weight:600;border:none;background:#fef2f2;color:#ef4444;cursor:pointer;">删除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-label">日程详情页</div>
+      <div class="screen-sublabel">状态区 · 基本信息 · 打卡记录 · 操作区</div>
+    </div>
+
+    <!-- Screen 5: Create - Step 1 Select Child -->
+    <div class="screen-item">
+      <div class="phone-frame">
+        <div class="status-bar"><span class="status-time">9:41</span></div>
+        <div class="nav-bar">
+          <div class="nav-left"><div class="nav-back"><svg viewBox="0 0 11 20"><path d="M10 1L1 10l9 9"/></svg></div></div>
+          <div class="nav-title">创建日程</div>
+          <div class="nav-right"></div>
+        </div>
+        <!-- Progress -->
+        <div style="display:flex;gap:4px;padding:12px 16px;background:#fff;">
+          <div style="height:3px;flex:1;background:#6366f1;border-radius:2px;"></div>
+          <div style="height:3px;flex:1;background:#e5e7eb;border-radius:2px;"></div>
+          <div style="height:3px;flex:1;background:#e5e7eb;border-radius:2px;"></div>
+          <div style="height:3px;flex:1;background:#e5e7eb;border-radius:2px;"></div>
+        </div>
+        <div class="page-content" style="padding:16px;">
+          <div style="font-size:20px;font-weight:700;color:#1f2937;margin-bottom:4px;">选择孩子</div>
+          <div style="font-size:13px;color:#9ca3af;margin-bottom:20px;">为谁安排日程？支持多选</div>
+          <!-- Child cards -->
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="background:#eef2ff;border:2px solid #6366f1;border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;">
+              <div class="avatar avatar-lg" style="background:linear-gradient(135deg,#60a5fa,#3b82f6);">明</div>
+              <div style="flex:1;"><div style="font-size:16px;font-weight:600;">小明</div><div style="font-size:12px;color:#6b7280;">小学模式 · 8岁</div></div>
+              <div style="width:24px;height:24px;border-radius:50%;background:#6366f1;display:flex;align-items:center;justify-content:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg>
+              </div>
+            </div>
+            <div style="background:#fff;border:2px solid #f3f4f6;border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;">
+              <div class="avatar avatar-lg" style="background:linear-gradient(135deg,#f9a8d4,#ec4899);">红</div>
+              <div style="flex:1;"><div style="font-size:16px;font-weight:600;">小红</div><div style="font-size:12px;color:#6b7280;">学龄前模式 · 5岁</div></div>
+              <div style="width:24px;height:24px;border-radius:50%;border:2px solid #d1d5db;"></div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:16px;background:#fff;border-top:1px solid #f3f4f6;">
+          <button class="btn btn-primary btn-block btn-lg">下一步：选择类型</button>
+        </div>
+      </div>
+      <div class="screen-label">创建日程 · 步骤1</div>
+      <div class="screen-sublabel">选孩子（多选） · 卡片式选择</div>
+    </div>
+
+    <!-- Screen 6: Create Step 2 - Select Type -->
+    <div class="screen-item">
+      <div class="phone-frame">
+        <div class="status-bar"><span class="status-time">9:41</span></div>
+        <div class="nav-bar">
+          <div class="nav-left"><div class="nav-back"><svg viewBox="0 0 11 20"><path d="M10 1L1 10l9 9"/></svg></div></div>
+          <div class="nav-title">创建日程</div><div class="nav-right"></div>
+        </div>
+        <div style="display:flex;gap:4px;padding:12px 16px;background:#fff;"><div style="height:3px;flex:1;background:#6366f1;border-radius:2px;"></div><div style="height:3px;flex:1;background:#6366f1;border-radius:2px;"></div><div style="height:3px;flex:1;background:#e5e7eb;border-radius:2px;"></div><div style="height:3px;flex:1;background:#e5e7eb;border-radius:2px;"></div></div>
+        <div class="page-content" style="padding:16px;">
+          <div style="font-size:20px;font-weight:700;color:#1f2937;margin-bottom:4px;">选择日程类型</div>
+          <div style="font-size:13px;color:#9ca3af;margin-bottom:20px;">为小明创建什么类型的日程？</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="border:2px solid #bfdbfe;border-radius:16px;padding:16px;background:#eff6ff;display:flex;gap:14px;align-items:flex-start;">
+              <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#60a5fa,#3b82f6);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+              <div style="flex:1;"><div style="font-size:16px;font-weight:700;color:#1d4ed8;">课后活动</div><div style="font-size:13px;color:#6b7280;margin-top:2px;">固定时间段的课外活动，每周重复 · 确认到场</div></div>
+            </div>
+            <div style="border:2px solid #f3f4f6;border-radius:16px;padding:16px;background:#fff;display:flex;gap:14px;align-items:flex-start;">
+              <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#4ade80,#22c55e);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg></div>
+              <div style="flex:1;"><div style="font-size:16px;font-weight:700;color:#15803d;">日常作息</div><div style="font-size:13px;color:#6b7280;margin-top:2px;">每日例行事项，每周各天时间可不同 · 完成打卡</div></div>
+            </div>
+            <div style="border:2px solid #f3f4f6;border-radius:16px;padding:16px;background:#fff;display:flex;gap:14px;align-items:flex-start;">
+              <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#fbbf24,#f59e0b);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div>
+              <div style="flex:1;"><div style="font-size:16px;font-weight:700;color:#b45309;">作业任务</div><div style="font-size:13px;color:#6b7280;margin-top:2px;">一次性任务，有截止日期 · 完成即归档</div></div>
+            </div>
+          </div>
+          <div style="margin-top:16px;text-align:center;padding:14px;background:#f9fafb;border-radius:12px;font-size:14px;color:#6366f1;font-weight:600;">📋 从模板创建</div>
+        </div>
+      </div>
+      <div class="screen-label">创建日程 · 步骤2</div><div class="screen-sublabel">三类型卡片 · 模板入口</div>
+    </div>
+
+    <!-- Screen 7: Create Step 3 - Fill Fields (课后活动) -->
+    <div class="screen-item">
+      <div class="phone-frame">
+        <div class="status-bar"><span class="status-time">9:41</span></div>
+        <div class="nav-bar"><div class="nav-left"><div class="nav-back"><svg viewBox="0 0 11 20"><path d="M10 1L1 10l9 9"/></svg></div></div><div class="nav-title">填写信息</div><div class="nav-right"></div></div>
+        <div style="display:flex;gap:4px;padding:12px 16px;background:#fff;"><div style="height:3px;flex:1;background:#6366f1;border-radius:2px;"></div><div style="height:3px;flex:1;background:#6366f1;border-radius:2px;"></div><div style="height:3px;flex:1;background:#6366f1;border-radius:2px;"></div><div style="height:3px;flex:1;background:#e5e7eb;border-radius:2px;"></div></div>
+        <div class="page-content" style="padding:16px;">
+          <div class="tag tag-activity" style="margin-bottom:8px;">课后活动</div>
+          <!-- Name -->
+          <div style="margin-bottom:16px;"><div style="font-size:13px;color:#6b7280;font-weight:600;margin-bottom:6px;">活动名称 *</div><input style="width:100%;padding:12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:15px;font-family:inherit;outline:none;" value="钢琴课" placeholder="如：钢琴课"></div>
+          <!-- Time slot config -->
+          <div style="margin-bottom:16px;"><div style="font-size:13px;color:#6b7280;font-weight:600;margin-bottom:6px;">时间安排</div>
+            <div style="background:#f9fafb;border-radius:12px;padding:14px;">
+              <div style="font-size:12px;color:#9ca3af;margin-bottom:8px;">选择星期并设置默认时间</div>
+              <div style="display:flex;gap:6px;margin-bottom:10px;">
+                <span style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;background:#eef2ff;color:#6366f1;">一</span>
+                <span style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;background:#eef2ff;color:#6366f1;">二</span>
+                <span style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:#9ca3af;background:#f3f4f6;">三</span>
+                <span style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;background:#eef2ff;color:#6366f1;">四</span>
+                <span style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:#9ca3af;background:#f3f4f6;">五</span>
+                <span style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:#9ca3af;background:#f3f4f6;">六</span>
+                <span style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:#9ca3af;background:#f3f4f6;">日</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input style="width:80px;padding:8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;text-align:center;font-family:inherit;" value="16:00"><span style="color:#9ca3af;">—</span><input style="width:80px;padding:8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;text-align:center;font-family:inherit;" value="17:00"></div>
+              <div style="font-size:12px;color:#9ca3af;">系统将自动填充所选日期的默认时间</div>
+            </div>
+            <!-- Filled slots preview -->
+            <div style="margin-top:8px;background:#fff;border:1px solid #f3f4f6;border-radius:10px;overflow:hidden;">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #f9fafb;"><span style="font-size:13px;">周一</span><span style="font-size:13px;color:#374151;font-weight:500;">16:00-17:00</span><span style="font-size:12px;color:#6366f1;">微调</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #f9fafb;"><span style="font-size:13px;">周二</span><span style="font-size:13px;color:#374151;font-weight:500;">16:00-17:00</span><span style="font-size:12px;color:#6366f1;">微调</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;"><span style="font-size:13px;">周四</span><span style="font-size:13px;color:#374151;font-weight:500;">16:00-17:00</span><span style="font-size:12px;color:#6366f1;">微调</span></div>
+            </div>
+          </div>
+          <!-- Location -->
+          <div style="margin-bottom:16px;"><div style="font-size:13px;color:#6b7280;font-weight:600;margin-bottom:6px;">地点</div><input style="width:100%;padding:12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:15px;font-family:inherit;outline:none;" value="少年宫3楼钢琴教室" placeholder="如：少年宫3楼"></div>
+          <!-- Note -->
+          <div style="margin-bottom:16px;"><div style="font-size:13px;color:#6b7280;font-weight:600;margin-bottom:6px;">备注</div><input style="width:100%;padding:12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:15px;font-family:inherit;outline:none;" value="记得带琴谱" placeholder="给孩子的提醒"></div>
+          <!-- Repeat end date -->
+          <div style="margin-bottom:16px;"><div style="font-size:13px;color:#6b7280;font-weight:600;margin-bottom:6px;">重复结束日期</div><input style="width:100%;padding:12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:15px;font-family:inherit;outline:none;" value="2026-12-31" type="date"></div>
+        </div>
+        <div style="padding:16px;background:#fff;border-top:1px solid #f3f4f6;"><button class="btn btn-primary btn-block btn-lg">下一步：确认创建</button></div>
+      </div>
+      <div class="screen-label">创建日程 · 步骤3</div><div class="screen-sublabel">填写字段 · 时间槽快速填充+微调</div>
+    </div>
+
+    <!-- Screen 8: Create Step 4 - Confirm -->
+    <div class="screen-item">
+      <div class="phone-frame">
+        <div class="status-bar"><span class="status-time">9:41</span></div>
+        <div class="nav-bar"><div class="nav-left"><div class="nav-back"><svg viewBox="0 0 11 20"><path d="M10 1L1 10l9 9"/></svg></div></div><div class="nav-title">确认创建</div><div class="nav-right"></div></div>
+        <div style="display:flex;gap:4px;padding:12px 16px;background:#fff;"><div style="height:3px;flex:1;background:#6366f1;border-radius:2px;"></div><div style="height:3px;flex:1;background:#6366f1;border-radius:2px;"></div><div style="height:3px;flex:1;background:#6366f1;border-radius:2px;"></div><div style="height:3px;flex:1;background:#6366f1;border-radius:2px;"></div></div>
+        <div class="page-content" style="padding:16px;">
+          <div style="font-size:20px;font-weight:700;color:#1f2937;margin-bottom:16px;">确认日程信息</div>
+          <div style="background:#fff;border-radius:16px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;"><div class="tag tag-activity">课后活动</div><div style="font-size:18px;font-weight:700;">钢琴课</div></div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;justify-content:space-between;"><span style="color:#9ca3af;font-size:14px;">关联孩子</span><div style="display:flex;align-items:center;gap:6px;"><div class="avatar avatar-sm" style="background:#3b82f6;">明</div><span style="font-size:14px;">小明</span></div></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#9ca3af;font-size:14px;">时间</span><span style="font-size:14px;">周一、二、四 16:00-17:00</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#9ca3af;font-size:14px;">地点</span><span style="font-size:14px;">少年宫3楼钢琴教室</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#9ca3af;font-size:14px;">备注</span><span style="font-size:14px;">记得带琴谱</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#9ca3af;font-size:14px;">重复至</span><span style="font-size:14px;">2026年12月31日</span></div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:16px;background:#fff;border-top:1px solid #f3f4f6;"><button class="btn btn-primary btn-block btn-lg" style="box-shadow:0 4px 16px rgba(99,102,241,0.3);">创建日程</button></div>
+      </div>
+      <div class="screen-label">创建日程 · 步骤4</div><div class="screen-sublabel">预览确认 · 一键创建</div>
+    </div>
+
+  </div>
+
+  <!-- Family Management Section -->
+  <div class="section-title">家长端 · 家庭管理</div>
+  <div class="section-desc">家庭成员列表、邀请成员、孩子展示模式设置、多家庭切换</div>
+  <div class="screen-row">
+
+    <!-- Screen 9: Family Member List -->
+    <div class="screen-item">
+      <div class="phone-frame">
+        <div class="status-bar"><span class="status-time">9:41</span></div>
+        <div class="nav-bar"><div class="nav-left"><div class="nav-back"><svg viewBox="0 0 11 20"><path d="M10 1L1 10l9 9"/></svg></div></div><div class="nav-title">我们一家</div><div class="nav-right"><span class="nav-action">编辑</span></div></div>
+        <div class="page-content" style="padding:16px;">
+          <div class="section-header">家长 2 人</div>
+          <div style="background:#fff;border-radius:14px;overflow:hidden;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:0.5px solid #f3f4f6;">
+              <div class="avatar avatar-md" style="background:linear-gradient(135deg,#818cf8,#6366f1);">爸</div>
+              <div style="flex:1;"><div style="font-size:15px;font-weight:600;">爸爸</div><div style="font-size:12px;color:#9ca3af;">家长 · 创建者</div></div>
+              <div class="tag tag-gray">我</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;">
+              <div class="avatar avatar-md" style="background:linear-gradient(135deg,#f9a8d4,#ec4899);">妈</div>
+              <div style="flex:1;"><div style="font-size:15px;font-weight:600;">妈妈</div><div style="font-size:12px;color:#9ca3af;">家长</div></div>
+            </div>
+          </div>
+          <div class="section-header">孩子 2 人</div>
+          <div style="background:#fff;border-radius:14px;overflow:hidden;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:0.5px solid #f3f4f6;">
+              <div class="avatar avatar-md" style="background:linear-gradient(135deg,#60a5fa,#3b82f6);">明</div>
+              <div style="flex:1;"><div style="font-size:15px;font-weight:600;">小明</div><div style="font-size:12px;color:#9ca3af;">孩子 · 小学模式</div></div>
+              <div class="item-arrow"><svg viewBox="0 0 7 12"><path d="M1 1l5 5-5 5"/></svg></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;">
+              <div class="avatar avatar-md" style="background:linear-gradient(135deg,#f9a8d4,#ec4899);">红</div>
+              <div style="flex:1;"><div style="font-size:15px;font-weight:600;">小红</div><div style="font-size:12px;color:#9ca3af;">孩子 · 学龄前模式</div></div>
+              <div class="item-arrow"><svg viewBox="0 0 7 12"><path d="M1 1l5 5-5 5"/></svg></div>
+            </div>
+          </div>
+          <div style="text-align:center;font-size:13px;color:#9ca3af;margin-bottom:16px;">家庭人数：4/10</div>
+          <button class="btn btn-primary btn-block btn-lg" style="margin-bottom:12px;">+ 邀请成员</button>
+          <div style="margin-top:8px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <div style="font-size:12px;font-weight:600;color:#9ca3af;padding:12px 16px 4px;">邀请记录</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:0.5px solid #f3f4f6;">
+              <div><div style="font-size:14px;font-weight:500;">382951</div><div style="font-size:12px;color:#9ca3af;">小明 · 孩子</div></div>
+              <span class="tag tag-warning">待使用</span>
+            </div>
+          </div>
+          <button class="btn btn-danger btn-block" style="margin-top:12px;font-size:14px;">退出家庭</button>
+        </div>
+      </div>
+      <div class="screen-label">家庭成员列表</div><div class="screen-sublabel">按角色分组 · 邀请记录 · 退出入口</div>
+    </div>
+
+    <!-- Screen 10: Display Mode Setting -->
+    <div class="screen-item">
+      <div class="phone-frame">
+        <div class="status-bar"><span class="status-time">9:41</span></div>
+        <div class="nav-bar"><div class="nav-left"><div class="nav-back"><svg viewBox="0 0 11 20"><path d="M10 1L1 10l9 9"/></svg></div></div><div class="nav-title">小明 · 展示模式</div><div class="nav-right"></div></div>
+        <div class="page-content" style="padding:16px;">
+          <div style="font-size:15px;color:#6b7280;margin-bottom:20px;">选择适合小明的展示模式</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:16px;padding:16px;">
+              <div style="display:flex;align-items:center;gap:12px;"><div style="font-size:32px;">🧸</div><div style="flex:1;"><div style="font-size:16px;font-weight:700;">学龄前模式</div><div style="font-size:13px;color:#6b7280;">适合 3-6 岁 · 大色块卡片、卡通图标</div></div><div style="width:24px;height:24px;border-radius:50%;border:2px solid #d1d5db;"></div></div>
+            </div>
+            <div style="background:#eef2ff;border:2px solid #6366f1;border-radius:16px;padding:16px;">
+              <div style="display:flex;align-items:center;gap:12px;"><div style="font-size:32px;">📋</div><div style="flex:1;"><div style="font-size:16px;font-weight:700;">小学模式</div><div style="font-size:13px;color:#6b7280;">适合 6-10 岁 · 文字+图标列表、显示时间段</div></div><div style="width:24px;height:24px;border-radius:50%;background:#6366f1;display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div></div>
+            </div>
+            <div style="background:#fff;border:2px solid #f3f4f6;border-radius:16px;padding:16px;">
+              <div style="display:flex;align-items:center;gap:12px;"><div style="font-size:32px;">📱</div><div style="flex:1;"><div style="font-size:16px;font-weight:700;">高年级模式</div><div style="font-size:13px;color:#6b7280;">适合 10-14 岁 · 完整日程信息、可自主添加</div></div><div style="width:24px;height:24px;border-radius:50%;border:2px solid #d1d5db;"></div></div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:16px;background:#fff;border-top:1px solid #f3f4f6;"><button class="btn btn-primary btn-block btn-lg">保存</button></div>
+      </div>
+      <div class="screen-label">孩子展示模式设置</div><div class="screen-sublabel">三种模式卡片 · 即时生效</div>
+    </div>
+
+    <!-- Screen 11: Switch Family -->
+    <div class="screen-item">
+      <div class="phone-frame">
+        <div class="status-bar"><span class="status-time">9:41</span></div>
+        <div class="nav-bar"><div class="nav-left"><div class="nav-back"><svg viewBox="0 0 11 20"><path d="M10 1L1 10l9 9"/></svg></div></div><div class="nav-title">切换家庭</div><div class="nav-right"></div></div>
+        <div class="page-content" style="padding:16px;">
+          <div style="font-size:14px;color:#9ca3af;margin-bottom:16px;">选择一个家庭进入</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="background:#eef2ff;border:2px solid #c7d2fe;border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px;">
+              <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#818cf8,#6366f1);display:flex;align-items:center;justify-content:center;font-size:20px;">🏠</div>
+              <div style="flex:1;"><div style="font-size:16px;font-weight:700;">我们一家</div><div style="font-size:13px;color:#6b7280;">家长 · 4人</div></div>
+              <div class="tag tag-activity">当前</div>
+            </div>
+            <div style="background:#fff;border:1.5px solid #f3f4f6;border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px;">
+              <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#2dd4bf,#14b8a6);display:flex;align-items:center;justify-content:center;font-size:20px;">🏠</div>
+              <div style="flex:1;"><div style="font-size:16px;font-weight:700;">爷爷奶奶家</div><div style="font-size:13px;color:#6b7280;">家长 · 2人</div></div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-block" style="margin-top:20px;">+ 创建新家庭</button>
+        </div>
+      </div>
+      <div class="screen-label">多家庭切换</div><div class="screen-sublabel">家庭卡片列表 · 状态记忆</div>
+    </div>
+
+  </div>
+
+  <!-- My Page & Data Dashboard -->
+  <div class="section-title">家长端 · 我的页面与数据看板</div>
+  <div class="section-desc">个人中心、数据统计、快捷入口</div>
+  <div class="screen-row">
+
+    <!-- Screen 12: My Page -->
+    <div class="screen-item">
+      <div class="phone-frame">
+        <div class="status-bar"><span class="status-time">9:41</span></div>
+        <div class="nav-bar"><div class="nav-title">我的</div><div class="nav-right"><span class="nav-action">设置</span></div></div>
+        <div class="page-content">
+          <!-- Profile Card -->
+          <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);margin:16px;border-radius:20px;padding:20px;color:#fff;">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+              <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;">爸</div>
+              <div><div style="font-size:18px;font-weight:700;">爸爸</div><div style="font-size:13px;opacity:0.85;margin-top:2px;">我们一家 · 家长</div></div>
+            </div>
+            <!-- Quick stats -->
+            <div style="display:flex;gap:16px;margin-top:12px;">
+              <div style="flex:1;background:rgba(255,255,255,0.15);border-radius:12px;padding:10px;text-align:center;">
+                <div style="font-size:20px;font-weight:700;">85%</div><div style="font-size:11px;opacity:0.8;">本周完成率</div>
+              </div>
+              <div style="flex:1;background:rgba(255,255,255,0.15);border-radius:12px;padding:10px;text-align:center;">
+                <div style="font-size:20px;font-weight:700;">3</div><div style="font-size:11px;opacity:0.8;">待办日程</div>
+              </div>
+            </div>
+          </div>
+          <!-- Menu Items -->
+          <div style="background:#fff;border-radius:16px;margin:0 16px 16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <div class="list-item"><div class="item-icon" style="background:#eff6ff;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg></div><div class="item-body"><div class="item-title">切换家庭</div><div class="item-subtitle">我们一家 · 家长</div></div><div class="item-arrow"><svg viewBox="0 0 7 12"><path d="M1 1l5 5-5 5"/></svg></div></div>
+            <div class="divider"></div>
+            <div class="list-item"><div class="item-icon" style="background:#f0fdf4;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><div class="item-body"><div class="item-title">数据看板</div><div class="item-subtitle">完成率统计、趋势分析</div></div><div class="item-arrow"><svg viewBox="0 0 7 12"><path d="M1 1l5 5-5 5"/></svg></div></div>
+            <div class="divider"></div>
+            <div class="list-item"><div class="item-icon" style="background:#fffbeb;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></div><div class="item-body"><div class="item-title">创建家庭</div></div><div class="item-arrow"><svg viewBox="0 0 7 12"><path d="M1 1l5 5-5 5"/></svg></div></div>
+            <div class="divider"></div>
+            <div class="list-item"><div class="item-icon" style="background:#f3f4f6;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div><div class="item-body"><div class="item-title">加入家庭</div></div><div class="item-arrow"><svg viewBox="0 0 7 12"><path d="M1 1l5 5-5 5"/></svg></div></div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="tab-label">日程</span></div>
+          <div class="tab-item"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/></svg><span class="tab-label">模板</span></div>
+          <div class="tab-item"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg><span class="tab-label">家庭</span></div>
+          <div class="tab-item active"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span class="tab-label">我的</span></div>
+        </div>
+      </div>
+      <div class="screen-label">我的页面</div><div class="screen-sublabel">个人中心 · 数据概览 · 快捷入口</div>
+    </div>
+
+    <!-- Screen 13: Data Dashboard -->
+    <div class="screen-item">
+      <div class="phone-frame">
+        <div class="status-bar"><span class="status-time">9:41</span></div>
+        <div class="nav-bar"><div class="nav-left"><div class="nav-back"><svg viewBox="0 0 11 20"><path d="M10 1L1 10l9 9"/></svg></div></div><div class="nav-title">数据看板</div><div class="nav-right"></div></div>
+        <div class="page-content" style="padding:16px;">
+          <!-- Week Switch -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div style="font-size:18px;font-weight:700;">本周概览</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:13px;color:#6366f1;font-weight:600;">8/1 - 8/7 <span style="font-size:18px;line-height:1;">›</span></div>
+          </div>
+          <!-- Overall Progress -->
+          <div style="background:#fff;border-radius:16px;padding:20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+            <div class="progress-ring" style="width:64px;height:64px;">
+              <svg viewBox="0 0 64 64"><circle class="ring-bg" cx="32" cy="32" r="28"/><circle class="ring-fg" cx="32" cy="32" r="28" stroke="#22c55e" stroke-dasharray="176" stroke-dashoffset="44"/></svg>
+              <div class="ring-text" style="font-size:15px;">75%</div>
+            </div>
+            <div>
+              <div style="font-size:16px;font-weight:700;">总体完成率</div>
+              <div style="font-size:13px;color:#6b7280;margin-top:4px;">已完成 12/16 项</div>
+              <div style="display:flex;gap:8px;margin-top:6px;">
+                <span style="font-size:11px;color:#22c55e;">✓ 12 完成</span>
+                <span style="font-size:11px;color:#f59e0b;">2 待办</span>
+                <span style="font-size:11px;color:#ef4444;">2 逾期</span>
+              </div>
+            </div>
+          </div>
+          <!-- Per Child -->
+          <div style="font-size:15px;font-weight:700;margin:16px 0 8px;">按孩子查看</div>
+          <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:0.5px solid #f3f4f6;">
+              <div class="avatar avatar-md" style="background:#3b82f6;">明</div>
+              <div style="flex:1;"><div style="font-size:14px;font-weight:600;">小明</div><div style="font-size:12px;color:#9ca3af;">8/10 项完成</div></div>
+              <div style="font-size:18px;font-weight:700;color:#22c55e;">80%</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;">
+              <div class="avatar avatar-md" style="background:#ec4899;">红</div>
+              <div style="flex:1;"><div style="font-size:14px;font-weight:600;">小红</div><div style="font-size:12px;color:#9ca3af;">4/6 项完成</div></div>
+              <div style="font-size:18px;font-weight:700;color:#f59e0b;">67%</div>
+            </div>
+          </div>
+          <!-- Type breakdown -->
+          <div style="font-size:15px;font-weight:700;margin:16px 0 8px;">按类型查看</div>
+          <div style="display:flex;gap:8px;margin-bottom:16px;">
+            <div style="flex:1;background:#eff6ff;border-radius:14px;padding:14px;text-align:center;"><div style="font-size:22px;font-weight:700;color:#3b82f6;">90%</div><div style="font-size:11px;color:#6b7280;margin-top:2px;">课后活动</div></div>
+            <div style="flex:1;background:#f0fdf4;border-radius:14px;padding:14px;text-align:center;"><div style="font-size:22px;font-weight:700;color:#22c55e;">71%</div><div style="font-size:11px;color:#6b7280;margin-top:2px;">日常作息</div></div>
+            <div style="flex:1;background:#fffbeb;border-radius:14px;padding:14px;text-align:center;"><div style="font-size:22px;font-weight:700;color:#f59e0b;">50%</div><div style="font-size:11px;color:#6b7280;margin-top:2px;">作业任务</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-label">数据看板</div><div class="screen-sublabel">完成率统计 · 按孩子/类型 · 趋势</div>
+    </div>
+
+  </div>
+
+  <!-- Child Side -->
+  <div class="section-title">孩子端</div>
+  <div class="section-desc">今日视图（默认首页）、周视图、我的页面 — 简洁直观，面向孩子</div>
+  <div class="screen-row">
+
+    <!-- Screen 14: Child Today View -->
+    <div class="screen-item">
+      <div class="phone-frame" style="background:linear-gradient(180deg,#eef2ff 0%,#f7f8fa 120px,#f7f8fa 100%);">
+        <div class="status-bar"><span class="status-time">9:41</span></div>
+        <div style="padding:16px 16px 12px;display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-size:13px;color:#6366f1;font-weight:600;">你好</div><div style="font-size:22px;font-weight:700;color:#1f2937;margin-top:2px;">小明</div></div>
+          <div class="avatar avatar-xl" style="background:linear-gradient(135deg,#60a5fa,#3b82f6);font-size:28px;">明</div>
+        </div>
+        <!-- Date + Progress -->
+        <div style="margin:0 16px;padding:16px;background:#fff;border-radius:20px;box-shadow:0 4px 16px rgba(99,102,241,0.08);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div><div style="font-size:18px;font-weight:700;">8月1日 周五</div><div style="font-size:13px;color:#9ca3af;margin-top:2px;">今天有 5 件事要做</div></div>
+            <div class="progress-ring" style="width:52px;height:52px;">
+              <svg viewBox="0 0 52 52"><circle class="ring-bg" cx="26" cy="26" r="22"/><circle class="ring-fg" cx="26" cy="26" r="22" stroke="#22c55e" stroke-dasharray="138" stroke-dashoffset="55"/></svg>
+              <div class="ring-text" style="font-size:12px;">3/5</div>
+            </div>
+          </div>
+          <!-- Progress bar -->
+          <div style="height:6px;background:#f3f4f6;border-radius:3px;overflow:hidden;"><div style="height:100%;width:60%;background:linear-gradient(90deg,#22c55e,#4ade80);border-radius:3px;"></div></div>
+        </div>
+        <!-- Timeline -->
+        <div class="page-content" style="padding:12px 16px;display:flex;flex-direction:column;gap:10px;">
+          <div class="schedule-card type-routine" style="border-left:4px solid #22c55e;">
+            <div class="card-body"><div style="display:flex;align-items:center;gap:8px;"><div style="font-size:18px;">🌅</div><div style="flex:1;"><div class="card-title">起床</div><div class="card-time">7:00 - 7:30</div></div><div style="font-size:12px;color:#22c55e;font-weight:600;">✓ 完成</div></div></div>
+          </div>
+          <div class="schedule-card type-routine" style="border-left:4px solid #22c55e;">
+            <div class="card-body"><div style="display:flex;align-items:center;gap:8px;"><div style="font-size:18px;">🍳</div><div style="flex:1;"><div class="card-title">早餐</div><div class="card-time">7:30 - 8:00</div></div><div style="font-size:12px;color:#22c55e;font-weight:600;">✓ 完成</div></div></div>
+          </div>
+          <div class="schedule-card type-activity" style="border-left:4px solid #3b82f6;border:2px solid #6366f1;box-shadow:0 0 0 3px rgba(99,102,241,0.1);">
+            <div class="card-body"><div style="display:flex;align-items:center;gap:8px;"><div style="font-size:18px;">🏊</div><div style="flex:1;"><div class="card-title" style="color:#6366f1;">游泳课 <span style="font-size:10px;background:#eef2ff;color:#6366f1;padding:2px 8px;border-radius:10px;margin-left:6px;">即将开始</span></div><div class="card-time">15:30 - 16:30</div></div><button style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#818cf8);border:none;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(99,102,241,0.3);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg></button></div></div>
+          </div>
+          <div class="schedule-card type-routine" style="border-left:4px solid #22c55e;opacity:0.4;text-decoration:line-through;">
+            <div class="card-body"><div style="display:flex;align-items:center;gap:8px;"><div style="font-size:18px;">🎹</div><div style="flex:1;"><div class="card-title">练琴</div><div class="card-time">16:00 - 16:30</div></div><div style="font-size:12px;color:#9ca3af;">已取消</div></div></div>
+          </div>
+          <div class="schedule-card type-homework" style="border-left:4px solid #f59e0b;">
+            <div class="card-body"><div style="display:flex;align-items:center;gap:8px;"><div style="font-size:18px;">📝</div><div style="flex:1;"><div class="card-title">语文作文</div><div class="card-time">19:00 截止</div></div><div style="font-size:12px;color:#f59e0b;font-weight:600;">未完成</div></div></div>
+          </div>
+          <div class="schedule-card type-routine" style="border-left:4px solid #22c55e;">
+            <div class="card-body"><div style="display:flex;align-items:center;gap:8px;"><div style="font-size:18px;">📖</div><div style="flex:1;"><div class="card-title">阅读</div><div class="card-time">20:00 - 20:30</div></div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-label">孩子端 · 今日视图</div><div class="screen-sublabel">时间线+打卡 · 进度环 · 即将开始高亮</div>
+    </div>
+
+    <!-- Screen 15: Child My Page -->
+    <div class="screen-item">
+      <div class="phone-frame" style="background:linear-gradient(180deg,#fef3c7 0%,#f7f8fa 120px,#f7f8fa 100%);">
+        <div class="status-bar"><span class="status-time">9:41</span></div>
+        <div style="padding:16px 16px 12px;display:flex;align-items:center;gap:12px;">
+          <div class="avatar avatar-xl" style="background:linear-gradient(135deg,#60a5fa,#3b82f6);font-size:28px;">明</div>
+          <div><div style="font-size:18px;font-weight:700;">小明</div><div style="font-size:13px;color:#6b7280;margin-top:2px;">小学模式 · 我们一家</div></div>
+        </div>
+        <div class="page-content" style="padding:0 16px;">
+          <!-- Stats -->
+          <div style="display:flex;gap:10px;margin-bottom:16px;">
+            <div style="flex:1;background:#fff;border-radius:16px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+              <div style="font-size:14px;">🔥</div><div style="font-size:24px;font-weight:700;color:#f59e0b;margin:4px 0;">7</div><div style="font-size:11px;color:#9ca3af;">连续打卡天数</div>
+            </div>
+            <div style="flex:1;background:#fff;border-radius:16px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+              <div style="font-size:14px;">⭐</div><div style="font-size:24px;font-weight:700;color:#6366f1;margin:4px 0;">85%</div><div style="font-size:11px;color:#9ca3af;">本周完成率</div>
+            </div>
+            <div style="flex:1;background:#fff;border-radius:16px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+              <div style="font-size:14px;">🎯</div><div style="font-size:24px;font-weight:700;color:#22c55e;margin:4px 0;">12</div><div style="font-size:11px;color:#9ca3af;">本周完成</div>
+            </div>
+          </div>
+          <!-- Recent -->
+          <div style="font-size:16px;font-weight:700;margin-bottom:10px;">最近完成</div>
+          <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:16px;">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid #f3f4f6;"><div style="font-size:20px;">🏊</div><div style="flex:1;"><div style="font-size:14px;font-weight:600;">游泳课</div><div style="font-size:12px;color:#9ca3af;">今天 15:47</div></div><span style="font-size:13px;color:#22c55e;font-weight:600;">✓</span></div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid #f3f4f6;"><div style="font-size:20px;">🌅</div><div style="flex:1;"><div style="font-size:14px;font-weight:600;">起床</div><div style="font-size:12px;color:#9ca3af;">今天 7:02</div></div><span style="font-size:13px;color:#22c55e;font-weight:600;">✓</span></div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;"><div style="font-size:20px;">📖</div><div style="flex:1;"><div style="font-size:14px;font-weight:600;">阅读</div><div style="font-size:12px;color:#9ca3af;">昨天 20:15</div></div><span style="font-size:13px;color:#22c55e;font-weight:600;">✓</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-label">孩子端 · 我的页面</div><div class="screen-sublabel">完成统计 · 连续打卡 · 最��完成</div>
+    </div>
+
+  </div>
+
+  <!-- Onboarding -->
+  <div class="section-title">引导与创建家庭</div>
+  <div class="section-desc">首次使用引导、创建家庭、加入家庭</div>
+  <div class="screen-row">
+
+    <!-- Screen 16: Welcome -->
+    <div class="screen-item">
+      <div class="phone-frame" style="background:#fff;">
+        <div class="status-bar" style="background:#fff;"><span class="status-time">9:41</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 32px;text-align:center;">
+          <div style="font-size:64px;margin-bottom:24px;">🏠</div>
+          <div style="font-size:26px;font-weight:700;color:#1f2937;margin-bottom:8px;">欢迎使用</div>
+          <div style="font-size:28px;font-weight:700;color:#6366f1;margin-bottom:16px;">家庭日程助手</div>
+          <div style="font-size:15px;color:#9ca3af;line-height:1.6;margin-bottom:40px;">帮助孩子规划每一天<br>轻松管理课后活动、日常作息、作业任务</div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:12px;">
+            <button class="btn btn-primary btn-block btn-lg" style="box-shadow:0 6px 20px rgba(99,102,241,0.3);">创建家庭</button>
+            <button class="btn btn-secondary btn-block btn-lg">加入家庭</button>
+          </div>
+        </div>
+      </div>
+      <div class="screen-label">首次使用引导页</div><div class="screen-sublabel">品牌展示 · 创建/加入家庭</div>
+    </div>
+
+    <!-- Screen 17: Create Family -->
+    <div class="screen-item">
+      <div class="phone-frame">
+        <div class="status-bar"><span class="status-time">9:41</span></div>
+        <div class="nav-bar"><div class="nav-left"><div class="nav-back"><svg viewBox="0 0 11 20"><path d="M10 1L1 10l9 9"/></svg></div></div><div class="nav-title">创建家庭</div><div class="nav-right"></div></div>
+        <div class="page-content" style="padding:24px 16px;">
+          <div style="font-size:20px;font-weight:700;color:#1f2937;margin-bottom:24px;">创建你的家庭</div>
+          <div style="margin-bottom:20px;"><div style="font-size:13px;color:#6b7280;font-weight:600;margin-bottom:6px;">家庭名称 *</div><input style="width:100%;padding:14px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:16px;font-family:inherit;outline:none;" placeholder="如：我们一家" value="我们一家"></div>
+          <div style="margin-bottom:24px;"><div style="font-size:13px;color:#6b7280;font-weight:600;margin-bottom:12px;">我是</div>
+            <div style="display:flex;gap:10px;">
+              <div style="flex:1;background:#eef2ff;border:2px solid #6366f1;border-radius:14px;padding:14px;text-align:center;cursor:pointer;">
+                <div style="font-size:28px;margin-bottom:6px;">👨‍👩‍👧</div>
+                <div style="font-size:15px;font-weight:700;color:#4f46e5;">家长</div>
+                <div style="font-size:11px;color:#6b7280;margin-top:2px;">管理日程和成员</div>
+                <div style="width:22px;height:22px;border-radius:50%;background:#6366f1;margin:8px auto 0;display:flex;align-items:center;justify-content:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>
+              </div>
+              <div style="flex:1;background:#fff;border:2px solid #f3f4f6;border-radius:14px;padding:14px;text-align:center;cursor:pointer;">
+                <div style="font-size:28px;margin-bottom:6px;">👦</div>
+                <div style="font-size:15px;font-weight:700;color:#374151;">孩子</div>
+                <div style="font-size:11px;color:#9ca3af;margin-top:2px;">查看和执行日程</div>
+                <div style="width:22px;height:22px;border-radius:50%;border:2px solid #d1d5db;margin:8px auto 0;"></div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-block btn-lg">创建</button>
+        </div>
+      </div>
+      <div class="screen-label">创建家庭</div><div class="screen-sublabel">输入名称 · 自选角色</div>
+    </div>
+
+    <!-- Screen 18: Join Family -->
+    <div class="screen-item">
+      <div class="phone-frame">
+        <div class="status-bar"><span class="status-time">9:41</span></div>
+        <div class="nav-bar"><div class="nav-left"><div class="nav-back"><svg viewBox="0 0 11 20"><path d="M10 1L1 10l9 9"/></svg></div></div><div class="nav-title">加入家庭</div><div class="nav-right"></div></div>
+        <div class="page-content" style="padding:24px 16px;">
+          <div style="font-size:20px;font-weight:700;color:#1f2937;margin-bottom:8px;">输入邀请码</div>
+          <div style="font-size:14px;color:#9ca3af;margin-bottom:24px;">请向家庭成员索取 6 位邀请码</div>
+          <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;">
+            <input style="width:44px;height:54px;border:2px solid #c7d2fe;border-radius:12px;text-align:center;font-size:22px;font-weight:700;font-family:var(--font-mono);" maxlength="1" value="3">
+            <input style="width:44px;height:54px;border:2px solid #c7d2fe;border-radius:12px;text-align:center;font-size:22px;font-weight:700;font-family:var(--font-mono);" maxlength="1" value="8">
+            <input style="width:44px;height:54px;border:2px solid #c7d2fe;border-radius:12px;text-align:center;font-size:22px;font-weight:700;font-family:var(--font-mono);" maxlength="1" value="2">
+            <input style="width:44px;height:54px;border:2px solid #e5e7eb;border-radius:12px;text-align:center;font-size:22px;font-weight:700;font-family:var(--font-mono);" maxlength="1" value="9">
+            <input style="width:44px;height:54px;border:2px solid #e5e7eb;border-radius:12px;text-align:center;font-size:22px;font-weight:700;font-family:var(--font-mono);" maxlength="1" value="5">
+            <input style="width:44px;height:54px;border:2px solid #e5e7eb;border-radius:12px;text-align:center;font-size:22px;font-weight:700;font-family:var(--font-mono);" maxlength="1" value="1">
+          </div>
+          <div style="text-align:center;margin-bottom:24px;">
+            <div style="background:#f0fdf4;display:inline-block;padding:8px 16px;border-radius:12px;font-size:13px;color:#15803d;font-weight:600;">✓ 邀请码有效 · 加入「我们一家」作为 孩子</div>
+          </div>
+          <!-- Preview -->
+          <div style="background:#fff;border-radius:16px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:20px;">
+            <div style="font-size:14px;color:#9ca3af;margin-bottom:8px;">你将加入</div>
+            <div style="font-size:18px;font-weight:700;">我们一家</div>
+            <div style="font-size:14px;color:#6b7280;margin-top:4px;">角色：孩子  ·  邀请人：爸爸</div>
+          </div>
+          <button class="btn btn-primary btn-block btn-lg">确认加入</button>
+        </div>
+      </div>
+      <div class="screen-label">加入家庭</div><div class="screen-sublabel">6位邀请码 · 角色确认</div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>
