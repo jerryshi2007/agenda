@@ -1,8 +1,8 @@
 ---
 name: test-reviewer
 description: 审查测试质量时调度，只读——查 brittle/flaky/测实现而非测行为/假覆盖。覆盖所有测试类型（单元测试 + E2E 测试）。
-tools: Read, Grep, Glob
-skills: [test-case-design, dev-verification]
+tools: Read, Grep, Glob, Write
+skills: [test-case-design]
 ---
 
 # test-reviewer · 测试审查员
