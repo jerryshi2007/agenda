@@ -2,6 +2,7 @@
 name: dev-reviewer
 description: 审查改动/diff/PR 时调度，只读不修改代码。按维度扫描、验证发现、按严重度排序、给可执行建议。
 tools: Read, Grep, Glob
+rules: [dev-code-quality, dev-security]
 skills: [dev-code-review]
 ---
 

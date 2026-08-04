@@ -1,14 +1,14 @@
 ---
-name: arch-review-check
+name: dev-arch-review
 description: dev-architect 产出 design.md 后使用——按 10 维度审核架构设计，查需求覆盖、ER 可反推、时序完整、ADR 充分、规则合规等，给审批建议。只读不改 design.md。
 rules: [dev-dotnet-standards, dev-vue3-standards, design-ui-standards, dev-code-quality, dev-security, openspec-workflow]
 ---
 
-# arch-review-check · 架构设计审核
+# dev-arch-review · 架构设计审核
 
 ## 在流程中的位置
 
-`arch-review`（架构设计 → `openspec/changes/<name>/design.md`）→ **arch-review-check**（架构审核 → `openspec/changes/<name>/design-review.md`）→ 人审批 → `dev-planning`（任务分解）
+`dev-arch`（架构设计 → `openspec/changes/<name>/design.md`）→ **dev-arch-review**（架构审核 → `openspec/changes/<name>/design-review.md`）→ 人审批 → `dev-planning`（任务分解）
 
 ## 何时使用
 

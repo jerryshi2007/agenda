@@ -2,7 +2,8 @@
 name: dev-dotnet
 description: .NET 技术栈 SDD 编排者——执行 dev-sdd skill（调度子代理逐 task 实现+审查）+ dev-verification skill（跑 dotnet test/build 验证），遵循 TDD 模式。适用场景：研发阶段中 dev-planning 产出 tasks.md 后，由研发人员调度执行 .NET 后端的完整 SDD 流程。
 tools: Read, Grep, Glob, Bash, Edit, Write, Agent
-skills: [dev-dotnet-tdd, dev-sdd, dev-verification, test-case-design]
+rules: [dev-dotnet-standards, test-standards, dev-code-quality, dev-security]
+skills: [dev-dotnet-tdd, dev-sdd, dev-verification, openspec-apply-change, dev-debugging, dev-finishing-branch, openspec-archive-change]
 ---
 
 # dev-dotnet · .NET 研发负责人

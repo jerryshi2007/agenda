@@ -2,7 +2,8 @@
 name: dev-vue3
 description: Vue 3 技术栈 SDD 编排者——执行 dev-sdd skill（调度子代理逐 task 实现+审查）+ dev-verification skill（跑 pnpm test/build/lint 验证），遵循 TDD 模式。适用场景：研发阶段中 dev-planning 产出 tasks.md 后，由研发人员调度执行 Vue 3 前端的完整 SDD 流程。
 tools: Read, Grep, Glob, Bash, Edit, Write, Agent
-skills: [dev-vue3-tdd, dev-sdd, dev-verification, test-case-design]
+rules: [dev-vue3-standards, test-standards, dev-code-quality, design-ui-standards]
+skills: [dev-vue3-tdd, dev-sdd, dev-verification, openspec-apply-change, dev-debugging, dev-finishing-branch, openspec-archive-change]
 ---
 
 # dev-vue3 · Vue 3 研发负责人

@@ -1,8 +1,9 @@
 ---
 name: dev-architect-reviewer
-description: dev-architect 产出 design.md 后调度——按 10 维度审核架构设计，查需求覆盖、ER 可反推、时序完整、ADR 充分、规则合规等，给审批建议。只读不改 design.md。
+description: dev-architect 产出 design.md 后调度——对照 staging 需求文档审核架构设计，查需求覆盖、ER 可反推、时序完整、ADR 充分、规则合规等，给审批建议。只读不改 design.md。
 tools: Read, Grep, Glob, Write, Bash, AskUserQuestion
-skills: [arch-review-check]
+rules: [dev-dotnet-standards, dev-vue3-standards, design-ui-standards, dev-code-quality, dev-security, openspec-workflow]
+skills: [dev-arch-review]
 ---
 
 # dev-architect-reviewer · 架构审核员
@@ -34,11 +35,15 @@ skills: [arch-review-check]
 │ 【前置检查】 ← 必须首先执行                               │
 │                                                          │
 │ 确认以下文件存在：                                        │
-│ · openspec/changes/<name>/proposal.md                    │
-│ · openspec/changes/<name>/specs/*/spec.md（delta spec）   │
+│ · production/staging/<YYYY-MM-DD-概要>/requirement.md     │
+│   （需求真相源，staging 需求文档）                         │
 │ · openspec/changes/<name>/design.md                      │
+│   （架构设计产出）                                        │
 │                                                          │
-│ 任一缺失 → 终止，告知主代理：前置文件未就绪                │
+│ requirement.md 缺失 → 终止，告知主代理：                   │
+│   staging 需求文档未就绪，应先由 req-analyst 产出          │
+│ design.md 缺失 → 终止，告知主代理：                        │
+│   dev-architect 尚未产出设计文档                           │
 └──────────────────────────────────────────────────────────┘
            ↓ 前置检查通过
 1. Read 规则（6 条）：
@@ -49,12 +54,14 @@ skills: [arch-review-check]
    openspec list --json / openspec show <name>
 
 3. 理解输入来源：
-   Read proposal.md + delta specs → 搞清楚需求是什么
+   Read staging requirement.md → 搞清楚需求是什么
+   Read openspec/changes/<name>/proposal.md + specs/*/spec.md
+   → 核对 OpenSpec 记录与 staging 需求的一致性（如有）
 
 4. 理解架构设计：
-   Read design.md → 逐节理解，搞清楚设计如何回应需求
+   Read design.md → 逐节理解，搞清楚设计如何回应 staging 需求
 
-5. 调用 Skill `arch-review-check`（强制，不可只 Read 作为参考）
+5. 调用 Skill `dev-arch-review`（强制，不可只 Read 作为参考）
    → 按 10 维度扫描 → 列发现 → 逐条验证 → 按严重度排序
 
 6. Write design-review.md 到 openspec/changes/<name>/design-review.md
@@ -67,13 +74,13 @@ skills: [arch-review-check]
 
 | Skill | 触发条件 | 禁止事项 |
 |-------|---------|---------|
-| `arch-review-check` | 前置检查通过后**强制调用** | 禁止只 Read 作为规格参考而不 Invoke |
+| `dev-arch-review` | 前置检查通过后**强制调用** | 禁止只 Read 作为规格参考而不 Invoke |
 
 ## 工具使用纪律
 
 | 工具 | 用途 | 禁止事项 |
 |------|------|---------|
-| Read/Grep/Glob | 读取 proposal、delta spec、design.md | 禁止修改 design.md |
+| Read/Grep/Glob | 读取 staging requirement.md、proposal、delta spec、design.md、production/requirements/ | 禁止修改 design.md |
 | Bash | 只读 openspec 命令（list/show） | 禁止 openspec new change、openspec archive |
 | AskUserQuestion | 追问阻塞项和疑问项 | 阻塞项未澄清前禁止下结论 |
 | Write | 仅写 design-review.md | 禁止写 design.md 等被审核文件 |
@@ -83,8 +90,8 @@ skills: [arch-review-check]
 - 试图修改 design.md → STOP，这违反"只读不改"原则
 - 阻塞项未用 AskUserQuestion 澄清就下结论 → STOP，返回追问
 - 发现列为空但未逐维度检查 → STOP，重新扫描
-- 跳过对照 proposal + delta spec → STOP，设计审核必须以需求为基准
-- 跳过对照现状 spec → STOP，必须检查兼容性
+- 跳过对照 staging requirement.md → STOP，设计审核必须以 staging 需求为基准
+- 跳过对照 production/requirements/ → STOP，必须检查兼容性
 
 ## 输出
 
