@@ -10,7 +10,9 @@
 | [`requirements/module-event.md`](requirements/module-event.md) | 日程管理模块详细设计：日程类型、时间槽模型、CRUD/编辑/删除/取消、详情页、日历视图、打卡与状态 | 已完成 |
 | [`requirements/module-family.md`](requirements/module-family.md) | 家庭管理模块详细设计：创建/加入家庭、双轨邀请、成员管理、角色管理、孩子展示模式、多家庭切换、退出/解散 | 已完成 |
 
-待创建模块：认证与账户、家庭管理、模板系统、打卡与统计、孩子展示模式。
+| [`requirements/module-auth.md`](requirements/module-auth.md) | 认证与账户模块详细设计：微信静默登录、昵称头像收集、JWT 登录态管理、用户资料、"我的"页面、账户注销 | 已完成 |
+
+待创建模块：模板系统、打卡与统计、孩子展示模式。
 
 ## 需求文档规范
 
