@@ -34,6 +34,7 @@ description: 声称工作完成、修好、通过之前使用——要求运行�
 |--------|------|------|----------|------|
 | .NET | `dotnet test` | `dotnet build` | — | `dotnet format --verify-no-changes` |
 | Vue 3 | `pnpm test run` | `pnpm build` | `pnpm vue-tsc --noEmit` | `pnpm lint` |
+| Playwright | `npx playwright test` | — | — | — |
 
 ## Red Flags——STOP
 

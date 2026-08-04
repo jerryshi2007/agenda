@@ -2,6 +2,7 @@
 name: dev-planning
 description: 技术设计 design.md 完成后使用——读需求文档+design.md，将需求分解为 bite-sized tasks，产出 tasks.md。产出后研发人员可并行调度 dev-dotnet + dev-vue3 执行 SDD。
 tools: Read, Grep, Glob, Write, Bash
+rules: [dev-dotnet-standards, dev-vue3-standards, dev-code-quality, dev-security]
 skills: [dev-planning]
 ---
 

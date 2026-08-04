@@ -1,7 +1,7 @@
 ---
 name: dev-vue3-tdd
 description: Vue 3 项目写新功能或修可测 bug 时使用——基于 Vitest + Vue Test Utils + pnpm/vite CLI 的红绿重构循环，集成 pnpm test/build/lint 验证。
-rules: [dev-vue3-standards, test-standards, dev-code-quality, design-ui-standards]
+rules: [dev-vue3-standards, test-standards, dev-code-quality, design-ui-standards, dev-security]
 ---
 
 # dev-vue3-tdd · Vue 3 TDD 开发流程

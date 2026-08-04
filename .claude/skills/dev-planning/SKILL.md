@@ -8,7 +8,7 @@ rules: [dev-code-quality, openspec-workflow]
 
 ## 在流程中的位置
 
-`arch-review`（架构设计 → `openspec/changes/<name>/design.md`）→ **dev-planning**（任务分解 → `openspec/changes/<name>/tasks.md`）→ `dev-sdd`（执行） 或 `openspec-apply-change`（执行）
+`dev-arch`（架构设计 → `openspec/changes/<name>/design.md`）→ **dev-planning**（任务分解 → `openspec/changes/<name>/tasks.md`）→ `dev-sdd`（执行） 或 `openspec-apply-change`（执行）
 
 ## 何时使用
 

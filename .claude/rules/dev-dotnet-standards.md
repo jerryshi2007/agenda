@@ -36,11 +36,20 @@ description: .NET/C# 编码规范——编写或审查 C# 代码时遵循。
 - **仓储模式**——数据访问封装在 Repository 中，业务逻辑层不直接依赖 DbContext。隔离数据层，方便测试时 mock 仓储。
 - **不跟踪只读查询**——纯读取查询用 `.AsNoTracking()`，避免 Change Tracker 额外内存与 CPU 开销。
 
+### 数据迁移
+- **迁移脚本进源码**——EF Core 迁移（`Migrations/` 目录）纳入 git 版本控制，不依赖手动执行 SQL。
+- **每变更一个迁移**——一个功能变更对应一个迁移，不累积多个变更后一次性迁移。
+- **迁移可回滚**——每个迁移的 `Down` 方法能正确回滚到上一状态，不可逆操作（如删列）在迁移中标注警告。
+- **种子数据独立**——种子数据（`HasData` 或自定义 seed 脚本）与迁移分离，通过独立命令（如 `dotnet run seed`）执行。
+- **生产环境不自动迁移**——`Database.Migrate()` 仅在开发环境自动执行，生产环境由 CI/CD 或运维手动执行。
+
 ### API 设计
 - **RESTful 约定**——GET 读、POST 建、PUT 全量改、PATCH 部分改、DELETE 删。不把副作用塞 GET、不把删除伪装成 POST。
 - **DTO 隔离**——不把 Entity 直接暴露到 API 响应；用 DTO/ViewModel。Entity 变更（加字段、改关系）不应直接破坏 API 契约。
 - **FluentValidation 校验**——输入校验用 FluentValidation，在请求管道中（`AbstractValidator<T>`）。校验逻辑集中在 Validator 类中，Controller 保持简洁。
 - **分页标准化**——列表接口返回 `{ items, totalCount, page, pageSize }` 结构，默认 pageSize 有上限（如 100），防止一次返回全量数据压垮内存。
+- **API 文档自动生成**——用 Swashbuckle（ASP.NET Core）或 NSwag 从代码注解自动生成 OpenAPI 文档，不手写 API 文档。XML 注释（`<summary>`、`<remarks>`、`<response>`）作为文档来源。
+- **API 版本管理**——URL 路径版本（`/api/v1/`）或 Header 版本（`api-version: 1.0`），团队统一策略。破坏性变更发新版本，旧版本至少保留一个发布周期后废弃。
 
 ## 示例
 

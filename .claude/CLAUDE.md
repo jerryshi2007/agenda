@@ -4,22 +4,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目
 
-**家庭日程协作工具（agenda）** — 微信小程序，帮家长规划孩子日程、孩子查看执行。覆盖课后活动、日常作息、作业任务三种场景，适配 3-14 岁儿童。
+**<项目名称>** — <项目简要描述，说明业务领域和覆盖模块>。
 
-- **技术栈**：微信小程序（前端）+ 云函数/云开发（后端）。具体前端框架（原生/uni-app/Taro）和运行时栈在 Stage 2 架构设计阶段确定。
-- **项目概览**：详见根 [`CLAUDE.md`](../CLAUDE.md)（项目概况、目录导航、工作流）
-- **需求文档**：[`production/requirements/index.md`](../production/requirements/index.md) — 产品需求总纲，含定位、角色、模块、非功能需求、分期规划
-- **当前阶段**：产品规划阶段（Stage 1），代码尚未开始编码。日程管理模块需求已完成，其余模块待创建。
+- **技术栈**：.NET 10 + ABP Framework 10.4（后端）+ Vue 3 + TypeScript + Element Plus（前端）
+- **项目概览**：详见根 [`CLAUDE.md`](../CLAUDE.md)（项目概况、启动流程、验证命令）
+- **需求文档**：[`production/requirements/index.md`](../production/requirements/index.md) — 需求文档索引
+- **架构说明**：[`docs/architecture.md`](../docs/architecture.md)
 
 ## 三层结构与加载机制
 
 本套配置采用**正交三层 + track 前缀**组织：
 
-- **Rule（rules/）** = 约束/标准（"不能越界"）。**不自动挂载**，由 skill 在 frontmatter 声明 `rules: [...]`，被激活时显式 `Read` 对应 rule 文件。agent 不直接声明 rule，rule 通过 skill 间接获得。
+- **Rule（rules/）** = 约束/标准（"不能越界"）。**不自动挂载**，由 skill 或 agent 在 frontmatter 声明 `rules: [...]`，被激活时显式 `Read` 对应 rule 文件。rule 可通过 skill 间接获得，也可由 agent 直接声明。
 - **Skill（skills/）** = 方法/流程（"怎么一步步做"）。按 description 触发或 `/skill` 调用，渐进披露。
 - **Agent（agents/）** = 角色（"谁来做"）。主代理识别匹配任务时通过 Agent 工具调度，限定工具集。
 
 三层正交：存储/扩展独立，运行时通过"引用"组合——agent 调 skill，skill 显式 Read 其声明的 rule。详见 `INDEX.md`。
+
+## 主代理职责
+
+主代理是流水线的编排者，负责按 SDLC 阶段顺序调度各 agent，不直接执行具体阶段任务。职责包括：
+
+- **阶段调度**：按 Stage 1→2→3→4 顺序，根据任务类型匹配并 dispatch 对应 agent
+- **Gate 管理**：三道审批 gate 分别对应 staging STATUS.md 和 OpenSpec 的状态节点：
+  - Gate 1 需求审批 → STATUS.md: `dev-ready`
+  - Gate 2 架构审批 → design-review.md 三判决全通过
+  - Gate 3 测试审批 → test-report.md 通过率达标
+  任一 gate 未通过，禁止进入下一阶段。
+- **git 提交**：按 `git-commit` rule 创建提交，agent 产出的文档和代码由主代理统一提交
+- **状态追踪**：在 staging STATUS.md 和 OpenSpec 间维护一致性
+- **异常处理**：agent 返回 BLOCKED 或失败时，决策重试/升级/回退
 
 ## 快捷命令
 

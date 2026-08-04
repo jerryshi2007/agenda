@@ -1,14 +1,14 @@
 ---
-name: arch-review
+name: dev-arch
 description: 非平凡需求确认后、dev-planning 前使用——全栈架构设计，覆盖 .NET 后端分层/模块边界/API 契约 + Vue 3 前端组件树/路由/状态管理/数据流，产出技术设计 design.md（OpenSpec change 目录内，4 节骨架 + 按需扩展）+ ADR 交接给 dev-planning。
 rules: [dev-dotnet-standards, dev-vue3-standards, design-ui-standards, dev-code-quality, dev-security, openspec-workflow]
 ---
 
-# arch-review · 全栈架构设计
+# dev-arch · 全栈架构设计
 
 ## 在流程中的位置
 
-req-analyst agent / `openspec-propose` → **arch-review**（架构设计 → `openspec/changes/<name>/design.md`）→ `dev-planning`（任务分解）→ `dev-sdd`（执行）
+req-analyst agent / `openspec-propose` → **dev-arch**（架构设计 → `openspec/changes/<name>/design.md`）→ `dev-planning`（任务分解）→ `dev-sdd`（执行）
 
 ## 何时使用
 
