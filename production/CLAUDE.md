@@ -12,8 +12,10 @@
 
 | [`requirements/module-auth.md`](requirements/module-auth.md) | 认证与账户模块详细设计：微信静默登录、昵称头像收集、JWT 登录态管理、用户资料、"我的"页面、账户注销 | 已完成 |
 | [`requirements/module-template.md`](requirements/module-template.md) | 模板系统模块详细设计：模板字段结构、预设模板、创建流程、一键生成日程、模板管理、共享范围 | 已完成 |
+| [`requirements/module-checkin.md`](requirements/module-checkin.md) | 打卡与统计模块详细设计：打卡时间窗口、完成统计、数据看板、连续完成、成就徽章、订阅消息提醒 | 已完成 |
+| [`requirements/module-display-mode.md`](requirements/module-display-mode.md) | 孩子展示模式模块详细设计：学龄前/小学/高年级三种模式的页面结构、交互差异、打卡方式、模式切换机制 | 已完成 |
 
-待创建模块：打卡与统计、孩子展示模式。
+待创建模块：无。
 
 ## 需求文档规范
 

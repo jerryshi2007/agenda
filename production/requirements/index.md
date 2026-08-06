@@ -14,8 +14,8 @@
 | 认证与账户 | [module-auth.md](module-auth.md) | 已完成 |
 | 家庭管理 | [module-family.md](module-family.md) | 已完成 |
 | 模板系统 | [module-template.md](module-template.md) | 已完成 |
-| 打卡与统计 | 待创建 | 待讨论 |
-| 孩子展示模式 | 待创建 | 待讨论 |
+| 打卡与统计 | [module-checkin.md](module-checkin.md) | 已完成 |
+| 孩子展示模式 | [module-display-mode.md](module-display-mode.md) | 已完成 |
 
 ---
 
@@ -179,7 +179,7 @@
 - **我的统计**（孩子端）：查看自己的完成统计
 - **订阅消息提醒**：通过微信小程序订阅消息推送日程提醒
 
-> 打卡交互细节见 [日程管理模块文档 - 第 10 节](module-event.md#10-打卡与状态)。详细设计见打卡与统计模块文档（待创建）。
+> 打卡交互细节见 [日程管理模块文档 - 第 10 节](module-event.md#10-打卡与状态)。统计看板、连续完成、成就徽章、订阅消息提醒等详细设计见 [打卡与统计模块文档](module-checkin.md)。
 
 ---
 
@@ -207,7 +207,7 @@
 
 **配置方式**：家长在"家庭管理 → 孩子设置"中为每个孩子选择展示模式，可随时更改。
 
-> 详细设计见孩子展示模式模块文档（待创建）。
+> 详细设计见 [孩子展示模式模块文档](module-display-mode.md)。
 
 ---
 
