@@ -1,8 +1,9 @@
 # 打卡与统计模块 (module-checkin) · 需求文档（暂存）
 
+<!-- STATUS: dev-ready -->
 <!-- CONFIRMED: 2026-08-08 -->
 
-> 版本：v1.0 | 日期：2026-08-08 | 状态：confirmed
+> 版本：v1.1 | 日期：2026-08-08 | 状态：dev-ready
 >
 > 所属产品：[家庭日程协作工具](../../requirements/index.md)
 >
