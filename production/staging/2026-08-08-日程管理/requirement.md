@@ -8,6 +8,9 @@
 >
 > **本文档为暂存目录草稿**，基于已有 `module-event.md` 内容进行 GWT 结构化补充。已有内容以引用方式关联，不重复。本文档完成后经确认将合并到 `production/requirements/`。
 
+<!-- STATUS: dev-ready -->
+<!-- CONFIRMED: 2026-08-08 -->
+
 ---
 
 ## 阅读指南
