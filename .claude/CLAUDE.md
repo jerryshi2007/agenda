@@ -29,3 +29,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 工具组合速查
 
 完整 track × 层映射见 `INDEX.md`。
+
+| Track | Agent | Rule | Skill (TDD) |
+|-------|-------|------|-------------|
+| .NET 后端 | dev-dotnet | dev-dotnet-standards | dev-dotnet-tdd |
+| Vue 3 前端 | dev-vue3 | dev-vue3-standards | dev-vue3-tdd |
+| 小程序前端 | dev-miniapp | dev-miniapp-standards | dev-miniapp-tdd |
