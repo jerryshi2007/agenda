@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>注销恢复页</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+    :root {
+      --recovery-border: #B2DFC9;
+      --recovery-text: #2D6A3F;
+    }
+    .recovery-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-xl) var(--spacing-lg);
+      min-height: 100%;
+    }
+
+    .recovery-icon {
+      font-size: 56px;
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .recovery-title {
+      font-size: var(--font-size-xl);
+      font-weight: 600;
+      color: var(--color-text-primary);
+      text-align: center;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .recovery-desc {
+      font-size: var(--font-size-base);
+      color: var(--color-text-secondary);
+      text-align: center;
+      line-height: 1.6;
+      margin-bottom: var(--spacing-lg);
+    }
+
+    /* 倒计时卡片 */
+    .countdown-card {
+      background: var(--color-primary-light);
+      border: 1px solid var(--recovery-border);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-lg);
+      text-align: center;
+      width: 100%;
+      max-width: 280px;
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .countdown-expiry {
+      font-size: var(--font-size-sm);
+      color: var(--recovery-text);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .countdown-date {
+      font-size: var(--font-size-xl);
+      font-weight: 600;
+      color: var(--color-primary-dark);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .countdown-remaining {
+      font-size: var(--font-size-base);
+      color: var(--color-primary);
+      font-weight: 500;
+    }
+
+    .countdown-remaining .num {
+      font-size: var(--font-size-xxl);
+      font-weight: 700;
+    }
+
+    /* 进度条 */
+    .countdown-progress {
+      width: 100%;
+      height: 6px;
+      background: var(--recovery-border);
+      border-radius: 3px;
+      margin-top: var(--spacing-md);
+      overflow: hidden;
+    }
+
+    .countdown-progress-bar {
+      height: 100%;
+      background: var(--color-primary);
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    .countdown-progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--font-size-xs);
+      color: var(--recovery-text);
+      margin-top: var(--spacing-xs);
+    }
+
+    /* 按钮组 */
+    .recovery-btns {
+      width: 100%;
+      max-width: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    /* 过期页面 */
+    .expired-card {
+      background: var(--color-bg-page);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-lg);
+      text-align: center;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    .expired-card .expired-title {
+      font-size: var(--font-size-md);
+      font-weight: 500;
+      color: var(--color-text-primary);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .expired-card .expired-desc {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+    }
+
+    /* 已恢复提示 */
+    .restored-card {
+      background: var(--color-primary-light);
+      border: 1px solid var(--recovery-border);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-lg);
+      text-align: center;
+      width: 100%;
+      max-width: 280px;
+      margin-top: var(--spacing-md);
+    }
+
+    /* 提示信息 */
+    .info-text {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      text-align: center;
+      margin-top: var(--spacing-md);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('normal')">正常: 剩余23天</button>
+    <button onclick="showState('near-expiry')">边界: 剩余1天</button>
+    <button onclick="showState('expired')">错误: 已过期</button>
+    <button onclick="showState('loading')">Loading: 恢复中</button>
+    <button onclick="showState('restored')">成功: 已恢复</button>
+  </div>
+
+  <!-- ===== 状态 1: 正常-剩余23天 ===== -->
+  <div id="state-normal" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">家庭日程助手</span>
+      </div>
+      <div class="page-body page-body--center">
+        <div class="recovery-page">
+
+          <div class="recovery-icon">&#x23F3;</div>
+          <div class="recovery-title">你的账户已申请注销</div>
+          <div class="recovery-desc">
+            注销后数据将保留 30 天<br>
+            在此期间你可以随时恢复账户
+          </div>
+
+          <!-- 倒计时卡片 -->
+          <div class="countdown-card">
+            <div class="countdown-expiry">数据保留至</div>
+            <div class="countdown-date">2026-08-31</div>
+            <div class="countdown-remaining">
+              剩余 <span class="num">23</span> 天
+            </div>
+            <div class="countdown-progress">
+              <div class="countdown-progress-bar" style="width: 76.7%;"></div>
+            </div>
+            <div class="countdown-progress-label">
+              <span>注销日</span>
+              <span>到期日</span>
+            </div>
+          </div>
+
+          <div class="recovery-btns">
+            <button class="btn btn--primary btn--block btn--lg"
+                    onclick="showState('loading')">
+              恢复账户
+            </button>
+            <button class="btn btn--default btn--block"
+                    onclick="alert('【原型演示】关闭小程序，保持已注销状态')">
+              知道了
+            </button>
+          </div>
+
+        </div>
+      </div>
+      <div class="prototype-note" style="margin: var(--spacing-md);">
+        <strong>交互标注：</strong><br>
+        - 用户重新打开小程序 → wx.login → 后端发现"已注销"且未到期 → 显示此页<br>
+        - "恢复账户" → 后端恢复状态 + 签发新 JWT → 进入正常使用<br>
+        - "知道了" → 关闭小程序，保持注销状态
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: 边界-剩余1天 ===== -->
+  <div id="state-near-expiry" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">家庭日程助手</span>
+      </div>
+      <div class="page-body page-body--center">
+        <div class="recovery-page">
+
+          <div class="recovery-icon" style="color: var(--color-danger);">&#x26A0;&#xFE0F;</div>
+          <div class="recovery-title">账户即将永久删除</div>
+          <div class="recovery-desc">
+            你的数据保留期即将到期<br>
+            到期后数据将无法恢复
+          </div>
+
+          <!-- 倒计时-紧急 -->
+          <div class="countdown-card" style="background: var(--color-danger-light); border-color: rgba(250, 81, 81, 0.3);">
+            <div class="countdown-expiry" style="color: var(--color-danger);">数据保留至</div>
+            <div class="countdown-date" style="color: var(--color-danger);">2026-08-09</div>
+            <div class="countdown-remaining" style="color: var(--color-danger);">
+              仅剩 <span class="num" style="color: var(--color-danger);">1</span> 天
+            </div>
+            <div class="countdown-progress" style="background: rgba(250, 81, 81, 0.2);">
+              <div class="countdown-progress-bar" style="width: 96.7%; background: var(--color-danger);"></div>
+            </div>
+            <div class="countdown-progress-label" style="color: var(--color-danger);">
+              <span>注销日</span>
+              <span>即将到期</span>
+            </div>
+          </div>
+
+          <div class="recovery-btns">
+            <button class="btn btn--primary btn--block btn--lg"
+                    onclick="showState('loading')">
+              立即恢复账户
+            </button>
+            <button class="btn btn--default btn--block"
+                    onclick="alert('【原型演示】关闭小程序，数据即将删除')">
+              知道了
+            </button>
+          </div>
+
+          <div class="info-text" style="color: var(--color-danger);">
+            &#x26A0; 明天之后数据将永久删除，不可恢复
+          </div>
+
+        </div>
+      </div>
+      <div class="prototype-note" style="margin: var(--spacing-md);">
+        <strong>交互标注：</strong><br>
+        - 剩余天数很少时使用红色警告色调<br>
+        - 进度条接近满格<br>
+        - 强调"即将到期，不可恢复"
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: 已过期 ===== -->
+  <div id="state-expired" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">家庭日程助手</span>
+      </div>
+      <div class="page-body page-body--center">
+        <div class="recovery-page">
+
+          <div class="recovery-icon">&#x1F4AD;</div>
+          <div class="recovery-title">欢迎使用家庭日程助手</div>
+          <div class="recovery-desc">
+            你的历史数据已完成清理
+          </div>
+
+          <!-- 过期展示 -->
+          <div class="expired-card">
+            <div class="expired-title">数据已永久删除</div>
+            <div class="expired-desc">
+              账户注销已超过 30 天，个人资料和相关数据已被永久删除。
+            </div>
+          </div>
+
+          <div style="margin-top: var(--spacing-lg); width: 100%; max-width: 280px;">
+            <button class="btn btn--primary btn--block btn--lg"
+                    onclick="alert('【原型演示】视为新用户，自动创建新账户 → 昵称头像收集页 → ...')">
+              开始使用
+            </button>
+          </div>
+
+          <div class="info-text">
+            将为你创建全新的账户，与之前的数据无关。
+          </div>
+
+        </div>
+      </div>
+      <div class="prototype-note" style="margin: var(--spacing-md);">
+        <strong>交互标注：</strong><br>
+        - 30 天后重新登录 → 后端发现账户已永久删除 → 创建全新账户<br>
+        - 等同于新用户流程<br>
+        - 不显示恢复选项
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: Loading 恢复中 ===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">家庭日程助手</span>
+      </div>
+      <div class="page-body page-body--center">
+        <div class="recovery-page">
+
+          <div class="loading-block" style="padding: var(--spacing-xl);">
+            <div class="loading-spinner" style="width: 40px; height: 40px; border-width: 4px;"></div>
+            <div class="loading-text" style="margin-top: var(--spacing-lg);">正在恢复账户...</div>
+          </div>
+
+        </div>
+      </div>
+      <div class="prototype-note" style="margin: var(--spacing-md);">
+        <strong>交互标注：</strong><br>
+        - 后端恢复账户状态 → 签发新 JWT → 跳转日历页<br>
+        - 如果网络异常 → 提示"恢复失败，请重试"
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 5: 已恢复 ===== -->
+  <div id="state-restored" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">家庭日程助手</span>
+      </div>
+      <div class="page-body page-body--center">
+        <div class="recovery-page">
+
+          <div class="recovery-icon" style="color: var(--color-primary);">&#x2705;</div>
+          <div class="recovery-title">账户已恢复</div>
+          <div class="recovery-desc">
+            欢迎回来！你的数据已完整恢复。
+          </div>
+
+          <div class="restored-card">
+            <div style="font-size: var(--font-size-sm); color: var(--recovery-text);">
+              正在进入日程页面...
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="prototype-note" style="margin: var(--spacing-md);">
+        <strong>交互标注：</strong><br>
+        - 恢复成功后自动跳转日历视图<br>
+        - 用户数据完整保留：昵称、头像、家庭关系、打卡记录均恢复
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(stateId) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + stateId).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>

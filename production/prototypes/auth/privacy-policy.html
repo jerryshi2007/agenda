@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>隐私政策弹窗 + 拒绝页</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+    .privacy-content {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      line-height: 1.8;
+      max-height: 120px;
+      overflow-y: auto;
+      padding: var(--spacing-sm);
+      margin: var(--spacing-sm) 0;
+      background: var(--color-bg-page);
+      border-radius: var(--radius-sm);
+    }
+
+    .privacy-links {
+      text-align: center;
+      margin: var(--spacing-sm) 0;
+    }
+
+    .privacy-links a {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-link);
+      text-decoration: underline;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: flex-start;
+      padding: var(--spacing-sm) 0;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      margin-right: var(--spacing-sm);
+      margin-top: 2px;
+      flex-shrink: 0;
+      accent-color: var(--color-primary);
+    }
+
+    .checkbox-row label {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+    }
+
+    .checkbox-row label a {
+      color: var(--color-text-link);
+    }
+
+    /* 拒绝页 */
+    .reject-page {
+      text-align: center;
+      padding: var(--spacing-xl) var(--spacing-lg);
+    }
+
+    .reject-page .warn-icon {
+      font-size: 56px;
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .reject-page h2 {
+      font-size: var(--font-size-xl);
+      color: var(--color-text-primary);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .reject-page p {
+      font-size: var(--font-size-base);
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+      margin-bottom: var(--spacing-lg);
+    }
+
+    /* 链接不可达 toast */
+    .link-unreachable-toast {
+      background: rgba(0, 0, 0, 0.75);
+      color: var(--color-text-white);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-sm);
+      text-align: center;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('normal')">正常: 弹窗</button>
+    <button onclick="showState('unchecked')">错误: 未勾选</button>
+    <button onclick="showState('loading')">Loading: 处理中</button>
+    <button onclick="showState('link-error')">错误: 链接不可达</button>
+    <button onclick="showState('rejected')">拒绝后: 静态页</button>
+  </div>
+
+  <!-- ===== 状态 1: 正常弹窗（默认显示）===== -->
+  <div id="state-normal" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">家庭日程助手</span>
+      </div>
+      <div class="page-body page-body--center">
+        <!-- 弹窗在 phone-frame 内部，模拟小程序弹窗 -->
+        <div class="modal-mask" style="position: absolute; inset: 0;">
+          <div class="modal" style="width: 310px; margin: auto; position: relative; top: 50%; transform: translateY(-60%);">
+            <div class="modal__header">隐私政策与用户协议</div>
+            <div class="modal__body" style="text-align: left;">
+              <div class="privacy-content">
+                欢迎使用"家庭日程助手"小程序。<br><br>
+                我们重视你的隐私。在开始使用前，请仔细阅读以下内容：<br><br>
+                一、信息收集<br>
+                我们通过微信授权获取你的 openid，用于标识你的账户。你可以选择性地提供昵称和头像。在使用过程中，我们会记录你创建的日程和打卡数据。<br><br>
+                二、信息使用<br>
+                你的日程信息仅在所属家庭范围内可见。我们不会向任何第三方提供你的个人数据。<br><br>
+                三、数据安全<br>
+                你的数据存储在安全的云服务器上，通过加密传输。账户注销后，数据保留 30 天后永久删除。<br><br>
+                四、你的权利<br>
+                你可以随时修改昵称和头像，可以申请注销账户。
+              </div>
+              <div class="privacy-links">
+                <a href="javascript:void(0)" onclick="alert('跳转完整隐私政策（原型占位）')">查看完整《隐私政策》</a>
+                &nbsp;|&nbsp;
+                <a href="javascript:void(0)" onclick="alert('跳转完整用户协议（原型占位）')">查看完整《用户服务协议》</a>
+              </div>
+              <div class="checkbox-row">
+                <input type="checkbox" id="agree-checkbox-normal" onchange="toggleAgree('normal')">
+                <label for="agree-checkbox-normal">
+                  我已阅读并同意《<a href="javascript:void(0)">隐私政策</a>》和《<a href="javascript:void(0)">用户服务协议</a>》
+                </label>
+              </div>
+            </div>
+            <div class="modal__footer">
+              <button class="btn btn--default" onclick="showState('rejected')">不同意</button>
+              <button class="btn btn--primary disabled" id="btn-agree-normal" disabled>同意并继续</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="prototype-note" style="margin: var(--spacing-md);">
+        <strong>交互标注：</strong><br>
+        1. 默认"同意并继续"按钮置灰 <code>disabled</code><br>
+        2. 勾选后按钮变亮可点击<br>
+        3. 点击"不同意"→ 跳转拒绝静态页<br>
+        4. 点击"同意并继续"→ loading → wx.login 流程
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: 未勾选时点击同意 ===== -->
+  <div id="state-unchecked" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">家庭日程助手</span>
+      </div>
+      <div class="page-body page-body--center">
+        <div class="modal-mask" style="position: absolute; inset: 0;">
+          <div class="modal" style="width: 310px; margin: auto; position: relative; top: 50%; transform: translateY(-60%);">
+            <div class="modal__header">隐私政策与用户协议</div>
+            <div class="modal__body" style="text-align: left;">
+              <div class="privacy-content">
+                欢迎使用"家庭日程助手"小程序...<br><br>
+                （隐私政策摘要内容，同上）
+              </div>
+              <div class="privacy-links">
+                <a href="javascript:void(0)">查看完整《隐私政策》</a>
+                &nbsp;|&nbsp;
+                <a href="javascript:void(0)">查看完整《用户服务协议》</a>
+              </div>
+              <div class="checkbox-row">
+                <input type="checkbox" id="agree-checkbox-unchecked">
+                <label for="agree-checkbox-unchecked">
+                  我已阅读并同意《<a href="javascript:void(0)">隐私政策</a>》和《<a href="javascript:void(0)">用户服务协议</a>》
+                </label>
+              </div>
+            </div>
+            <div class="modal__footer">
+              <button class="btn btn--default">不同意</button>
+              <!-- 未勾选 → disabled，点击无反应 -->
+              <button class="btn btn--primary disabled" disabled
+                      onclick="this.style.animation='shake 0.3s'; setTimeout(() => this.style.animation = '', 300)">
+                同意并继续
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="prototype-note" style="margin: var(--spacing-md);">
+        <strong>交互标注：</strong>未勾选时按钮置灰，点击不触发任何操作。已勾选后按钮才可点击。
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: Loading 处理中 ===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">家庭日程助手</span>
+      </div>
+      <div class="page-body page-body--center">
+        <div class="modal-mask" style="position: absolute; inset: 0;">
+          <div class="modal" style="width: 310px; margin: auto; position: relative; top: 50%; transform: translateY(-60%);">
+            <div class="modal__header">隐私政策与用户协议</div>
+            <div class="modal__body" style="text-align: left;">
+              <div class="privacy-content">
+                欢迎使用"家庭日程助手"小程序...<br><br>
+                （隐私政策摘要内容）
+              </div>
+              <div class="checkbox-row">
+                <input type="checkbox" checked>
+                <label>我已阅读并同意《隐私政策》和《用户服务协议》</label>
+              </div>
+            </div>
+            <div class="modal__footer">
+              <button class="btn btn--default">不同意</button>
+              <button class="btn btn--primary" style="opacity: 0.6;">
+                <span class="loading-spinner" style="width: 18px; height: 18px; border-width: 2px; margin-right: var(--spacing-xs);"></span>
+                处理中...
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="prototype-note" style="margin: var(--spacing-md);">
+        <strong>交互标注：</strong><br>
+        - 点击"同意并继续"后进入 loading<br>
+        - 正常路径 → 缓存同意状态 → 开始 wx.login 流程 → 进入昵称头像收集页<br>
+        - 异常路径 → 提示"服务繁忙，请稍后重试"
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: 隐私政策链接不可达 ===== -->
+  <div id="state-link-error" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">家庭日程助手</span>
+      </div>
+      <div class="page-body page-body--center">
+        <div class="modal-mask" style="position: absolute; inset: 0;">
+          <div class="modal" style="width: 310px; margin: auto; position: relative; top: 50%; transform: translateY(-60%);">
+            <div class="modal__header">隐私政策与用户协议</div>
+            <div class="modal__body" style="text-align: left;">
+              <div class="privacy-content">
+                欢迎使用"家庭日程助手"小程序...<br><br>
+                （隐私政策摘要内容，静态内嵌在小程序包中，不依赖网络）
+              </div>
+              <div class="privacy-links">
+                <a href="javascript:void(0)">查看完整《隐私政策》</a>
+                &nbsp;|&nbsp;
+                <a href="javascript:void(0)">查看完整《用户服务协议》</a>
+              </div>
+              <div class="checkbox-row">
+                <input type="checkbox" id="agree-checkbox-linkerr" onchange="toggleAgree('linkerr')">
+                <label for="agree-checkbox-linkerr">
+                  我已阅读并同意《<a href="javascript:void(0)">隐私政策</a>》和《<a href="javascript:void(0)">用户服务协议</a>》
+                </label>
+              </div>
+            </div>
+            <div class="modal__footer">
+              <button class="btn btn--default">不同意</button>
+              <button class="btn btn--primary disabled" id="btn-agree-linkerr" disabled>同意并继续</button>
+            </div>
+          </div>
+        </div>
+        <!-- 链接不可达 Toast -->
+        <div class="toast" style="position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); z-index: 2001;">
+          暂时无法加载，请稍后查看
+        </div>
+      </div>
+      <div class="prototype-note" style="margin: var(--spacing-md);">
+        <strong>交互标注：</strong><br>
+        - 隐私政策摘要 <strong>静态内嵌</strong>在小程序包中，不受网络影响<br>
+        - 完整版链接需要网络加载，链接不可达时弹出 toast<br>
+        - <strong>不阻断流程</strong>：用户仍可勾选同意并继续
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 5: 拒绝后静态页 ===== -->
+  <div id="state-rejected" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">家庭日程助手</span>
+      </div>
+      <div class="page-body page-body--center">
+        <div class="reject-page">
+          <div class="warn-icon">&#x26A0;&#xFE0F;</div>
+          <h2>需要同意隐私政策才能使用</h2>
+          <p>
+            家庭日程助手需要你同意隐私政策和用户协议，否则无法继续使用。
+          </p>
+          <button class="btn btn--primary btn--block" onclick="showState('normal')">
+            重新查看隐私政策
+          </button>
+        </div>
+      </div>
+      <div class="prototype-note" style="margin: var(--spacing-md);">
+        <strong>交互标注：</strong><br>
+        - 拒绝后不调用任何 API，不收集任何信息<br>
+        - 关闭小程序再打开 → 重新展示弹窗（未缓存同意状态）<br>
+        - 点击"重新查看"→ 返回弹窗
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(stateId) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + stateId).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function toggleAgree(prefix) {
+      const cb = document.getElementById('agree-checkbox-' + prefix);
+      const btn = document.getElementById('btn-agree-' + prefix);
+      if (cb.checked) {
+        btn.classList.remove('disabled');
+        btn.disabled = false;
+        btn.textContent = '同意并继续';
+      } else {
+        btn.classList.add('disabled');
+        btn.disabled = true;
+        btn.textContent = '同意并继续';
+      }
+    }
+  </script>
+
+</body>
+</html>

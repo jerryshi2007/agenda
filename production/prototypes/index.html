@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>认证与账户模块 · 交互原型</title>
+  <link rel="stylesheet" href="common.css">
+  <style>
+    .demo-index {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: var(--spacing-lg);
+    }
+    .demo-index h1 {
+      font-size: var(--font-size-xxl);
+      margin-bottom: var(--spacing-xs);
+      color: var(--color-text-primary);
+    }
+    .demo-index .subtitle {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--spacing-lg);
+    }
+    .page-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+    .page-card {
+      background: var(--color-bg-white);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      text-decoration: none;
+      color: inherit;
+    }
+    .page-card:hover {
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-sm);
+    }
+    .page-card__num {
+      width: 32px;
+      height: 32px;
+      background: var(--color-primary);
+      color: var(--color-text-white);
+      border-radius: var(--radius-round);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .page-card__info {
+      flex: 1;
+    }
+    .page-card__title {
+      font-size: var(--font-size-md);
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    .page-card__desc {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+    }
+    .page-card__arrow {
+      color: var(--color-text-placeholder);
+    }
+    .stage-info {
+      background: var(--color-primary-light);
+      border: 1px solid #B2DFC9;
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+      font-size: var(--font-size-sm);
+      color: #2D6A3F;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-index">
+    <h1>认证与账户模块</h1>
+    <p class="subtitle">interactive prototypes · WeUI style · module-auth</p>
+
+    <div class="stage-info">
+      <strong>风格基调：</strong>WeUI（微信原生小程序视觉），主色 #07C160<br>
+      <strong>各页面右上角有状态切换器</strong>，可切换正常态 / loading态 / 错误态 / 空态查看不同状态下的界面表现。
+    </div>
+
+    <div class="page-list">
+      <a class="page-card" href="auth/privacy-policy.html">
+        <div class="page-card__num">1</div>
+        <div class="page-card__info">
+          <div class="page-card__title">隐私政策弹窗 + 拒绝页</div>
+          <div class="page-card__desc">勾选同意 / 拒绝 → 静态提示页 / 链接不可达</div>
+        </div>
+        <div class="page-card__arrow">></div>
+      </a>
+
+      <a class="page-card" href="auth/profile-collect.html">
+        <div class="page-card__num">2</div>
+        <div class="page-card__info">
+          <div class="page-card__title">昵称头像收集页</div>
+          <div class="page-card__desc">头像选择 / 昵称输入 / 跳过 / 提交异常</div>
+        </div>
+        <div class="page-card__arrow">></div>
+      </a>
+
+      <a class="page-card" href="auth/my.html">
+        <div class="page-card__num">3</div>
+        <div class="page-card__info">
+          <div class="page-card__title">"我的"页面</div>
+          <div class="page-card__desc">有家庭 / 无家庭 / 加载中 / 加载失败</div>
+        </div>
+        <div class="page-card__arrow">></div>
+      </a>
+
+      <a class="page-card" href="auth/edit-profile.html">
+        <div class="page-card__num">4</div>
+        <div class="page-card__info">
+          <div class="page-card__title">编辑资料页</div>
+          <div class="page-card__desc">头像更换 / 昵称修改 / 校验 / 保存异常</div>
+        </div>
+        <div class="page-card__arrow">></div>
+      </a>
+
+      <a class="page-card" href="auth/settings.html">
+        <div class="page-card__num">5</div>
+        <div class="page-card__info">
+          <div class="page-card__title">设置页 + 注销确认流程</div>
+          <div class="page-card__desc">关于 / 注销 → 说明 → 二次确认 / 条件不满足 / 网络错误</div>
+        </div>
+        <div class="page-card__arrow">></div>
+      </a>
+
+      <a class="page-card" href="auth/account-recovery.html">
+        <div class="page-card__num">6</div>
+        <div class="page-card__info">
+          <div class="page-card__title">注销恢复页</div>
+          <div class="page-card__desc">倒计时 / 恢复账户 / 知道了 / 已过期</div>
+        </div>
+        <div class="page-card__arrow">></div>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

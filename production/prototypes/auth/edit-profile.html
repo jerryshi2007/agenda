@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编辑资料页</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+    .edit-page {
+      padding: var(--spacing-lg) var(--spacing-md);
+    }
+
+    .avatar-edit-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .avatar-edit-wrap {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .avatar-edit-wrap .avatar--lg {
+      border: 2px solid var(--color-border);
+    }
+
+    .avatar-edit-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius-round);
+      background: rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: var(--font-size-sm);
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+    }
+
+    .avatar-edit-wrap:hover .avatar-edit-overlay {
+      opacity: 1;
+    }
+
+    .avatar-edit-hint {
+      margin-top: var(--spacing-sm);
+      font-size: var(--font-size-sm);
+      color: var(--color-text-link);
+    }
+
+    .nickname-edit-section {
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .nickname-edit-section .form-label {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .nickname-input-wrap {
+      position: relative;
+    }
+
+    .nickname-input-wrap .form-input {
+      padding-right: 40px;
+    }
+
+    .nickname-count {
+      position: absolute;
+      right: var(--spacing-md);
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: var(--font-size-xs);
+      color: var(--color-text-placeholder);
+    }
+
+    .nickname-count.warn {
+      color: var(--color-warning);
+    }
+
+    .nickname-count.error {
+      color: var(--color-danger);
+    }
+
+    .save-btn-wrap {
+      width: 100%;
+    }
+
+    /* 当前头像 */
+    .current-avatar-img {
+      width: 80px;
+      height: 80px;
+      border-radius: var(--radius-round);
+      object-fit: cover;
+    }
+
+    /* 错误横幅 */
+    .error-banner {
+      background: var(--color-danger-light);
+      border: 1px solid rgba(250, 81, 81, 0.3);
+      border-radius: var(--radius-sm);
+      padding: var(--spacing-md);
+      text-align: center;
+      margin-bottom: var(--spacing-md);
+      font-size: var(--font-size-sm);
+      color: var(--color-danger);
+    }
+
+    .success-banner {
+      background: var(--color-primary-light);
+      border: 1px solid #B2DFC9;
+      border-radius: var(--radius-sm);
+      padding: var(--spacing-md);
+      text-align: center;
+      margin-bottom: var(--spacing-md);
+      font-size: var(--font-size-sm);
+      color: #2D6A3F;
+    }
+
+    /* 微信原生控件提示 */
+    .wechat-control-hint {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-xs);
+      font-size: var(--font-size-xs);
+      color: var(--color-text-placeholder);
+      margin-top: var(--spacing-xs);
+    }
+
+    .wechat-control-hint::before {
+      content: '';
+      width: 10px;
+      height: 10px;
+      background: var(--color-primary);
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('normal')">正常: 编辑中</button>
+    <button onclick="showState('validation')">错误: 校验失败</button>
+    <button onclick="showState('loading')">Loading: 保存中</button>
+    <button onclick="showState('error')">错误: 保存失败</button>
+    <button onclick="showState('success')">成功: 已保存</button>
+  </div>
+
+  <!-- ===== 状态 1: 正常编辑中 ===== -->
+  <div id="state-normal" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <a class="nav-bar-back" href="my.html">&larr;</a>
+        <span class="nav-bar-title">编辑资料</span>
+      </div>
+      <div class="page-body page-body--white">
+        <div class="edit-page">
+
+          <!-- 头像编辑 -->
+          <div class="avatar-edit-section">
+            <div class="avatar-edit-wrap" onclick="alert('【原型演示】弹出微信头像选择器 (open-type=chooseAvatar)')">
+              <div class="avatar avatar--lg">
+                <div class="avatar-placeholder" style="background: var(--color-primary-light); font-size: 28px;">A</div>
+              </div>
+              <div class="avatar-edit-overlay">更换头像</div>
+            </div>
+            <div class="avatar-edit-hint">点击更换头像</div>
+            <div class="wechat-control-hint">微信 chooseAvatar</div>
+          </div>
+
+          <!-- 昵称编辑 -->
+          <div class="nickname-edit-section">
+            <div class="form-label">昵称</div>
+            <div class="nickname-input-wrap">
+              <input type="text" class="form-input" value="小明妈妈" placeholder="请输入昵称" maxlength="20"
+                     oninput="updateCount(this, 'count-normal')">
+              <span class="nickname-count" id="count-normal">4/20</span>
+            </div>
+            <div class="wechat-control-hint">微信 type="nickname"</div>
+          </div>
+
+          <!-- 保存按钮 -->
+          <div class="save-btn-wrap">
+            <button class="btn btn--primary btn--block btn--lg"
+                    onclick="showState('loading')">
+              保存
+            </button>
+          </div>
+
+        </div>
+      </div>
+      <div class="prototype-note" style="margin: var(--spacing-md);">
+        <strong>交互标注：</strong><br>
+        1. 头像：点击弹出微信头像选择器（<code>open-type="chooseAvatar"</code>）<br>
+        2. 昵称：使用 <code>type="nickname"</code> 输入框，微信原生面板<br>
+        3. 限制 20 字符，前端 + 后端双校验<br>
+        4. 保存成功后返回"我的"页面并刷新显示
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: 校验失败 ===== -->
+  <div id="state-validation" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <a class="nav-bar-back" href="my.html">&larr;</a>
+        <span class="nav-bar-title">编辑资料</span>
+      </div>
+      <div class="page-body page-body--white">
+        <div class="edit-page">
+
+          <div class="avatar-edit-section">
+            <div class="avatar avatar--lg">
+              <div class="avatar-placeholder" style="background: var(--color-primary-light); font-size: 28px;">A</div>
+            </div>
+            <div class="avatar-edit-hint">点击更换头像</div>
+          </div>
+
+          <!-- 两列展示两种校验失败 -->
+          <div class="nickname-edit-section">
+            <div class="form-label">昵称</div>
+
+            <!-- 场景 A: 空 -->
+            <div style="margin-bottom: var(--spacing-md);">
+              <div class="nickname-input-wrap">
+                <input type="text" class="form-input error" value="" placeholder="请输入昵称" maxlength="20">
+              </div>
+              <div class="form-error-msg">昵称不能为空</div>
+            </div>
+
+            <!-- 场景 B: 过长 -->
+            <div style="margin-bottom: var(--spacing-md);">
+              <div class="nickname-input-wrap">
+                <input type="text" class="form-input error" value="这是一个超过二十个字符的非常长的昵称用来展示校验错误" placeholder="请输入昵称" maxlength="20">
+                <span class="nickname-count error">21/20</span>
+              </div>
+              <div class="form-error-msg">昵称不能超过 20 个字符，已截断</div>
+            </div>
+
+            <!-- 场景 C: 敏感词 -->
+            <div>
+              <div class="nickname-input-wrap">
+                <input type="text" class="form-input error" value="违规昵称示例" placeholder="请输入昵称">
+              </div>
+              <div class="form-error-msg">昵称包含不允许的词汇</div>
+            </div>
+          </div>
+
+          <div class="save-btn-wrap">
+            <button class="btn btn--primary btn--block btn--lg" style="opacity: 0.6;"
+                    onclick="alert('【原型演示】校验未通过，无法保存')">
+              保存
+            </button>
+          </div>
+
+          <div class="prototype-note" style="margin-top: var(--spacing-md);">
+            <strong>校验规则：</strong><br>
+            1. 空 → 前端拦截，提示"昵称不能为空"<br>
+            2. >20 字符 → 输入框 maxlength 限制 + 后端二次校验<br>
+            3. 敏感词 → 后端校验，拒绝保存
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: Loading 保存中 ===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <a class="nav-bar-back" href="my.html">&larr;</a>
+        <span class="nav-bar-title">编辑资料</span>
+      </div>
+      <div class="page-body page-body--white">
+        <div class="edit-page">
+
+          <div class="avatar-edit-section" style="opacity: 0.5;">
+            <div class="avatar avatar--lg">
+              <div class="avatar-placeholder" style="background: var(--color-primary-light); font-size: 28px;">A</div>
+            </div>
+            <div class="avatar-edit-hint">点击更换头像</div>
+          </div>
+
+          <div class="nickname-edit-section" style="opacity: 0.5;">
+            <div class="form-label">昵称</div>
+            <div class="nickname-input-wrap">
+              <input type="text" class="form-input" value="小明妈妈" disabled>
+            </div>
+          </div>
+
+          <div class="loading-block" style="padding: var(--spacing-md);">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">保存中...</div>
+          </div>
+
+        </div>
+      </div>
+      <div class="prototype-note" style="margin: var(--spacing-md);">
+        <strong>交互标注：</strong><br>
+        - 头像上传 + 昵称保存同时进行<br>
+        - 成功 → 返回"我的"页面并刷新<br>
+        - 头像上传失败 → 不同时保存昵称修改（事务一致性）
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: 保存失败 ===== -->
+  <div id="state-error" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <a class="nav-bar-back" href="my.html">&larr;</a>
+        <span class="nav-bar-title">编辑资料</span>
+      </div>
+      <div class="page-body page-body--white">
+        <div class="edit-page">
+
+          <div class="avatar-edit-section">
+            <div class="avatar avatar--lg">
+              <div class="avatar-placeholder" style="background: var(--color-primary-light); font-size: 28px;">A</div>
+            </div>
+            <div class="avatar-edit-hint">点击更换头像</div>
+          </div>
+
+          <div class="nickname-edit-section">
+            <div class="form-label">昵称</div>
+            <div class="nickname-input-wrap">
+              <input type="text" class="form-input" value="小明妈妈" placeholder="请输入昵称" maxlength="20">
+              <!-- 保留用户输入，不清空 -->
+            </div>
+          </div>
+
+          <!-- 错误提示（双场景展示） -->
+          <!-- 场景 A: 网络异常 -->
+          <div class="error-banner">
+            <div style="font-weight: 500; margin-bottom: 2px;">&#x26A0; 保存失败</div>
+            网络连接异常，请检查网络后重试。<br>
+            你的修改内容已保留。
+          </div>
+
+          <!-- 场景 B: 头像上传单独失败 -->
+          <div class="error-banner" style="margin-top: var(--spacing-sm);">
+            <div style="font-weight: 500; margin-bottom: 2px;">&#x26A0; 头像上传失败</div>
+            头像上传失败，昵称修改不会单独保存（事务一致性）。请重试。
+          </div>
+
+          <div class="save-btn-wrap btn-group btn-group--equal">
+            <button class="btn btn--default" onclick="alert('【原型演示】放弃修改，返回"我的"页面')">放弃</button>
+            <button class="btn btn--primary">重试</button>
+          </div>
+
+        </div>
+      </div>
+      <div class="prototype-note" style="margin: var(--spacing-md);">
+        <strong>交互标注：</strong><br>
+        - 保存失败时 <strong>保留用户输入内容</strong>，不清空<br>
+        - 头像上传失败 → 不单独保存昵称（事务一致性）<br>
+        - "放弃" → 返回"我的"页面，不保存
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 5: 保存成功 ===== -->
+  <div id="state-success" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <a class="nav-bar-back" href="my.html">&larr;</a>
+        <span class="nav-bar-title">编辑资料</span>
+      </div>
+      <div class="page-body page-body--white">
+        <div class="edit-page">
+
+          <div class="avatar-edit-section">
+            <div class="avatar avatar--lg" style="border: 2px solid var(--color-primary);">
+              <img class="current-avatar-img"
+                   src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect fill='%2307C160' width='80' height='80'/%3E%3Ctext fill='white' font-size='32' x='50%25' y='55%25' text-anchor='middle' font-family='sans-serif'%3EA%3C/text%3E%3C/svg%3E"
+                   alt="新头像">
+            </div>
+          </div>
+
+          <div class="nickname-edit-section">
+            <div class="form-label">昵称</div>
+            <div class="nickname-input-wrap">
+              <input type="text" class="form-input" value="小明妈妈" disabled style="border-color: var(--color-primary);">
+            </div>
+          </div>
+
+          <!-- 成功提示 -->
+          <div class="success-banner">
+            <div style="font-weight: 500;">&#x2713; 资料已更新</div>
+            正在返回...
+          </div>
+
+          <div class="prototype-note" style="margin-top: var(--spacing-md);">
+            <strong>交互标注：</strong><br>
+            - 保存成功后自动返回"我的"页面<br>
+            - "我的"页面刷新显示新头像和昵称
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(stateId) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + stateId).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function updateCount(input, countId) {
+      const count = input.value.length;
+      const el = document.getElementById(countId);
+      if (el) {
+        el.textContent = count + '/20';
+        el.className = 'nickname-count';
+        if (count >= 18) el.classList.add('warn');
+        if (count > 20) el.classList.add('error');
+      }
+    }
+  </script>
+
+</body>
+</html>
