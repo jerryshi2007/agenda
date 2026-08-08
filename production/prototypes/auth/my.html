@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>"我的"页面</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+    .my-page {
+      padding: 0;
+      background: var(--color-bg-white);
+    }
+
+    /* 头像昵称区域 */
+    .profile-header {
+      display: flex;
+      align-items: center;
+      padding: var(--spacing-lg) var(--spacing-md);
+      background: var(--color-bg-white);
+      cursor: pointer;
+      border-bottom: 10px solid var(--color-bg-page);
+    }
+
+    .profile-header:active {
+      background: var(--color-bg-page);
+    }
+
+    .profile-info {
+      flex: 1;
+      margin-left: var(--spacing-md);
+      min-width: 0;
+    }
+
+    .profile-name {
+      font-size: var(--font-size-xl);
+      font-weight: 500;
+      color: var(--color-text-primary);
+      margin-bottom: 2px;
+    }
+
+    .profile-sub {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+    }
+
+    .profile-arrow {
+      margin-left: var(--spacing-sm);
+      color: var(--color-text-placeholder);
+    }
+
+    /* 家庭信息区 */
+    .family-section {
+      border-bottom: 10px solid var(--color-bg-page);
+    }
+
+    .family-current {
+      display: flex;
+      align-items: center;
+      padding: var(--spacing-md);
+      background: var(--color-bg-white);
+      cursor: pointer;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .family-current:active {
+      background: var(--color-bg-page);
+    }
+
+    .family-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      background: var(--color-primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-right: var(--spacing-md);
+      flex-shrink: 0;
+    }
+
+    .family-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .family-name {
+      font-size: var(--font-size-md);
+      color: var(--color-text-primary);
+    }
+
+    .family-role {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    /* 切换家庭入口 */
+    .switch-family-cell .badge {
+      margin-left: auto;
+      margin-right: var(--spacing-sm);
+    }
+
+    /* 设置页入口 */
+    .settings-section .cell {
+      padding: var(--spacing-md);
+    }
+
+    .cell-icon--create {
+      background: #E8F8EF;
+      color: var(--color-primary);
+    }
+
+    .cell-icon--join {
+      background: #E6F0FF;
+      color: #10AEFF;
+    }
+
+    .cell-icon--switch {
+      background: #FFF3E0;
+      color: #FF9800;
+    }
+
+    .cell-icon--settings {
+      background: var(--color-bg-page);
+      color: var(--color-text-secondary);
+    }
+
+    /* 头像区骨骼 */
+    .skeleton-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: var(--radius-round);
+      background: linear-gradient(90deg, var(--color-border-light) 25%, #E8E8E8 50%, var(--color-border-light) 75%);
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 1.5s ease infinite;
+    }
+
+    .skeleton-name {
+      width: 100px;
+      height: 20px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(90deg, var(--color-border-light) 25%, #E8E8E8 50%, var(--color-border-light) 75%);
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 1.5s ease infinite;
+      margin-bottom: 6px;
+    }
+
+    .skeleton-sub {
+      width: 60px;
+      height: 14px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(90deg, var(--color-border-light) 25%, #E8E8E8 50%, var(--color-border-light) 75%);
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 1.5s ease infinite;
+    }
+
+    @keyframes skeleton-shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('with-family')">正常: 有家庭</button>
+    <button onclick="showState('multi-family')">正常: 多家庭</button>
+    <button onclick="showState('no-family')">空态: 无家庭</button>
+    <button onclick="showState('loading')">Loading: 加载中</button>
+    <button onclick="showState('error')">错误: 加载失败</button>
+  </div>
+
+  <!-- ===== 状态 1: 有家庭（1个家庭）===== -->
+  <div id="state-with-family" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">我的</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="my-page">
+
+          <!-- 头像昵称区 -->
+          <div class="profile-header" onclick="alert('【原型演示】跳转编辑资料页 (auth/edit-profile.html)')">
+            <div class="avatar">
+              <div class="avatar-placeholder" style="background: #E8F8EF; font-size: 22px;">A</div>
+            </div>
+            <div class="profile-info">
+              <div class="profile-name">小明妈妈</div>
+              <div class="profile-sub">点击查看或编辑资料</div>
+            </div>
+            <div class="profile-arrow">
+              <span class="arrow"></span>
+            </div>
+          </div>
+
+          <!-- 家庭信息区 -->
+          <div class="family-section">
+            <div class="section-title">家庭</div>
+
+            <!-- 当前家庭 -->
+            <div class="family-current" onclick="alert('【原型演示】跳转家庭模块 → 成员列表页 (familyId=1)')">
+              <div class="family-icon">&#x1F3E0;</div>
+              <div class="family-info">
+                <div class="family-name">我们一家</div>
+                <div class="family-role">家长</div>
+              </div>
+              <span class="arrow" style="display: inline-block; width: 8px; height: 8px; border-top: 2px solid var(--color-text-placeholder); border-right: 2px solid var(--color-text-placeholder); transform: rotate(45deg); flex-shrink: 0;"></span>
+            </div>
+
+            <!-- 操作入口 -->
+            <div class="cell" onclick="alert('【原型演示】跳转家庭模块 → 创建流程')">
+              <div class="cell-icon cell-icon--create">+</div>
+              <div class="cell__bd"><span class="cell__title">创建家庭</span></div>
+              <div class="cell__ft"><span class="arrow"></span></div>
+            </div>
+            <div class="cell" onclick="alert('【原型演示】跳转家庭模块 → 邀请码输入页')">
+              <div class="cell-icon cell-icon--join">#</div>
+              <div class="cell__bd"><span class="cell__title">加入家庭</span></div>
+              <div class="cell__ft"><span class="arrow"></span></div>
+            </div>
+          </div>
+
+          <!-- 设置 -->
+          <div class="cell-group">
+            <a class="cell" href="settings.html">
+              <div class="cell-icon cell-icon--settings">&#x2699;</div>
+              <div class="cell__bd"><span class="cell__title">设置</span></div>
+              <div class="cell__ft"><span class="arrow"></span></div>
+            </a>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TabBar -->
+      <div class="tab-bar">
+        <div class="tab-bar-item" onclick="alert('【原型演示】切换到日历 Tab')">
+          <div class="tab-bar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <span class="tab-bar-label">日历</span>
+        </div>
+        <div class="tab-bar-item active">
+          <div class="tab-bar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <span class="tab-bar-label">我的</span>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin: 0; border-radius: 0;">
+        <strong>交互标注：</strong><br>
+        - 1 个家庭时，不显示"切换家庭"入口<br>
+        - 头像区 → 编辑资料页<br>
+        - 当前家庭 → 家庭模块成员列表<br>
+        - 创建/加入家庭 → 家庭模块对应流程
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: 多家庭（2+）===== -->
+  <div id="state-multi-family" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">我的</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="my-page">
+
+          <div class="profile-header" onclick="alert('【原型演示】跳转编辑资料页')">
+            <div class="avatar">
+              <div class="avatar-placeholder" style="background: #E8F8EF; font-size: 22px;">A</div>
+            </div>
+            <div class="profile-info">
+              <div class="profile-name">小明妈妈</div>
+              <div class="profile-sub">点击查看或编辑资料</div>
+            </div>
+            <div class="profile-arrow">
+              <span class="arrow"></span>
+            </div>
+          </div>
+
+          <div class="family-section">
+            <div class="section-title">家庭</div>
+
+            <!-- 当前家庭 -->
+            <div class="family-current">
+              <div class="family-icon">&#x1F3E0;</div>
+              <div class="family-info">
+                <div class="family-name">我们一家</div>
+                <div class="family-role">家长</div>
+              </div>
+              <span class="badge" style="margin-right: var(--spacing-sm);">当前</span>
+              <span class="arrow" style="display: inline-block; width: 8px; height: 8px; border-top: 2px solid var(--color-text-placeholder); border-right: 2px solid var(--color-text-placeholder); transform: rotate(45deg);"></span>
+            </div>
+
+            <!-- 切换家庭（2+）-->
+            <div class="cell switch-family-cell" onclick="alert('【原型演示】跳转家庭模块 → 切换面板')">
+              <div class="cell-icon cell-icon--switch">&#x21C4;</div>
+              <div class="cell__bd"><span class="cell__title">切换家庭</span></div>
+              <span class="badge">2 个家庭</span>
+              <div class="cell__ft"><span class="arrow"></span></div>
+            </div>
+
+            <div class="cell" onclick="alert('【原型演示】跳转家庭模块 → 创建流程')">
+              <div class="cell-icon cell-icon--create">+</div>
+              <div class="cell__bd"><span class="cell__title">创建家庭</span></div>
+              <div class="cell__ft"><span class="arrow"></span></div>
+            </div>
+            <div class="cell" onclick="alert('【原型演示】跳转家庭模块 → 邀请码输入页')">
+              <div class="cell-icon cell-icon--join">#</div>
+              <div class="cell__bd"><span class="cell__title">加入家庭</span></div>
+              <div class="cell__ft"><span class="arrow"></span></div>
+            </div>
+          </div>
+
+          <div class="cell-group">
+            <a class="cell" href="settings.html">
+              <div class="cell-icon cell-icon--settings">&#x2699;</div>
+              <div class="cell__bd"><span class="cell__title">设置</span></div>
+              <div class="cell__ft"><span class="arrow"></span></div>
+            </a>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-bar-item">
+          <div class="tab-bar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <span class="tab-bar-label">日历</span>
+        </div>
+        <div class="tab-bar-item active">
+          <div class="tab-bar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <span class="tab-bar-label">我的</span>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin: 0; border-radius: 0;">
+        <strong>交互标注：</strong><br>
+        - 2 个及以上家庭时显示"切换家庭"，含家庭数量徽标<br>
+        - 切换家庭 → 家庭模块切换面板
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: 无家庭 ===== -->
+  <div id="state-no-family" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">我的</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="my-page">
+
+          <div class="profile-header" onclick="alert('【原型演示】跳转编辑资料页')">
+            <div class="avatar">
+              <div class="avatar-placeholder" style="background: #E8F8EF; font-size: 22px;">A</div>
+            </div>
+            <div class="profile-info">
+              <div class="profile-name">小明妈妈</div>
+              <div class="profile-sub">点击查看或编辑资料</div>
+            </div>
+            <div class="profile-arrow">
+              <span class="arrow"></span>
+            </div>
+          </div>
+
+          <!-- 无家庭：不显示家庭信息区，不显示切换家庭 -->
+          <div class="family-section">
+            <div class="section-title">家庭</div>
+            <!-- 空态提示 -->
+            <div style="padding: var(--spacing-lg) var(--spacing-md); text-align: center; color: var(--color-text-secondary); font-size: var(--font-size-sm); border-bottom: 1px solid var(--color-border-light);">
+              还没有加入任何家庭
+            </div>
+
+            <div class="cell" onclick="alert('[原型演示] 跳转家庭模块 -> 创建流程')">
+              <div class="cell-icon cell-icon--create">+</div>
+              <div class="cell__bd"><span class="cell__title">创建家庭</span></div>
+              <div class="cell__ft"><span class="arrow"></span></div>
+            </div>
+            <div class="cell" onclick="alert('[原型演示] 跳转家庭模块 -> 邀请码输入页')">
+              <div class="cell-icon cell-icon--join">#</div>
+              <div class="cell__bd"><span class="cell__title">加入家庭</span></div>
+              <div class="cell__ft"><span class="arrow"></span></div>
+            </div>
+          </div>
+
+          <div class="cell-group">
+            <a class="cell" href="settings.html">
+              <div class="cell-icon cell-icon--settings">&#x2699;</div>
+              <div class="cell__bd"><span class="cell__title">设置</span></div>
+              <div class="cell__ft"><span class="arrow"></span></div>
+            </a>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-bar-item">
+          <div class="tab-bar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <span class="tab-bar-label">日历</span>
+        </div>
+        <div class="tab-bar-item active">
+          <div class="tab-bar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <span class="tab-bar-label">我的</span>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin: 0; border-radius: 0;">
+        <strong>交互标注：</strong><br>
+        - <strong>不显示</strong>：家庭信息区（当前家庭名称/角色）、切换家庭入口<br>
+        - 仍显示：创建家庭、加入家庭、设置<br>
+        - 认证模块不做角色判断；孩子端入口控制由家庭模块自行校验
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: Loading 家庭信息加载中 ===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">我的</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="my-page">
+
+          <!-- 头像区正常显示（本地缓存） -->
+          <div class="profile-header">
+            <div class="avatar">
+              <div class="avatar-placeholder" style="background: #E8F8EF; font-size: 22px;">A</div>
+            </div>
+            <div class="profile-info">
+              <div class="profile-name">小明妈妈</div>
+              <div class="profile-sub">点击查看或编辑资料</div>
+            </div>
+            <div class="profile-arrow">
+              <span class="arrow"></span>
+            </div>
+          </div>
+
+          <!-- 家庭信息区骨架屏 -->
+          <div class="family-section">
+            <div class="section-title">家庭</div>
+            <div style="padding: var(--spacing-md); display: flex; align-items: center; gap: var(--spacing-md);">
+              <div class="skeleton-avatar" style="width: 40px; height: 40px; border-radius: var(--radius-sm);"></div>
+              <div style="flex: 1;">
+                <div class="skeleton-name"></div>
+                <div class="skeleton-sub" style="margin-top: 4px;"></div>
+              </div>
+            </div>
+            <div style="padding: var(--spacing-md);">
+              <div class="skeleton" style="height: 20px; width: 80px; margin-bottom: var(--spacing-md);"></div>
+              <div class="skeleton" style="height: 20px; width: 80px;"></div>
+            </div>
+          </div>
+
+          <div class="cell-group">
+            <div class="cell" style="pointer-events: none;">
+              <div class="cell-icon cell-icon--settings">&#x2699;</div>
+              <div class="cell__bd"><span class="cell__title">设置</span></div>
+              <div class="cell__ft"><span class="arrow"></span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-bar-item">
+          <div class="tab-bar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <span class="tab-bar-label">日历</span>
+        </div>
+        <div class="tab-bar-item active">
+          <div class="tab-bar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <span class="tab-bar-label">我的</span>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin: 0; border-radius: 0;">
+        <strong>交互标注：</strong><br>
+        - 头像昵称区使用本地缓存展示，不受网络影响<br>
+        - 家庭信息区显示骨架屏<br>
+        - 基本入口（创建/加入/设置）仍可点击
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 5: 错误态-家庭信息加载失败 ===== -->
+  <div id="state-error" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">我的</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="my-page">
+
+          <!-- 头像区正常显示（本地缓存） -->
+          <div class="profile-header">
+            <div class="avatar">
+              <div class="avatar-placeholder" style="background: #E8F8EF; font-size: 22px;">A</div>
+            </div>
+            <div class="profile-info">
+              <div class="profile-name">小明妈妈</div>
+              <div class="profile-sub">点击查看或编辑资料</div>
+            </div>
+            <div class="profile-arrow">
+              <span class="arrow"></span>
+            </div>
+          </div>
+
+          <!-- 家庭信息区加载失败 -->
+          <div class="family-section">
+            <div class="section-title">家庭</div>
+            <div class="error-state" style="padding: var(--spacing-md);">
+              <div class="error-state__icon" style="font-size: 32px;">&#x26A0;&#xFE0F;</div>
+              <div class="error-state__desc" style="font-size: var(--font-size-sm);">家庭信息加载失败</div>
+              <button class="btn btn--sm btn--ghost" onclick="alert('[原型演示] 重新加载家庭信息')">点击重试</button>
+            </div>
+
+            <div class="cell" onclick="alert('[原型演示] 跳转家庭模块 -> 创建流程')">
+              <div class="cell-icon cell-icon--create">+</div>
+              <div class="cell__bd"><span class="cell__title">创建家庭</span></div>
+              <div class="cell__ft"><span class="arrow"></span></div>
+            </div>
+            <div class="cell" onclick="alert('[原型演示] 跳转家庭模块 -> 邀请码输入页')">
+              <div class="cell-icon cell-icon--join">#</div>
+              <div class="cell__bd"><span class="cell__title">加入家庭</span></div>
+              <div class="cell__ft"><span class="arrow"></span></div>
+            </div>
+          </div>
+
+          <div class="cell-group">
+            <a class="cell" href="settings.html">
+              <div class="cell-icon cell-icon--settings">&#x2699;</div>
+              <div class="cell__bd"><span class="cell__title">设置</span></div>
+              <div class="cell__ft"><span class="arrow"></span></div>
+            </a>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-bar-item">
+          <div class="tab-bar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <span class="tab-bar-label">日历</span>
+        </div>
+        <div class="tab-bar-item active">
+          <div class="tab-bar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <span class="tab-bar-label">我的</span>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin: 0; border-radius: 0;">
+        <strong>交互标注：</strong><br>
+        - 头像昵称区使用本地缓存展示（不受网络影响）<br>
+        - 家庭信息区降级显示错误 + 重试按钮<br>
+        - 创建/加入/设置等基本入口仍可点击
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(stateId) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + stateId).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>

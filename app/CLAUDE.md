@@ -6,11 +6,12 @@
 
 ## 编码约束
 
-前端由 `dev-vue3` agent 编排 SDD 实现（若采用 Vue 技术栈），遵守：
+前端由 `dev-miniapp` agent 编排 SDD 实现，遵守：
 
+- [`../.claude/rules/dev-miniapp-standards.md`](../.claude/rules/dev-miniapp-standards.md) — 微信小程序编码规范，**含 `data-id` 可测试性契约**（所有可交互元素必加 `data-id`，测试据此定位，禁止用 CSS 类名/WXML 标签嵌套路径定位）
+- [`../.claude/rules/ui-miniapp-standards.md`](../.claude/rules/ui-miniapp-standards.md) — 小程序 UI 标准（WeUI 设计变量、rpx 单位、原生组件层级、安全区域适配）
 - [`../.claude/rules/dev-code-quality.md`](../.claude/rules/dev-code-quality.md) — 命名、单一职责、YAGNI、复用优先
-- [`../.claude/rules/dev-vue3-standards.md`](../.claude/rules/dev-vue3-standards.md) — Vue 3 规范，**含 `data-id` 可测试性契约**（所有可交互元素必加 `data-id`，测试据此定位，禁止用 CSS 类名/DOM 结构定位）
-- [`../.claude/rules/design-ui-standards.md`](../.claude/rules/design-ui-standards.md) — UI 框架优先、设计令牌、响应式与可访问性
+- [`../.claude/rules/dev-security.md`](../.claude/rules/dev-security.md) — 安全底线（外部输入必校验、不硬编码密钥、openid 不暴露前端日志）
 
 ## 关键设计约束（源自产品需求）
 

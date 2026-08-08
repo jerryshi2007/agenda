@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>昵称头像收集页</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+    .collect-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--spacing-xl) var(--spacing-lg);
+    }
+
+    .avatar-section {
+      margin-bottom: var(--spacing-xl);
+      text-align: center;
+    }
+
+    .avatar-section .avatar--lg {
+      margin: 0 auto var(--spacing-sm);
+      cursor: pointer;
+      position: relative;
+      border: 2px dashed var(--color-border);
+      transition: border-color var(--transition-fast);
+    }
+
+    .avatar-section .avatar--lg:hover {
+      border-color: var(--color-primary);
+    }
+
+    .avatar-section .avatar--lg.has-avatar {
+      border: 2px solid var(--color-border);
+    }
+
+    .avatar-section .avatar-placeholder {
+      width: 100%;
+      height: 100%;
+      background: var(--color-border-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      color: var(--color-text-placeholder);
+    }
+
+    .avatar-hint {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-link);
+    }
+
+    .avatar-changed-badge {
+      font-size: var(--font-size-xs);
+      color: var(--color-primary);
+      margin-top: var(--spacing-xs);
+    }
+
+    .nickname-section {
+      width: 100%;
+      max-width: 280px;
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .nickname-label {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .nickname-section .form-input {
+      text-align: center;
+    }
+
+    .nickname-section .form-input.filled {
+      border-color: var(--color-primary);
+    }
+
+    .wechat-hint {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--font-size-xs);
+      color: var(--color-text-placeholder);
+      margin-top: var(--spacing-xs);
+    }
+
+    .wechat-hint::before {
+      content: '';
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      background: var(--color-primary);
+      border-radius: 2px;
+      margin-right: 4px;
+      opacity: 0.6;
+    }
+
+    .skip-info {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      text-align: center;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .start-btn-wrap {
+      width: 100%;
+      max-width: 280px;
+    }
+
+    .default-preview {
+      text-align: center;
+      margin-bottom: var(--spacing-md);
+      padding: var(--spacing-md);
+      background: var(--color-bg-page);
+      border-radius: var(--radius-md);
+    }
+
+    .default-preview .title {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    /* 已上传头像预览 */
+    .avatar-preview {
+      width: 80px;
+      height: 80px;
+      border-radius: var(--radius-round);
+      object-fit: cover;
+    }
+
+    /* 提示横幅 */
+    .info-banner {
+      width: 100%;
+      max-width: 280px;
+      text-align: center;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .info-banner p {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+    }
+
+    /* 进度指示 */
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .step-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: var(--radius-round);
+      background: var(--color-border);
+    }
+
+    .step-dot.active {
+      background: var(--color-primary);
+      width: 16px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('normal')">正常: 未填写</button>
+    <button onclick="showState('filled')">正常: 已填写</button>
+    <button onclick="showState('loading')">Loading: 提交中</button>
+    <button onclick="showState('error')">错误: 提交失败</button>
+    <button onclick="showState('skip-preview')">跳过预览: 默认值</button>
+  </div>
+
+  <!-- ===== 状态 1: 正常-未填写 ===== -->
+  <div id="state-normal" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">完善个人资料</span>
+      </div>
+      <div class="page-body page-body--white">
+        <div class="collect-page">
+          <!-- 步骤指示器 -->
+          <div class="step-indicator">
+            <span class="step-dot" style="background: var(--color-border);"></span>
+            <span class="step-dot active"></span>
+          </div>
+
+          <!-- 头像区 -->
+          <div class="avatar-section">
+            <div class="avatar avatar--lg" style="cursor: pointer;">
+              <div class="avatar-placeholder">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </div>
+            </div>
+            <div class="avatar-hint">点击设置头像</div>
+          </div>
+
+          <!-- 昵称 -->
+          <div class="nickname-section">
+            <div class="nickname-label">昵称</div>
+            <input type="text" class="form-input" placeholder="点击填写微信昵称" readonly
+                   onclick="this.value='微信昵称示例'; this.classList.add('filled');">
+            <div class="wechat-hint">微信昵称控件</div>
+          </div>
+
+          <!-- 跳过提示 -->
+          <div class="info-banner">
+            <p>跳过将使用默认昵称和头像，<br>后续可在"我的"页面修改</p>
+          </div>
+
+          <div class="start-btn-wrap">
+            <button class="btn btn--primary btn--block btn--lg"
+                    onclick="alert('【原型演示】跳过填写，使用默认值 → 进入下一流程（家庭模块承接）')">
+              开始使用
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="prototype-note" style="margin: var(--spacing-md);">
+        <strong>交互标注：</strong><br>
+        1. 点击头像 → 弹出微信头像选择器（<code>open-type="chooseAvatar"</code>）<br>
+        2. 点击昵称输入框 → 弹出微信昵称面板（<code>type="nickname"</code>）<br>
+        3. 点击"开始使用"→ <strong>跳过</strong>，使用默认昵称"微信用户" + 灰色头像 → 进入下一流程<br>
+        4. 仅首次登录时展示，再次登录跳过
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: 已填写头像和昵称 ===== -->
+  <div id="state-filled" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">完善个人资料</span>
+      </div>
+      <div class="page-body page-body--white">
+        <div class="collect-page">
+          <div class="step-indicator">
+            <span class="step-dot" style="background: var(--color-border);"></span>
+            <span class="step-dot active"></span>
+          </div>
+
+          <!-- 头像已选 -->
+          <div class="avatar-section">
+            <div class="avatar avatar--lg has-avatar">
+              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect fill='%2307C160' width='80' height='80'/%3E%3Ctext fill='white' font-size='32' x='50%25' y='55%25' text-anchor='middle' font-family='sans-serif'%3EA%3C/text%3E%3C/svg%3E" alt="头像">
+            </div>
+            <div class="avatar-changed-badge">&#x2713; 已选择头像</div>
+          </div>
+
+          <!-- 昵称已填 -->
+          <div class="nickname-section">
+            <div class="nickname-label">昵称</div>
+            <input type="text" class="form-input filled" value="小明妈妈" readonly>
+            <div class="wechat-hint">点击可修改</div>
+          </div>
+
+          <div class="info-banner">
+            <p>点击"开始使用"保存设置</p>
+          </div>
+
+          <div class="start-btn-wrap">
+            <button class="btn btn--primary btn--block btn--lg"
+                    onclick="showState('loading')">
+              开始使用
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="prototype-note" style="margin: var(--spacing-md);">
+        <strong>交互标注：</strong><br>
+        - 头像选择后实时预览<br>
+        - 昵称通过微信原生控件确认后回填<br>
+        - 点击"开始使用"→ 保存 → 进入下一流程
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: Loading 提交中 ===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">完善个人资料</span>
+      </div>
+      <div class="page-body page-body--white">
+        <div class="collect-page">
+          <div class="step-indicator">
+            <span class="step-dot" style="background: var(--color-border);"></span>
+            <span class="step-dot active"></span>
+          </div>
+
+          <div class="avatar-section">
+            <div class="avatar avatar--lg has-avatar">
+              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect fill='%2307C160' width='80' height='80'/%3E%3Ctext fill='white' font-size='32' x='50%25' y='55%25' text-anchor='middle' font-family='sans-serif'%3EA%3C/text%3E%3C/svg%3E" alt="头像" style="opacity: 0.5;">
+            </div>
+            <div class="avatar-changed-badge">&#x2713; 已选择头像</div>
+          </div>
+
+          <div class="nickname-section">
+            <div class="nickname-label">昵称</div>
+            <input type="text" class="form-input filled" value="小明妈妈" disabled style="opacity: 0.5;">
+          </div>
+
+          <div class="loading-block" style="padding: var(--spacing-md);">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">保存中...</div>
+          </div>
+        </div>
+      </div>
+      <div class="prototype-note" style="margin: var(--spacing-md);">
+        <strong>交互标注：</strong><br>
+        - 提交后将头像上传 + 昵称保存<br>
+        - 成功 → 交接给家庭模块<br>
+        - 失败 → 错误态（见右侧状态）
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: 错误态-提交失败 ===== -->
+  <div id="state-error" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">完善个人资料</span>
+      </div>
+      <div class="page-body page-body--white">
+        <div class="collect-page">
+          <div class="step-indicator">
+            <span class="step-dot" style="background: var(--color-border);"></span>
+            <span class="step-dot active"></span>
+          </div>
+
+          <div class="avatar-section">
+            <div class="avatar avatar--lg has-avatar">
+              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect fill='%2307C160' width='80' height='80'/%3E%3Ctext fill='white' font-size='32' x='50%25' y='55%25' text-anchor='middle' font-family='sans-serif'%3EA%3C/text%3E%3C/svg%3E" alt="头像">
+            </div>
+            <div class="avatar-changed-badge">&#x2713; 已选择头像</div>
+          </div>
+
+          <div class="nickname-section">
+            <div class="nickname-label">昵称</div>
+            <input type="text" class="form-input filled" value="小明妈妈">
+          </div>
+
+          <!-- 错误提示横幅 -->
+          <div style="width: 100%; max-width: 280px; background: var(--color-danger-light); border: 1px solid rgba(250, 81, 81, 0.3); border-radius: var(--radius-sm); padding: var(--spacing-md); margin-bottom: var(--spacing-md); text-align: center;">
+            <div style="font-size: var(--font-size-base); color: var(--color-danger); margin-bottom: var(--spacing-sm);">
+              &#x26A0; 保存失败，请检查网络连接
+            </div>
+            <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">
+              你的填写内容已保留，请重试
+            </div>
+          </div>
+
+          <div class="start-btn-wrap btn-group btn-group--equal">
+            <button class="btn btn--default">稍后再说</button>
+            <button class="btn btn--primary">重试</button>
+          </div>
+        </div>
+      </div>
+      <div class="prototype-note" style="margin: var(--spacing-md);">
+        <strong>交互标注：</strong><br>
+        - 网络异常时本地暂存修改内容<br>
+        - 用户可正常使用（显示本地暂存值）<br>
+        - 网络恢复后自动补传<br>
+        - "稍后再说"→ 使用默认值继续流程
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 5: 跳过预览-默认值 ===== -->
+  <div id="state-skip-preview" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-title">完善个人资料</span>
+      </div>
+      <div class="page-body page-body--white">
+        <div class="collect-page">
+          <div class="step-indicator">
+            <span class="step-dot" style="background: var(--color-border);"></span>
+            <span class="step-dot active"></span>
+          </div>
+
+          <div class="default-preview" style="width: 100%; max-width: 280px;">
+            <div class="title">跳过后将使用以下默认信息</div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: var(--spacing-md); padding: var(--spacing-md);">
+              <div class="avatar avatar--sm">
+                <div class="avatar-placeholder" style="font-size: 14px;">?</div>
+              </div>
+              <div style="font-size: var(--font-size-md); color: var(--color-text-secondary);">微信用户</div>
+            </div>
+            <div style="font-size: var(--font-size-xs); color: var(--color-text-placeholder);">后续可在"我的"页面随时修改</div>
+          </div>
+
+          <div class="info-banner">
+            <p>跳过将使用默认昵称和头像，<br>后续可在"我的"页面修改</p>
+          </div>
+
+          <div class="start-btn-wrap">
+            <button class="btn btn--primary btn--block btn--lg">
+              开始使用
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(stateId) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + stateId).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>
