@@ -548,7 +548,7 @@
 - **订阅记录（Subscription）**：用户微信订阅消息的授权状态，按模板类型记录。
 - **结算任务（Settlement）**：每天凌晨执行的定时任务，处理逾期判定、连续天数更新、徽章检测。
 
-> 完整概念模型（含 User、Family、Event、TimeSlot、Cancellation 等跨模块实体）见 [产品总纲 - 第 7 节](../../requirements/index.md#7-数据模型概要)。
+> 完整概念模型（含 User、Family、Schedule、TimeSlot、Cancellation 等跨模块实体）见 [产品总纲 - 第 7 节](../../requirements/index.md#7-数据模型概要)。
 
 ### 视觉状态 ↔ 业务状态映射
 
