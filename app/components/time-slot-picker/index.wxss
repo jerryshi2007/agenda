@@ -1,0 +1,120 @@
+/* components/time-slot-picker/index.wxss */
+
+.timeslot-picker {
+  background: var(--color-bg-page);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.ts-section-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+/* 星期选择网格 */
+.ts-day-grid {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: 0 var(--spacing-md);
+}
+
+.ts-day-item {
+  flex: 1;
+  text-align: center;
+  padding: 14rpx 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-white);
+  border-radius: var(--radius-sm);
+  border: 2rpx solid var(--color-border);
+  transition: all var(--transition-fast);
+}
+
+.ts-day-item.weekend {
+  color: var(--color-danger);
+}
+
+.ts-day-item.selected {
+  background: var(--color-primary);
+  color: var(--color-text-white);
+  border-color: var(--color-primary);
+}
+
+/* 默认时间 */
+.ts-default-time {
+  padding: var(--spacing-md);
+}
+
+.ts-time-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.ts-time-value {
+  flex: 1;
+  text-align: center;
+  padding: 18rpx 0;
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  background: var(--color-bg-white);
+  border-radius: var(--radius-sm);
+  border: 2rpx solid var(--color-border);
+}
+
+.ts-time-sep {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+/* 逐天微调 */
+.ts-tune-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-link);
+  gap: var(--spacing-xs);
+}
+
+.ts-arrow {
+  font-size: var(--font-size-md);
+  transition: transform var(--transition-fast);
+}
+
+.ts-arrow.open {
+  transform: rotate(180deg);
+}
+
+.ts-tune-panel {
+  padding: 0 var(--spacing-md) var(--spacing-md);
+}
+
+.ts-tune-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) 0;
+}
+
+.ts-tune-day {
+  width: 64rpx;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.ts-tune-time {
+  flex: 1;
+  text-align: center;
+  padding: 12rpx 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg-white);
+  border-radius: var(--radius-sm);
+  border: 2rpx solid var(--color-border);
+}

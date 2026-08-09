@@ -1,0 +1,127 @@
+/* pages/schedule-detail/index.wxss */
+
+@import '../../styles/schedule-common.wxss';
+
+.detail-page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-page);
+}
+
+/* 类型标签条 */
+.detail-type-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12rpx 32rpx;
+  background: var(--color-bg-white);
+  border-bottom: 2rpx solid var(--color-border-light);
+  flex-shrink: 0;
+}
+
+/* 打卡状态区 */
+.detail-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx 32rpx;
+  background: var(--color-bg-white);
+  border-bottom: 2rpx solid var(--color-border-light);
+  gap: 16rpx;
+  flex-shrink: 0;
+}
+
+.detail-status-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: var(--radius-round);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+}
+
+.status-icon-pending { background: var(--color-type-homework-bg); color: var(--color-type-homework); }
+.status-icon-done { background: var(--color-type-routine-bg); color: var(--color-type-routine); }
+.status-icon-cancelled { background: var(--color-bg-page); color: var(--color-text-placeholder); }
+.status-icon-overdue { background: var(--color-danger-light); color: var(--color-danger); }
+
+.detail-status-text {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+}
+
+.status-text-pending { color: var(--color-type-homework); }
+.status-text-done { color: var(--color-type-routine); }
+.status-text-cancelled { color: var(--color-text-placeholder); }
+.status-text-overdue { color: var(--color-danger); }
+
+.detail-body {
+  flex: 1;
+}
+
+/* 打卡记录 */
+.checkin-record {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 32rpx;
+  border-bottom: 2rpx solid var(--color-border-light);
+  font-size: var(--font-size-base);
+  gap: 16rpx;
+}
+
+.checkin-record:last-child { border-bottom: none; }
+
+.checkin-record-status { margin-left: auto; font-size: var(--font-size-sm); flex-shrink: 0; }
+.checkin-done { color: var(--color-type-routine); }
+.checkin-pending { color: var(--color-text-secondary); }
+
+/* 孩子标签 */
+.child-tag {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+}
+
+/* 操作按钮区 */
+.detail-actions {
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  background: var(--color-bg-white);
+  border-top: 2rpx solid var(--color-border-light);
+  flex-shrink: 0;
+}
+
+/* 弹窗内单选 */
+.modal-radio-group {
+  text-align: left;
+  padding: 0 16rpx;
+}
+
+.modal-radio-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  gap: 16rpx;
+}
+
+.info-value .schedule-card-child-avatar {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: var(--radius-round);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-white);
+  background: var(--color-type-activity);
+  margin-right: var(--spacing-sm);
+  vertical-align: middle;
+}

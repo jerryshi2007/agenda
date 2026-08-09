@@ -1,0 +1,3 @@
+/* components/edit-scope-switch/index.wxss */
+
+@import '../../styles/schedule-common.wxss';

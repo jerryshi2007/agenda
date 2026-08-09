@@ -1,0 +1,44 @@
+/* components/day-view/index.wxss */
+
+.day-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-page);
+}
+
+.day-body {
+  flex: 1;
+  padding: var(--spacing-sm) 0;
+}
+
+.day-schedule-item {
+  display: flex;
+  align-items: flex-start;
+  padding-left: var(--spacing-md);
+}
+
+.day-time-marker {
+  width: 140rpx;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding-right: var(--spacing-sm);
+  padding-top: 24rpx;
+  position: relative;
+}
+
+.day-time-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.day-time-line {
+  width: 2rpx;
+  flex: 1;
+  background: var(--color-border-light);
+  min-height: 40rpx;
+  margin-top: 8rpx;
+}

@@ -1,0 +1,57 @@
+<!-- components/time-slot-picker/index.wxml
+     时间槽选择器 —— 快速填充（选择星期几 + 默认时间）+ 可选逐天微调 -->
+
+<view class="timeslot-picker">
+  <!-- 快速填充：选星期几 -->
+  <view class="ts-quick">
+    <view class="ts-section-label">选择重复的星期</view>
+    <view class="ts-day-grid">
+      <view wx:for="{{dayList}}" wx:key="dayOfWeek"
+            class="ts-day-item {{item._selected ? 'selected' : ''}} {{item.isWeekend ? 'weekend' : ''}}"
+            data-id="schedule-create-timeslot-tune-{{item.dayLabel}}"
+            data-index="{{index}}" bindtap="onToggleDay">
+        {{item.dayLabel}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 默认时间 -->
+  <view class="ts-default-time">
+    <view class="ts-section-label">默认时间</view>
+    <view class="ts-time-row">
+      <picker mode="time" value="{{defaultStartTime}}" bindchange="onStartTimeChange">
+        <view class="ts-time-value" data-id="schedule-create-timeslot-start">
+          {{defaultStartTime || '开始'}}
+        </view>
+      </picker>
+      <text class="ts-time-sep">至</text>
+      <picker mode="time" value="{{defaultEndTime}}" bindchange="onEndTimeChange">
+        <view class="ts-time-value" data-id="schedule-create-timeslot-end">
+          {{defaultEndTime || '结束'}}
+        </view>
+      </picker>
+    </view>
+    <view wx:if="{{error}}" class="form-error">{{error}}</view>
+  </view>
+
+  <!-- 展开逐天微调面板 -->
+  <view wx:if="{{selectedCount > 0}}" class="ts-tune-toggle" bindtap="onToggleTunePanel">
+    <text>逐天微调时间</text>
+    <text class="ts-arrow {{showTunePanel ? 'open' : ''}}">&#x25BE;</text>
+  </view>
+
+  <view wx:if="{{showTunePanel}}" class="ts-tune-panel">
+    <view wx:for="{{dayList}}" wx:key="dayOfWeek" wx:for-item="day">
+      <view wx:if="{{day._selected}}" class="ts-tune-row">
+        <text class="ts-tune-day">{{day.dayName}}</text>
+        <picker mode="time" value="{{day._customStart || defaultStartTime}}" bindchange="onTuneStart" data-index="{{index}}">
+          <view class="ts-tune-time">{{day._customStart || defaultStartTime || '开始'}}</view>
+        </picker>
+        <text class="ts-time-sep">-</text>
+        <picker mode="time" value="{{day._customEnd || defaultEndTime}}" bindchange="onTuneEnd" data-index="{{index}}">
+          <view class="ts-tune-time">{{day._customEnd || defaultEndTime || '结束'}}</view>
+        </picker>
+      </view>
+    </view>
+  </view>
+</view>

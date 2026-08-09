@@ -1,0 +1,4 @@
+/* components/filter-bar/index.wxss */
+/* 样式已定义在 schedule-common.wxss 中 */
+
+@import '../../styles/schedule-common.wxss';

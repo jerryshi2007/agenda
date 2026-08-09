@@ -1,0 +1,81 @@
+/* components/month-view/index.wxss */
+
+.month-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-white);
+}
+
+.month-grid-scroll {
+  flex: 1;
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+/* 日期格 */
+.cal-cell {
+  position: relative;
+  border-bottom: 2rpx solid var(--color-border-light);
+  border-right: 2rpx solid var(--color-border-light);
+  min-height: 144rpx;
+  padding: 8rpx;
+  display: flex;
+  flex-direction: column;
+  transition: background var(--transition-fast);
+}
+
+.cal-cell:nth-child(7n) {
+  border-right: none;
+}
+
+.cal-cell:active {
+  background: var(--color-bg-page);
+}
+
+.cal-cell-other-month .cal-cell-date {
+  color: var(--color-text-placeholder);
+}
+
+.cal-cell-today {
+  background: var(--color-primary-light);
+}
+
+.cal-cell-today .cal-cell-date {
+  background: var(--color-primary);
+  color: var(--color-text-white);
+}
+
+.cal-cell-weekend .cal-cell-date {
+  color: var(--color-danger);
+}
+
+.cal-cell-date {
+  width: 52rpx;
+  height: 52rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  border-radius: var(--radius-round);
+}
+
+/* 色点 */
+.cal-dots {
+  display: flex;
+  gap: 6rpx;
+  flex-wrap: wrap;
+  margin-top: 8rpx;
+  padding-left: 4rpx;
+}
+
+.cal-dot-more {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 14rpx;
+}

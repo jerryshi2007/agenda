@@ -1,0 +1,31 @@
+<!-- components/day-view/index.wxml
+     日视图 —— 时间线布局 + 日程卡片完整信息 -->
+<view class="day-container">
+  <!-- 时间线 -->
+  <scroll-view scroll-y enable-flex class="day-body">
+    <view wx:if="{{schedules.length === 0 && !loading}}" class="empty-state">
+      <text class="empty-state-desc">{{dateText}}暂无日程</text>
+      <view wx:if="{{selectedScheduleTypes.length === 0}}" class="btn btn-primary mt-lg"
+            data-id="calendar-day-create-btn" bindtap="onCreate">创建日程</view>
+    </view>
+
+    <!-- 时间标注 + 日程卡片 -->
+    <view wx:for="{{sortedSchedules}}" wx:key="scheduleId" wx:for-item="schedule" class="day-schedule-item">
+      <view class="day-time-marker">
+        <text class="day-time-text">{{schedule.startTime || '--:--'}} - {{schedule.endTime || '--:--'}}</text>
+        <view class="day-time-line"></view>
+      </view>
+      <schedule-card
+        schedule="{{schedule}}"
+        viewType="day"
+        data-id="calendar-schedule-card-{{schedule.scheduleId}}"
+        bind:cardtap="onCardTap"
+        bind:checkintap="onCheckinTap"
+      />
+    </view>
+
+    <view wx:if="{{schedules.length > 20}}" class="loading-text text-center mt-md">
+      已加载 {{schedules.length}} 条日程
+    </view>
+  </scroll-view>
+</view>

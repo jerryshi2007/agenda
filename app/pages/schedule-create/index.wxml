@@ -1,0 +1,229 @@
+<!-- pages/schedule-create/index.wxml
+     创建日程页 —— 4 步向导：
+     Step 1: 选择孩子  Step 2: 选择类型
+     Step 3: 填写字段    Step 4: 确认预览 -->
+
+<view class="create-page">
+  <!-- 步骤条 -->
+  <view class="steps">
+    <view class="step {{currentStep >= 1 ? 'done' : ''}} {{currentStep === 1 ? 'active' : ''}}">
+      <text class="step-num">{{currentStep > 1 ? '✓' : '1'}}</text>
+      <text>选孩子</text>
+    </view>
+    <view class="step-line {{currentStep > 1 ? 'done' : ''}}"></view>
+    <view class="step {{currentStep >= 2 ? 'done' : ''}} {{currentStep === 2 ? 'active' : ''}}">
+      <text class="step-num">{{currentStep > 2 ? '✓' : '2'}}</text>
+      <text>选类型</text>
+    </view>
+    <view class="step-line {{currentStep > 2 ? 'done' : ''}}"></view>
+    <view class="step {{currentStep >= 3 ? 'done' : ''}} {{currentStep === 3 ? 'active' : ''}}">
+      <text class="step-num">{{currentStep > 3 ? '✓' : '3'}}</text>
+      <text>填信息</text>
+    </view>
+    <view class="step-line {{currentStep > 3 ? 'done' : ''}}"></view>
+    <view class="step {{currentStep === 4 ? 'active' : ''}}">
+      <text class="step-num">4</text>
+      <text>确认</text>
+    </view>
+  </view>
+
+  <!-- 步骤内容 -->
+  <scroll-view scroll-y enable-flex class="step-content">
+    <!-- Step 1: 选择孩子（多选） -->
+    <view wx:if="{{currentStep === 1}}">
+      <view class="section-title">请选择参与该日程的孩子</view>
+      <view wx:if="{{childList.length === 0}}" class="empty-state">
+        <view class="empty-state-desc">还没有关联孩子，请先邀请家人加入</view>
+        <view class="btn btn-default mt-md" bindtap="onGoFamily">前往家庭管理</view>
+      </view>
+      <view wx:for="{{childList}}" wx:key="userId" class="child-select-item {{item._selected ? 'selected' : ''}}"
+            data-id="schedule-create-child-{{item.userId}}" data-index="{{index}}" bindtap="onToggleChild">
+        <view class="child-select-check">
+          <text wx:if="{{item._selected}}">&#x2713;</text>
+        </view>
+        <view class="child-select-avatar" style="background:{{item._color || '#10AEFF'}};">
+          <text>{{item.childName ? item.childName.charAt(0) : '?'}}</text>
+        </view>
+        <view class="child-select-info">
+          <text class="child-select-name">{{item.childName || item.name}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Step 2: 选择类型 -->
+    <view wx:if="{{currentStep === 2}}">
+      <view class="section-title">请选择日程类型</view>
+      <view class="type-cards">
+        <view class="type-card type-card-activity {{scheduleType === 'AfterSchoolActivity' ? 'selected' : ''}}"
+              data-id="schedule-create-type-afterschool" data-type="AfterSchoolActivity" bindtap="onSelectType">
+          <view class="type-card-icon type-card-icon-activity">&#x1F3AB;</view>
+          <view class="type-card-info">
+            <view class="type-card-name">课后活动</view>
+            <view class="type-card-desc">课外班、兴趣活动、体育锻炼等</view>
+          </view>
+          <text wx:if="{{scheduleType === 'AfterSchoolActivity'}}" class="type-card-check">&#x2713;</text>
+        </view>
+        <view class="type-card type-card-routine {{scheduleType === 'DailyRoutine' ? 'selected' : ''}}"
+              data-id="schedule-create-type-daily" data-type="DailyRoutine" bindtap="onSelectType">
+          <view class="type-card-icon type-card-icon-routine">&#x23F0;</view>
+          <view class="type-card-info">
+            <view class="type-card-name">日常作息</view>
+            <view class="type-card-desc">练琴、写作业、阅读时间等固定安排</view>
+          </view>
+          <text wx:if="{{scheduleType === 'DailyRoutine'}}" class="type-card-check">&#x2713;</text>
+        </view>
+        <view class="type-card type-card-homework {{scheduleType === 'HomeworkTask' ? 'selected' : ''}}"
+              data-id="schedule-create-type-homework" data-type="HomeworkTask" bindtap="onSelectType">
+          <view class="type-card-icon type-card-icon-homework">&#x1F4DA;</view>
+          <view class="type-card-info">
+            <view class="type-card-name">作业任务</view>
+            <view class="type-card-desc">一次性或重复的家庭作业、项目任务</view>
+          </view>
+          <text wx:if="{{scheduleType === 'HomeworkTask'}}" class="type-card-check">&#x2713;</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Step 3: 填写字段（按类型动态表单） -->
+    <view wx:if="{{currentStep === 3}}" class="form-block">
+      <!-- 名称 -->
+      <view class="form-group">
+        <view class="form-label">日程名称 <text class="required">*</text></view>
+        <input class="form-input" placeholder="例如：钢琴课" maxlength="50"
+               data-id="schedule-create-name-input" value="{{formData.name}}"
+               bindinput="onFieldInput" data-field="name" />
+        <view wx:if="{{errors.name}}" class="form-error">{{errors.name}}</view>
+      </view>
+
+      <!-- 时间槽选择器（课后活动 + 日常作息） -->
+      <view wx:if="{{scheduleType !== 'HomeworkTask'}}" class="form-group">
+        <view class="form-label">重复时间 <text class="required">*</text></view>
+        <time-slot-picker
+          data-id="schedule-create-timeslot"
+          timeSlots="{{formData.timeSlots}}"
+          bind:timeslotchange="onTimeSlotChange"
+        />
+        <view wx:if="{{errors.timeSlots}}" class="form-error">{{errors.timeSlots}}</view>
+      </view>
+
+      <!-- 重复结束日期（课后活动 + 日常作息） -->
+      <view wx:if="{{scheduleType !== 'HomeworkTask'}}" class="form-group">
+        <view class="form-label">重复结束日期</view>
+        <picker mode="date" value="{{formData.repeatEndDate}}" start="{{minDate}}"
+                data-id="schedule-create-repeat-end" bindchange="onDateChange" data-field="repeatEndDate">
+          <view class="form-input form-picker-value">
+            {{formData.repeatEndDate || '不设置（永久重复）'}}
+          </view>
+        </picker>
+      </view>
+
+      <!-- 地点（仅课后活动） -->
+      <view wx:if="{{scheduleType === 'AfterSchoolActivity'}}" class="form-group">
+        <view class="form-label">地点</view>
+        <input class="form-input" placeholder="例如：少年宫3楼钢琴教室" maxlength="100"
+               data-id="schedule-create-location-input" value="{{formData.location}}"
+               bindinput="onFieldInput" data-field="location" />
+      </view>
+
+      <!-- 截止日期（仅作业任务） -->
+      <view wx:if="{{scheduleType === 'HomeworkTask'}}" class="form-group">
+        <view class="form-label">截止日期 <text class="required">*</text></view>
+        <picker mode="date" value="{{formData.dueDate}}" start="{{minDate}}"
+                data-id="schedule-create-due-date" bindchange="onDateChange" data-field="dueDate">
+          <view class="form-input form-picker-value">
+            {{formData.dueDate || '请选择截止日期'}}
+          </view>
+        </picker>
+        <view wx:if="{{errors.dueDate}}" class="form-error">{{errors.dueDate}}</view>
+      </view>
+
+      <!-- 建议时间（仅作业任务） -->
+      <view wx:if="{{scheduleType === 'HomeworkTask'}}" class="form-group">
+        <view class="form-label">建议完成时间</view>
+        <view class="form-row">
+          <picker mode="time" value="{{formData.suggestedStartTime}}"
+                  data-id="schedule-create-suggest-start" bindchange="onTimeChange" data-field="suggestedStartTime">
+            <view class="form-input form-picker-value half">
+              {{formData.suggestedStartTime || '开始'}}
+            </view>
+          </picker>
+          <text style="margin:0 16rpx;">至</text>
+          <picker mode="time" value="{{formData.suggestedEndTime}}"
+                  data-id="schedule-create-suggest-end" bindchange="onTimeChange" data-field="suggestedEndTime">
+            <view class="form-input form-picker-value half">
+              {{formData.suggestedEndTime || '结束'}}
+            </view>
+          </picker>
+        </view>
+      </view>
+
+      <!-- 备注 -->
+      <view class="form-group">
+        <view class="form-label">备注</view>
+        <textarea class="form-textarea" placeholder="选填，最多500字" maxlength="500"
+                  data-id="schedule-create-notes-input" value="{{formData.notes}}"
+                  bindinput="onFieldInput" data-field="notes" auto-height />
+        <view wx:if="{{errors.notes}}" class="form-error">{{errors.notes}}</view>
+      </view>
+    </view>
+
+    <!-- Step 4: 确认 -->
+    <view wx:if="{{currentStep === 4}}" class="confirm-block">
+      <view class="section-title">确认日程信息</view>
+      <view class="preview-card">
+        <view class="preview-type-tag tag tag-{{stripeClass}}">{{typeLabel}}</view>
+        <view class="preview-name">{{formData.name}}</view>
+        <view wx:if="{{scheduleType !== 'HomeworkTask'}}" class="preview-row">
+          <text class="preview-label">时间</text>
+          <text class="preview-value">{{timeSlotSummary}}</text>
+        </view>
+        <view wx:if="{{scheduleType === 'AfterSchoolActivity' && formData.location}}" class="preview-row">
+          <text class="preview-label">地点</text>
+          <text class="preview-value">{{formData.location}}</text>
+        </view>
+        <view wx:if="{{scheduleType === 'HomeworkTask'}}" class="preview-row">
+          <text class="preview-label">截止日期</text>
+          <text class="preview-value">{{formData.dueDate}}</text>
+        </view>
+        <view class="preview-row">
+          <text class="preview-label">关联孩子</text>
+          <text class="preview-value">{{selectedChildNames}}</text>
+        </view>
+        <view wx:if="{{formData.notes}}" class="preview-row">
+          <text class="preview-label">备注</text>
+          <text class="preview-value">{{formData.notes}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部操作栏 -->
+  <view class="create-footer safe-area-bottom">
+    <view wx:if="{{currentStep > 1}}" class="btn btn-default" data-id="schedule-create-prev-btn"
+          bindtap="onPrevStep">上一步</view>
+    <view wx:if="{{currentStep < 4}}" class="btn btn-primary" data-id="schedule-create-next-btn"
+          bindtap="onNextStep">下一步</view>
+    <view wx:if="{{currentStep === 4}}" class="btn btn-primary" data-id="schedule-create-submit-btn"
+          bindtap="onSubmit" loading="{{submitting}}">
+      {{submitting ? '创建中...' : '确认创建'}}
+    </view>
+  </view>
+</view>
+
+<!-- 冲突弹窗 -->
+<view wx:if="{{showConflictDialog}}" class="modal-mask" data-id="schedule-create-conflict-dialog">
+  <view class="modal">
+    <view class="modal__header">发现时间冲突</view>
+    <view class="modal__body">
+      <view wx:for="{{conflicts}}" wx:key="scheduleId" class="conflict-item">
+        <text class="conflict-name">{{item.name}}</text>
+        <text class="conflict-time">{{item.startTime}} - {{item.endTime}}</text>
+      </view>
+      <text class="modal__body" style="margin-top:16rpx;display:block;">是否继续创建该日程？</text>
+    </view>
+    <view class="modal__footer">
+      <view class="btn btn-default" data-id="schedule-create-conflict-back" bindtap="onConflictBack">返回修改</view>
+      <view class="btn btn-primary" data-id="schedule-create-conflict-continue" bindtap="onConflictContinue">继续创建</view>
+    </view>
+  </view>
+</view>

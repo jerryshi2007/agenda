@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "usingComponents": {
+    "month-view": "../month-view/index",
+    "week-view": "../week-view/index",
+    "day-view": "../day-view/index"
+  }
+}

@@ -1,0 +1,17 @@
+<!-- components/filter-bar/index.wxml
+     筛选栏组件 —— 孩子选择器（单选）+ 类型选择器（多选） -->
+
+<view class="filter-bar">
+  <view class="filter-item {{selectedChildId ? 'active' : ''}}"
+        data-id="calendar-filter-child"
+        bindtap="onChildFilterTap">
+    {{selectedChildName || '全部孩子'}}
+    <text class="filter-item-arrow">&#x25BE;</text>
+  </view>
+  <view class="filter-item {{typesCount > 0 ? 'active' : ''}}"
+        data-id="calendar-filter-type"
+        bindtap="onTypeFilterTap">
+    {{typesCount > 0 ? typesLabel : '全部类型'}}
+    <text class="filter-item-arrow">&#x25BE;</text>
+  </view>
+</view>

@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "time-slot-picker": "../../components/time-slot-picker/index"
+  },
+  "navigationBarTitleText": "创建日程"
+}

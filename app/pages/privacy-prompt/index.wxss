@@ -1,0 +1,65 @@
+/* pages/privacy-prompt/index.wxss */
+@import '../../styles/common.wxss';
+@import '../../styles/tokens.wxss';
+
+.page-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-page);
+  padding: 48rpx;
+}
+
+.privacy-card {
+  background: var(--color-bg-container);
+  border-radius: 24rpx;
+  padding: 48rpx 40rpx;
+  width: 100%;
+  max-width: 600rpx;
+}
+
+.privacy-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+
+.privacy-body {
+  font-size: 28rpx;
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+  margin-bottom: 40rpx;
+}
+
+.privacy-body text {
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.privacy-check {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: 28rpx;
+  color: var(--color-text-primary);
+  margin-bottom: 32rpx;
+}
+
+.privacy-actions {
+  display: flex;
+  gap: 24rpx;
+}
+
+.privacy-actions .btn {
+  flex: 1;
+}
+
+.privacy-rejected {
+  padding: 32rpx 0;
+  text-align: center;
+  color: var(--color-danger);
+  font-size: 28rpx;
+}

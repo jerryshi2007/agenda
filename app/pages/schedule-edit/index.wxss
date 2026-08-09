@@ -1,0 +1,76 @@
+/* pages/schedule-edit/index.wxss */
+
+@import '../../styles/schedule-common.wxss';
+
+.edit-page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-page);
+}
+
+.scope-section {
+  padding: var(--spacing-md);
+  background: var(--color-bg-white);
+  border-bottom: 2rpx solid var(--color-border-light);
+  flex-shrink: 0;
+}
+
+.edit-content {
+  flex: 1;
+  padding: var(--spacing-md);
+}
+
+.form-group { margin-bottom: var(--spacing-lg); }
+.form-label { font-size: var(--font-size-base); color: var(--color-text-secondary); margin-bottom: var(--spacing-sm); font-weight: 500; }
+.required { color: var(--color-danger); }
+
+.form-input {
+  width: 100%;
+  height: 88rpx;
+  padding: 0 var(--spacing-md);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  background: var(--color-bg-white);
+  border: 2rpx solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-sizing: border-box;
+}
+
+.form-input:focus { border-color: var(--color-primary); }
+
+.form-picker-value {
+  display: flex;
+  align-items: center;
+  color: var(--color-text-primary);
+}
+
+.form-picker-value.half { flex: 1; justify-content: center; }
+
+.form-row {
+  display: flex;
+  align-items: center;
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 120rpx;
+  padding: var(--spacing-md);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  background: var(--color-bg-white);
+  border: 2rpx solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-sizing: border-box;
+}
+
+.form-textarea:focus { border-color: var(--color-primary); }
+
+.form-error { font-size: var(--font-size-sm); color: var(--color-danger); margin-top: var(--spacing-xs); }
+
+.edit-footer {
+  padding: var(--spacing-md);
+  background: var(--color-bg-white);
+  border-top: 2rpx solid var(--color-border-light);
+  flex-shrink: 0;
+}

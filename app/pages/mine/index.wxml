@@ -1,0 +1,16 @@
+<!-- pages/mine/index.wxml -->
+<view class="page-container">
+  <view class="section">
+    <view class="section-title">{{nickname}}</view>
+    <view class="section-desc">角色：{{userRole === 'parent' ? '家长' : '孩子'}}</view>
+  </view>
+
+  <view class="section" data-id="mine-settings-btn" bindtap="onSettings">
+    <text>设置</text>
+    <text class="arrow">›</text>
+  </view>
+
+  <view class="section" data-id="mine-logout-btn" bindtap="onLogout">
+    <text style="color: #FA5151;">退出登录</text>
+  </view>
+</view>
