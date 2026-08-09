@@ -25,6 +25,7 @@
     <view wx:if="{{!isHomework}}" class="form-group">
       <view class="form-label">重复时间 <text class="required">*</text></view>
       <time-slot-picker
+        data-id="schedule-edit-timeslot"
         timeSlots="{{formData.timeSlots}}"
         bind:timeslotchange="onTimeSlotChange"
       />

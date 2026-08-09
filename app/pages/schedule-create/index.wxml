@@ -5,7 +5,7 @@
 
 <view class="create-page">
   <!-- 步骤条 -->
-  <view class="steps">
+  <view class="steps" data-id="schedule-create-step-indicator">
     <view class="step {{currentStep >= 1 ? 'done' : ''}} {{currentStep === 1 ? 'active' : ''}}">
       <text class="step-num">{{currentStep > 1 ? '✓' : '1'}}</text>
       <text>选孩子</text>
@@ -170,7 +170,7 @@
     <!-- Step 4: 确认 -->
     <view wx:if="{{currentStep === 4}}" class="confirm-block">
       <view class="section-title">确认日程信息</view>
-      <view class="preview-card">
+      <view class="preview-card" data-id="schedule-create-preview-summary">
         <view class="preview-type-tag tag tag-{{stripeClass}}">{{typeLabel}}</view>
         <view class="preview-name">{{formData.name}}</view>
         <view wx:if="{{scheduleType !== 'HomeworkTask'}}" class="preview-row">

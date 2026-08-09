@@ -95,7 +95,8 @@
       <!-- 打卡记录区 -->
       <view wx:if="{{schedule.checkinRecords && schedule.checkinRecords.length > 0}}" class="info-section">
         <view class="info-section-title">打卡记录</view>
-        <view wx:for="{{schedule.checkinRecords}}" wx:key="childId" wx:for-item="record" class="checkin-record">
+        <view wx:for="{{schedule.checkinRecords}}" wx:key="childId" wx:for-item="record" class="checkin-record"
+              data-id="schedule-detail-checkin-record-{{record.childId}}">
           <view class="schedule-card-child-avatar">{{record.childName ? record.childName.charAt(0) : '?'}}</view>
           <text>{{record.childName}}</text>
           <text class="checkin-record-status {{record.status === 'completed' || record.status === 'Completed' ? 'checkin-done' : 'checkin-pending'}}">

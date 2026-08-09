@@ -3,7 +3,8 @@
 <view class="week-container">
   <!-- 星期头 -->
   <view class="weekday-header">
-    <view wx:for="{{weekDays}}" wx:key="date" class="weekday-header-item {{item.isWeekend ? 'weekend' : ''}} {{item.isToday ? 'weekday-today' : ''}}">
+    <view wx:for="{{weekDays}}" wx:key="date" class="weekday-header-item {{item.isWeekend ? 'weekend' : ''}} {{item.isToday ? 'weekday-today' : ''}}"
+          data-id="calendar-week-header-cell-{{item.date}}" bindtap="onWeekDayTap" data-date="{{item.date}}">
       <text class="weekday-name">{{item.dayOfWeekName}}</text>
       <text class="weekday-day {{item.isToday ? 'weekday-day-today' : ''}}">{{item.day}}</text>
     </view>

@@ -35,7 +35,8 @@
   </view>
 
   <!-- 展开逐天微调面板 -->
-  <view wx:if="{{selectedCount > 0}}" class="ts-tune-toggle" bindtap="onToggleTunePanel">
+  <view wx:if="{{selectedCount > 0}}" class="ts-tune-toggle" bindtap="onToggleTunePanel"
+        data-id="schedule-create-timeslot-tune-toggle">
     <text>逐天微调时间</text>
     <text class="ts-arrow {{showTunePanel ? 'open' : ''}}">&#x25BE;</text>
   </view>
@@ -45,7 +46,7 @@
       <view wx:if="{{day._selected}}" class="ts-tune-row">
         <text class="ts-tune-day">{{day.dayName}}</text>
         <picker mode="time" value="{{day._customStart || defaultStartTime}}" bindchange="onTuneStart" data-index="{{index}}">
-          <view class="ts-tune-time">{{day._customStart || defaultStartTime || '开始'}}</view>
+          <view class="ts-tune-time" data-id="schedule-create-timeslot-tune-time-{{item.dayLabel}}">{{day._customStart || defaultStartTime || '开始'}}</view>
         </picker>
         <text class="ts-time-sep">-</text>
         <picker mode="time" value="{{day._customEnd || defaultEndTime}}" bindchange="onTuneEnd" data-index="{{index}}">
