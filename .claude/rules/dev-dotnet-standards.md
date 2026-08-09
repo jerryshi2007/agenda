@@ -9,6 +9,7 @@ description: .NET/C# 编码规范——编写或审查 C# 代码时遵循。
 ### 命名与组织
 - **PascalCase 公开成员**——类、方法、属性、命名空间、接口（`I` 前缀）用 PascalCase。暴露给外部的标识符是所有调用方的契约，不统一导致调用方困惑。
 - **camelCase 私有/局部**——私有字段（`_` 前缀）、局部变量、参数用 camelCase。私有字段加 `_` 前缀区别于局部变量，避免 `this.x = x` 歧义。
+- **避开 C# / SQL 关键词**——实体名、DTO 名、方法名、属性名、变量名 MUST 避开 C# 和 SQL 保留关键字。常见冲突词：`Event`（C# 关键字 + SQL 保留字）、`Group`、`Order`、`Key`、`Index`、`Table`、`View`、`User`、`Role`、`Type`、`Value`、`Name`、`Date`、`Time`。实体类名用全限定命名空间绕过编译不算解决——IDE 导航、代码片段、SQL 查询均受影响。如 `Event` → `Schedule`/`CalendarEvent`，`Order` → `PurchaseOrder`/`SortOrder`，`Group` → `EntityGroup`/`ScheduleGroup`。
 - **文件 = 一个主类型**——一个 `.cs` 文件只放一个公开类/接口/record/struct。文件命名与类型名一致。塞多个类在一个文件会让导航和 diff 定位变难。
 - **命名空间与目录一致**——命名空间层级反映文件夹结构。不一致的命名空间让"这个类在哪"的查找变慢。
 

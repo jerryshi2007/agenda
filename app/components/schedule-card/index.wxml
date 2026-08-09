@@ -1,0 +1,76 @@
+<!-- components/schedule-card/index.wxml
+     日程卡片 —— 颜色条 + 时间 + 名称 + 孩子头像 + 状态 + 类型标签 + 地点 + 快捷打卡 -->
+
+<view class="schedule-card schedule-stripe-{{stripeClass}}"
+      data-id="calendar-schedule-card-{{schedule.scheduleId}}"
+      bindtap="onCardTap">
+  <view class="schedule-card-stripe schedule-card-stripe-{{stripeClass}}"></view>
+
+  <view class="schedule-card-body">
+    <!-- 顶部行：名称 + 状态 -->
+    <view class="schedule-card-top">
+      <text class="schedule-card-name">{{schedule.name}}</text>
+      <view class="schedule-card-status">
+        <!-- 已完成 -->
+        <text wx:if="{{schedule.status === 'completed' || schedule.status === 'Completed'}}"
+              class="tag tag-routine">已完成</text>
+        <!-- 未完成 -->
+        <text wx:elif="{{schedule.status === 'incomplete' || schedule.status === 'Incomplete'}}"
+              class="tag tag-homework">未完成</text>
+        <!-- 已取消 -->
+        <text wx:elif="{{schedule.status === 'cancelled' || schedule.status === 'Cancelled'}}"
+              class="tag" style="background:var(--color-bg-page);color:var(--color-text-placeholder);">已取消</text>
+        <!-- 已逾期 -->
+        <text wx:elif="{{schedule.status === 'overdue' || schedule.status === 'Overdue'}}"
+              class="tag" style="background:var(--color-danger-light);color:var(--color-danger);">已逾期</text>
+      </view>
+    </view>
+
+    <!-- 时间行 -->
+    <view class="schedule-card-time">
+      <text wx:if="{{schedule.startTime && schedule.endTime}}">
+        {{schedule.startTime}} - {{schedule.endTime}}
+      </text>
+      <text wx:elif="{{schedule.dueDate}}">
+        截止 {{schedule.dueDate}}
+      </text>
+    </view>
+
+    <!-- 底部信息行 -->
+    <view class="schedule-card-meta">
+      <!-- 类型标签 -->
+      <text wx:if="{{viewType === 'day'}}" class="tag tag-{{stripeClass}}">
+        {{typeLabel}}
+      </text>
+
+      <!-- 孩子信息 -->
+      <view wx:if="{{schedule.childName}}" class="schedule-card-child">
+        <view wx:if="{{schedule.childAvatarUrl}}" class="schedule-card-child-avatar">
+          <image src="{{schedule.childAvatarUrl}}" style="width:36rpx;height:36rpx;border-radius:50%;" />
+        </view>
+        <view wx:else class="schedule-card-child-avatar">
+          {{schedule.childName.charAt(0)}}
+        </view>
+        <text>{{schedule.childName}}</text>
+      </view>
+
+      <!-- 地点（日视图显示） -->
+      <text wx:if="{{viewType === 'day' && schedule.location}}" class="schedule-card-location">
+        &#x1F4CD; {{schedule.location}}
+      </text>
+    </view>
+
+    <!-- 备注（仅日视图显示） -->
+    <view wx:if="{{viewType === 'day' && schedule.notes}}" class="schedule-card-notes">
+      {{schedule.notes}}
+    </view>
+  </view>
+
+  <!-- 快捷打卡按钮（日/周视图） -->
+  <view wx:if="{{schedule.status === 'incomplete' || schedule.status === 'Incomplete'}}"
+        class="schedule-card-checkin"
+        data-id="calendar-schedule-card-checkin-btn-{{schedule.scheduleId}}"
+        catchtap="onCheckinTap">
+    <text class="checkin-icon">&#x2713;</text>
+  </view>
+</view>

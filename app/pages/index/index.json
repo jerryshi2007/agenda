@@ -1,0 +1,10 @@
+{
+  "usingComponents": {
+    "month-view": "../../components/month-view/index",
+    "week-view": "../../components/week-view/index",
+    "day-view": "../../components/day-view/index"
+  },
+  "navigationBarTitleText": "日程",
+  "enablePullDownRefresh": false,
+  "disableScroll": true
+}

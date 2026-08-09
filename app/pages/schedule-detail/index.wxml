@@ -1,0 +1,193 @@
+<!-- pages/schedule-detail/index.wxml
+     日程详情页 —— 完整信息展示 + 操作按钮状态机 + 删除确认弹窗 -->
+
+<view class="detail-page">
+  <!-- 加载态 -->
+  <view wx:if="{{loading}}" class="loading-block" style="flex:1;">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 错误态 -->
+  <view wx:elif="{{error}}" class="error-state">
+    <view class="error-state-title">加载失败</view>
+    <view class="error-state-desc">无法加载日程详情，请检查网络</view>
+    <view class="btn btn-primary btn-sm" data-id="schedule-detail-retry-btn" bindtap="onRetry">重试</view>
+  </view>
+
+  <!-- 404 已删除 -->
+  <view wx:elif="{{isDeleted}}" class="error-state">
+    <view class="error-state-title">该日程已被删除</view>
+    <view class="error-state-desc">或已被排除在当前日期之外</view>
+    <view class="btn btn-default btn-sm mt-md" bindtap="onGoBack">返回</view>
+  </view>
+
+  <!-- 正常内容 -->
+  <block wx:else>
+    <!-- 类型标签 -->
+    <view class="detail-type-bar">
+      <view class="tag tag-{{stripeClass}}">{{typeLabel}}</view>
+    </view>
+
+    <!-- 打卡状态区 -->
+    <view class="detail-status">
+      <view class="detail-status-icon status-icon-{{statusClass}}">
+        <text wx:if="{{schedule.instanceStatus === 'completed' || schedule.instanceStatus === 'Completed'}}">&#x2713;</text>
+        <text wx:elif="{{schedule.instanceStatus === 'cancelled' || schedule.instanceStatus === 'Cancelled'}}">&#x2014;</text>
+        <text wx:elif="{{schedule.instanceStatus === 'overdue' || schedule.instanceStatus === 'Overdue'}}">&#x2717;</text>
+        <text wx:else>&#x25CB;</text>
+      </view>
+      <text class="detail-status-text status-text-{{statusClass}}">{{statusText}}</text>
+    </view>
+
+    <scroll-view scroll-y enable-flex class="detail-body">
+      <!-- 基本信息区 -->
+      <view class="info-section">
+        <view class="info-section-title">基本信息</view>
+        <view wx:if="{{schedule.scheduleType !== 'HomeworkTask'}}" class="info-row">
+          <text class="info-label">日期</text>
+          <text class="info-value">{{targetDateText}}</text>
+        </view>
+        <view wx:if="{{schedule.scheduleType !== 'HomeworkTask'}}" class="info-row">
+          <text class="info-label">时间</text>
+          <text class="info-value">{{timeText}}</text>
+        </view>
+        <view wx:if="{{schedule.scheduleType === 'HomeworkTask'}}" class="info-row">
+          <text class="info-label">截止日期</text>
+          <text class="info-value">{{schedule.dueDate || '--'}} {{dateUtils.getDayOfWeekName(schedule.dueDate) || ''}}</text>
+        </view>
+        <view wx:if="{{schedule.scheduleType === 'HomeworkTask' && (schedule.suggestedStartTime || schedule.suggestedEndTime)}}" class="info-row">
+          <text class="info-label">建议时间</text>
+          <text class="info-value">{{schedule.suggestedStartTime || ''}} - {{schedule.suggestedEndTime || ''}}</text>
+        </view>
+        <view wx:if="{{schedule.location}}" class="info-row">
+          <text class="info-label">地点</text>
+          <text class="info-value">{{schedule.location}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">关联孩子</text>
+          <text class="info-value">
+            <view wx:if="{{schedule.assignedChildName}}" class="child-tag">
+              <view class="schedule-card-child-avatar">{{schedule.assignedChildName.charAt(0)}}</view>
+              <text>{{schedule.assignedChildName}}</text>
+            </view>
+          </text>
+        </view>
+        <view wx:if="{{schedule.notes}}" class="info-row">
+          <text class="info-label">备注</text>
+          <text class="info-value">{{schedule.notes}}</text>
+        </view>
+      </view>
+
+      <!-- 重复信息区（仅重复日程显示） -->
+      <view wx:if="{{schedule.repeatRule}}" class="info-section">
+        <view class="info-section-title">重复信息</view>
+        <view class="info-row">
+          <text class="info-label">重复规则</text>
+          <text class="info-value">{{schedule.repeatRule}}</text>
+        </view>
+        <view wx:if="{{schedule.repeatEndDate}}" class="info-row">
+          <text class="info-label">结束日期</text>
+          <text class="info-value">{{schedule.repeatEndDate}}</text>
+        </view>
+      </view>
+
+      <!-- 打卡记录区 -->
+      <view wx:if="{{schedule.checkinRecords && schedule.checkinRecords.length > 0}}" class="info-section">
+        <view class="info-section-title">打卡记录</view>
+        <view wx:for="{{schedule.checkinRecords}}" wx:key="childId" wx:for-item="record" class="checkin-record"
+              data-id="schedule-detail-checkin-record-{{record.childId}}">
+          <view class="schedule-card-child-avatar">{{record.childName ? record.childName.charAt(0) : '?'}}</view>
+          <text>{{record.childName}}</text>
+          <text class="checkin-record-status {{record.status === 'completed' || record.status === 'Completed' ? 'checkin-done' : 'checkin-pending'}}">
+            {{record.status === 'completed' || record.status === 'Completed' ? '已完成 ' + (record.checkedInAt || '') : '未完成'}}
+          </text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 操作按钮区 -->
+    <view class="detail-actions safe-area-bottom">
+      <!-- 打卡按钮：4 种状态 -->
+      <!-- 可点击打卡 -->
+      <view wx:if="{{canCheckin && !countdownActive}}" class="btn btn-primary btn-block"
+            data-id="schedule-detail-checkin-btn" bindtap="onCheckin">打卡确认</view>
+
+      <!-- 灰色倒计时 -->
+      <view wx:if="{{canCheckin && countdownActive}}" class="btn btn-block"
+            style="background:var(--color-border-light);color:var(--color-text-placeholder);"
+            data-id="schedule-detail-checkin-btn-disabled">
+        {{countdownText}}后可打卡
+      </view>
+
+      <!-- 可撤销 -->
+      <view wx:if="{{canUndo}}" class="btn btn-block"
+            style="background:var(--color-bg-page);color:var(--color-text-primary);border:2rpx solid var(--color-border);"
+            data-id="schedule-detail-undo-btn" bindtap="onUndo">撤销打卡</view>
+
+      <!-- 编辑按钮（仅家长） -->
+      <view wx:if="{{canEdit}}" class="btn btn-default btn-block"
+            data-id="schedule-detail-edit-btn" bindtap="onEdit">编辑</view>
+
+      <!-- 取消本次（仅家长 + 非作业任务 + 未取消） -->
+      <view wx:if="{{canCancel}}" class="btn btn-default btn-block"
+            data-id="schedule-detail-cancel-btn" bindtap="onCancelDialog">取消本次</view>
+
+      <!-- 恢复本次（已取消或已排除） -->
+      <view wx:if="{{canRestore}}" class="btn btn-primary btn-block"
+            data-id="schedule-detail-restore-btn" bindtap="onRestore">恢复本次</view>
+
+      <!-- 删除按钮（仅家长） -->
+      <view wx:if="{{canDelete}}" class="btn btn-danger btn-block"
+            data-id="schedule-detail-delete-btn" bindtap="onDeleteDialog">删除</view>
+    </view>
+  </block>
+</view>
+
+<!-- 删除确认弹窗 -->
+<view wx:if="{{showDeleteDialog}}" class="modal-mask" data-id="schedule-detail-delete-dialog"
+      catchtap="onCancelDeleteDialog">
+  <view class="modal" catchtap="">
+    <view class="modal__header">确认删除</view>
+    <view class="modal__body">
+      <!-- 重复日程：仅本次/本次及以后 radio -->
+      <block wx:if="{{!isHomework && schedule.repeatRule}}">
+        <view class="modal-radio-group">
+          <view class="modal-radio-item" data-id="schedule-detail-delete-this-only" bindtap="onSelectDeleteScope" data-scope="ThisOnly">
+            <text wx:if="{{deleteScope === 'ThisOnly'}}">&#x25C9;</text>
+            <text wx:else>&#x25CB;</text>
+            <text>仅删除本次</text>
+          </view>
+          <view class="modal-radio-item" data-id="schedule-detail-delete-all" bindtap="onSelectDeleteScope" data-scope="ThisAndFuture">
+            <text wx:if="{{deleteScope === 'ThisAndFuture'}}">&#x25C9;</text>
+            <text wx:else>&#x25CB;</text>
+            <text>删除本次及之后所有</text>
+          </view>
+        </view>
+      </block>
+      <!-- 作业任务：简单确认 -->
+      <block wx:else>
+        <text>确认删除该日程？操作不可撤销。</text>
+      </block>
+    </view>
+    <view class="modal__footer">
+      <view class="btn btn-default" data-id="schedule-detail-delete-cancel" bindtap="onCancelDeleteDialog">取消</view>
+      <view class="btn btn-danger" data-id="schedule-detail-delete-confirm" bindtap="onConfirmDelete">确认删除</view>
+    </view>
+  </view>
+</view>
+
+<!-- 取消本次确认弹窗 -->
+<view wx:if="{{showCancelDialog}}" class="modal-mask" data-id="schedule-detail-cancel-dialog"
+      catchtap="onCancelCancelDialog">
+  <view class="modal" catchtap="">
+    <view class="modal__header">确认取消本次日程？</view>
+    <view class="modal__body">
+      取消后，本次日程将不再参与打卡统计，但可随时恢复。
+    </view>
+    <view class="modal__footer">
+      <view class="btn btn-default" data-id="schedule-detail-cancel-cancel" bindtap="onCancelCancelDialog">返回</view>
+      <view class="btn btn-primary" data-id="schedule-detail-cancel-confirm" bindtap="onConfirmCancel">确认取消</view>
+    </view>
+  </view>
+</view>

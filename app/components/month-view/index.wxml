@@ -1,0 +1,34 @@
+<!-- components/month-view/index.wxml
+     月视图 —— 7x6 网格，色点 + 日期 -->
+<view class="month-container">
+  <!-- 星期头 -->
+  <view class="weekday-header">
+    <text class="weekday-header-item">一</text>
+    <text class="weekday-header-item">二</text>
+    <text class="weekday-header-item">三</text>
+    <text class="weekday-header-item">四</text>
+    <text class="weekday-header-item">五</text>
+    <text class="weekday-header-item weekend">六</text>
+    <text class="weekday-header-item weekend">日</text>
+  </view>
+
+  <!-- 日历网格 -->
+  <scroll-view scroll-y enable-flex class="month-grid-scroll">
+    <view class="month-grid">
+      <view wx:for="{{cells}}" wx:key="date"
+            class="cal-cell {{!item.isCurrentMonth ? 'cal-cell-other-month' : ''}} {{item.isToday ? 'cal-cell-today' : ''}} {{item.isWeekend && item.isCurrentMonth ? 'cal-cell-weekend' : ''}}"
+            data-id="calendar-month-cell-{{item.date}}"
+            data-date="{{item.date}}"
+            data-current="{{item.isCurrentMonth}}"
+            bindtap="onCellTap">
+        <text class="cal-cell-date">{{item.day}}</text>
+        <view wx:if="{{item.dots.length > 0}}" class="cal-dots">
+          <view wx:for="{{item.dots}}" wx:for-item="dot" wx:key="scheduleType"
+                class="cal-dot {{dot.scheduleType === 'AfterSchoolActivity' ? 'dot-activity' : dot.scheduleType === 'DailyRoutine' ? 'dot-routine' : 'dot-homework'}}">
+          </view>
+          <text wx:if="{{item.showMore}}" class="cal-dot-more" data-id="calendar-month-cell-more-{{item.date}}">+{{item.moreCount}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

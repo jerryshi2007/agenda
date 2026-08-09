@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>恢复家庭提示 · 家庭管理</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+    .restore-page {
+      padding: 0;
+    }
+
+    .restore-banner {
+      background: linear-gradient(135deg, #FFF9E6, #FFF3CD);
+      padding: 24px 16px; /* → 48rpx 32rpx */
+      text-align: center;
+      border-bottom: 10px solid var(--color-bg-page);
+    }
+
+    .restore-banner-icon {
+      font-size: 48px;
+      margin-bottom: 12px; /* → 24rpx */
+    }
+
+    .restore-banner-title {
+      font-size: 18px; /* → 36rpx */
+      font-weight: 600;
+      color: #8B6914;
+      margin-bottom: 4px;
+    }
+
+    .restore-banner-desc {
+      font-size: 14px; /* → 28rpx */
+      color: #8B6914;
+      line-height: 1.6;
+    }
+
+    .restore-countdown {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 16px; /* → 16rpx 32rpx */
+      background: rgba(255,255,255,0.7);
+      border-radius: 20px; /* → 40rpx */
+      margin-top: 12px; /* → 24rpx */
+      font-size: 14px; /* → 28rpx */
+      color: #8B6914;
+    }
+
+    .restore-countdown .days {
+      font-size: 24px; /* → 48rpx */
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    .restore-countdown .days.warn {
+      color: var(--color-danger);
+    }
+
+    .restore-info-card {
+      background: var(--color-bg-white);
+      margin: 16px; /* → 32rpx */
+      border-radius: 8px; /* → 16rpx */
+      overflow: hidden;
+    }
+
+    .restore-info-item {
+      display: flex;
+      align-items: center;
+      padding: 16px; /* → 32rpx */
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .restore-info-item:last-child {
+      border-bottom: none;
+    }
+
+    .restore-info-label {
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-secondary);
+      width: 80px; /* → 160rpx */
+      flex-shrink: 0;
+    }
+
+    .restore-info-value {
+      flex: 1;
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-primary);
+      text-align: right;
+    }
+
+    .restore-actions {
+      padding: 16px; /* → 32rpx */
+    }
+
+    .restore-actions .btn {
+      margin-bottom: 8px; /* → 16rpx */
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('normal')">正常态（剩余 25 天）</button>
+    <button onclick="showState('soon')">即将到期</button>
+    <button onclick="showState('expired')">已过期</button>
+    <button onclick="showState('loading')">Loading</button>
+    <button onclick="showState('error')">错误态</button>
+  </div>
+
+  <!-- ===== 状态 1: 正常态 ===== -->
+  <div id="state-normal" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <!-- 微信原生导航栏（无 TabBar 页面） -->
+      <!-- title: "" -->
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="restore-page">
+          <!-- 恢复横幅 -->
+          <div class="restore-banner">
+            <div class="restore-banner-icon">&#x1F3E0;</div>
+            <div class="restore-banner-title">"我们一家"家庭已解散</div>
+            <div class="restore-banner-desc">数据将保留 30 天，逾期将永久删除</div>
+            <div class="restore-countdown">
+              <span>&#x23F1;</span>
+              <span>剩余</span>
+              <span class="days">25</span>
+              <span>天</span>
+            </div>
+          </div>
+
+          <!-- 家庭信息 -->
+          <div class="restore-info-card">
+            <div class="restore-info-item">
+              <span class="restore-info-label">家庭名称</span>
+              <span class="restore-info-value">我们一家</span>
+            </div>
+            <div class="restore-info-item">
+              <span class="restore-info-label">解散时间</span>
+              <span class="restore-info-value">2026-08-03 15:30</span>
+            </div>
+            <div class="restore-info-item">
+              <span class="restore-info-label">成员数量</span>
+              <span class="restore-info-value">4 人</span>
+            </div>
+            <div class="restore-info-item">
+              <span class="restore-info-label">数据到期</span>
+              <span class="restore-info-value">2026-09-02 15:30</span>
+            </div>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="restore-actions">
+            <!-- → <button data-id="restore-family-restore-btn" bindtap="onRestore"> -->
+            <button class="btn btn--primary btn--block btn--lg" data-id="restore-family-restore-btn"
+                    onclick="alert('【原型演示】恢复家庭 → 二次确认弹窗 → 恢复成功 → 跳转日历视图')">
+              恢复家庭
+            </button>
+            <!-- → <button data-id="restore-family-ignore-btn" bindtap="onIgnore"> -->
+            <button class="btn btn--ghost btn--block" data-id="restore-family-ignore-btn"
+                    onclick="alert('【原型演示】知道了 → 进入无家庭引导页')">
+              知道了
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 解散后任意原成员登录可见此页<br>
+        - 黄色横幅 + 倒计时天数<br>
+        - "恢复家庭" → 二次确认 → 所有数据/成员关系完整还原<br>
+        - "知道了" → 忽略恢复，进入无家庭引导页
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: 即将到期（≤ 3 天）===== -->
+  <div id="state-soon" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="restore-page">
+          <div class="restore-banner" style="background: linear-gradient(135deg, #FDECEC, #FDE8E8);">
+            <div class="restore-banner-icon">&#x23F3;</div>
+            <div class="restore-banner-title" style="color: var(--color-danger);">"我们一家"即将永久删除</div>
+            <div class="restore-banner-desc" style="color: var(--color-danger);">请尽快恢复，数据即将被清除</div>
+            <div class="restore-countdown" style="background: rgba(255,255,255,0.5); color: var(--color-danger);">
+              <span>&#x26A0;&#xFE0F;</span>
+              <span>仅剩</span>
+              <span class="days warn">2</span>
+              <span>天</span>
+            </div>
+          </div>
+
+          <div class="restore-info-card">
+            <div class="restore-info-item">
+              <span class="restore-info-label">家庭名称</span>
+              <span class="restore-info-value">我们一家</span>
+            </div>
+            <div class="restore-info-item">
+              <span class="restore-info-label">数据到期</span>
+              <span class="restore-info-value" style="color: var(--color-danger);">2026-08-10 15:30</span>
+            </div>
+          </div>
+
+          <div class="restore-actions">
+            <button class="btn btn--danger btn--block btn--lg" data-id="restore-family-restore-btn"
+                    onclick="alert('【原型演示】紧急恢复家庭')">
+              立即恢复家庭
+            </button>
+            <button class="btn btn--ghost btn--block" data-id="restore-family-ignore-btn"
+                    onclick="alert('【原型演示】知道了')">
+              知道了
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - ≤ 3 天时红色警告样式<br>
+        - 主按钮变为红色（危险操作的反向——紧急恢复）<br>
+        - 强调紧迫感
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: 已过期（超过 30 天）===== -->
+  <div id="state-expired" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="page-body page-body--center" style="background: var(--color-bg-page);">
+        <div class="error-state">
+          <div class="error-state__icon">&#x1F5D1;</div>
+          <div class="error-state__title">数据已过期</div>
+          <div class="error-state__desc">"我们一家"家庭数据已超过 30 天保留期，已被永久删除，无法恢复。</div>
+          <button class="btn btn--primary btn--sm" data-id="restore-family-create-btn"
+                  onclick="alert('【原型演示】跳转创建家庭页')">
+            创建新家庭
+          </button>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 超过 30 天，数据已永久删除<br>
+        - 不显示"恢复"按钮<br>
+        - 引导用户创建新家庭
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: Loading ===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="page-body page-body--center" style="background: var(--color-bg-page);">
+        <div class="loading-block">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">正在恢复家庭...</div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 恢复操作执行中<br>
+        - loading spinner + "正在恢复家庭..."
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 5: 错误态（恢复失败）===== -->
+  <div id="state-error" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="restore-page">
+          <div class="restore-banner">
+            <div class="restore-banner-icon">&#x1F3E0;</div>
+            <div class="restore-banner-title">"我们一家"家庭已解散</div>
+            <div class="restore-banner-desc">数据将保留 30 天</div>
+            <div class="restore-countdown">
+              <span>剩余</span>
+              <span class="days">25</span>
+              <span>天</span>
+            </div>
+          </div>
+
+          <div class="restore-info-card">
+            <div class="restore-info-item">
+              <span class="restore-info-label">家庭名称</span>
+              <span class="restore-info-value">我们一家</span>
+            </div>
+          </div>
+
+          <div class="error-state" style="padding: 8px 16px;">
+            <div class="error-state__desc" style="margin-bottom: 0; font-size: 12px; /* → 24rpx */">
+              恢复失败，请检查网络后重试
+            </div>
+          </div>
+
+          <div class="restore-actions">
+            <button class="btn btn--primary btn--block btn--lg" data-id="restore-family-retry-btn"
+                    onclick="alert('【原型演示】重试恢复')">
+              重试
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 网络异常导致恢复失败<br>
+        - 显示错误提示 + "重试"按钮
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(s) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + s).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

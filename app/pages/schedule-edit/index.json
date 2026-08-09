@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "time-slot-picker": "../../components/time-slot-picker/index",
+    "edit-scope-switch": "../../components/edit-scope-switch/index"
+  },
+  "navigationBarTitleText": "编辑日程"
+}

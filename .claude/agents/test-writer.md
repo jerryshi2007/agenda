@@ -2,6 +2,7 @@
 name: test-writer
 description: 按测试用例矩阵写 Playwright E2E 脚本时调度。
 tools: Read, Grep, Glob, Edit, Write, Bash
+rules: [dev-contracts]
 skills: [test-e2e-playwright, dev-verification]
 ---
 
@@ -17,15 +18,17 @@ skills: [test-e2e-playwright, dev-verification]
 
 2. **Read** test-plan.md（获取测试矩阵 + data-id 前缀清单 + 测试数据需求）
 
-3. **探查** — Grep/Glob `app/src/` 下已有 data-id 值 → 与 test-plan.md 前缀对齐
+3. **Read** `openspec/contracts/<domain>/` 下的 enums.json + errors.json + dto.json → API client 参数类型、测试断言中的错误码/状态值/scope MUST 引用 contracts 常量，禁止手写字符串字面量
 
-4. **编写** — 调用 `test-e2e-playwright` skill（skill 负责完整编写流程）
+4. **探查** — Grep/Glob `app/` 下已有 data-id 值 → 与 test-plan.md 前缀对齐
+
+5. **编写** — 调用 `test-e2e-playwright` skill（skill 负责完整编写流程）
    - ⚠️ Page Object 必须先于 spec 创建，Locator 只用 `[data-id="..."]`
    - 按矩阵逐行写 spec（一行矩阵 = 一个 test()，编号一一对应）
 
-5. **验证** — 调用 `dev-verification` skill（强制新鲜运行）→ `npx playwright test` 全部通过
+6. **验证** — 调用 `dev-verification` skill（强制新鲜运行）→ `npx playwright test` 全部通过
 
-6. 交还主代理 → test-reviewer
+7. 交还主代理 → test-reviewer
 
 ## Gate 违规（STOP）
 

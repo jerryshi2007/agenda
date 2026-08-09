@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>展示模式设置页 · 家庭管理</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+    .mode-page {
+      padding: 16px; /* → 32rpx */
+    }
+
+    .mode-card {
+      background: var(--color-bg-white);
+      border-radius: 8px; /* → 16rpx */
+      overflow: hidden;
+    }
+
+    /* → <radio-group> + wx:for -->
+    .mode-radio-item {
+      display: flex;
+      align-items: center;
+      padding: 16px; /* → 32rpx */
+      border-bottom: 1px solid var(--color-border-light);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+
+    .mode-radio-item:last-child {
+      border-bottom: none;
+    }
+
+    .mode-radio-item:active {
+      background: var(--color-bg-page);
+    }
+
+    .mode-radio-item.selected {
+      background: var(--color-primary-light);
+    }
+
+    .mode-radio-icon {
+      width: 48px; /* → 96rpx */
+      height: 48px; /* → 96rpx */
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-right: 12px; /* → 24rpx */
+      flex-shrink: 0;
+    }
+
+    .mode-radio-icon--preschool {
+      background: #E8F8EF;
+    }
+
+    .mode-radio-icon--primary {
+      background: #E6F0FF;
+    }
+
+    .mode-radio-icon--senior {
+      background: #FFF3E0;
+    }
+
+    .mode-radio-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .mode-radio-name {
+      font-size: 16px; /* → 32rpx */
+      color: var(--color-text-primary);
+      font-weight: 500;
+    }
+
+    .mode-radio-desc {
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    .mode-radio-check {
+      width: 20px; /* → 40rpx */
+      height: 20px; /* → 40rpx */
+      border-radius: 50%;
+      border: 2px solid var(--color-border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 8px;
+    }
+
+    .mode-radio-item.selected .mode-radio-check {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+    }
+
+    .mode-radio-check::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: white;
+      display: none;
+    }
+
+    .mode-radio-item.selected .mode-radio-check::after {
+      display: block;
+    }
+
+    .mode-preview {
+      margin-top: 16px; /* → 32rpx */
+      padding: 16px;
+      background: var(--color-bg-white);
+      border-radius: 8px; /* → 16rpx */
+    }
+
+    .mode-preview-title {
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-secondary);
+      margin-bottom: 12px; /* → 24rpx */
+    }
+
+    .mode-preview-content {
+      padding: 16px;
+      background: var(--color-bg-page);
+      border-radius: 8px; /* → 16rpx */
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+    }
+
+    .mode-preview-content .highlight {
+      color: var(--color-primary);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('normal')">正常态</button>
+    <button onclick="showState('loading')">Loading</button>
+    <button onclick="showState('error')">错误态</button>
+    <button onclick="showState('saved')">保存成功</button>
+  </div>
+
+  <!-- ===== 状态 1: 正常态（当前：小学模式）===== -->
+  <div id="state-normal" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <!-- 微信原生导航栏 -->
+      <!-- title: "展示模式" -->
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回成员列表')">&#x2190; 返回</span>
+        <span class="nav-bar-title">展示模式</span>
+        <span class="nav-bar-action" data-id="display-mode-save-btn"
+              onclick="alert('【原型演示】保存展示模式')">保存</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="mode-page">
+          <!-- 孩子信息 -->
+          <div style="display:flex;align-items:center;padding:16px;margin-bottom:16px;background:white;border-radius:8px;">
+            <div class="avatar avatar--sm" style="background:#10AEFF;display:flex;align-items:center;justify-content:center;color:white;font-size:16px;margin-right:12px;">C</div>
+            <div>
+              <div style="font-size:16px;color:var(--color-text-primary);">小明</div>
+              <div style="font-size:12px;color:var(--color-text-secondary);">当前：小学模式</div>
+            </div>
+          </div>
+
+          <!-- → <radio-group data-id="display-mode-radio-group" bindchange="onModeChange"> -->
+          <div class="mode-card">
+            <!-- 学龄前 -->
+            <!-- → <radio value="preschool" checked="{{mode === 'preschool'}}"> -->
+            <div class="mode-radio-item" data-id="display-mode-option-preschool"
+                 onclick="selectMode(this, 'preschool')">
+              <div class="mode-radio-icon mode-radio-icon--preschool">&#x1F3B5;</div>
+              <div class="mode-radio-info">
+                <div class="mode-radio-name">学龄前</div>
+                <div class="mode-radio-desc">大图标 + 语音引导 + 卡片式日程 + 打勾即完成</div>
+              </div>
+              <div class="mode-radio-check"></div>
+            </div>
+
+            <!-- 小学（当前选中） -->
+            <div class="mode-radio-item selected" data-id="display-mode-option-primary"
+                 onclick="selectMode(this, 'primary')">
+              <div class="mode-radio-icon mode-radio-icon--primary">&#x1F4DA;</div>
+              <div class="mode-radio-info">
+                <div class="mode-radio-name">小学</div>
+                <div class="mode-radio-desc">列表视图 + 时间轴 + 拍照打卡 + 星星奖励</div>
+              </div>
+              <div class="mode-radio-check"></div>
+            </div>
+
+            <!-- 高年级 -->
+            <div class="mode-radio-item" data-id="display-mode-option-senior"
+                 onclick="selectMode(this, 'senior')">
+              <div class="mode-radio-icon mode-radio-icon--senior">&#x1F4D0;</div>
+              <div class="mode-radio-info">
+                <div class="mode-radio-name">高年级</div>
+                <div class="mode-radio-desc">紧凑列表 + 周视图 + 自主打卡 + 完成率统计</div>
+              </div>
+              <div class="mode-radio-check"></div>
+            </div>
+          </div>
+
+          <!-- 模式预览 -->
+          <div class="mode-preview">
+            <div class="mode-preview-title">当前模式预览：小学模式</div>
+            <div class="mode-preview-content">
+              <span class="highlight">列表视图</span> + 时间轴展示日程，孩子可通过<span class="highlight">拍照打卡</span>完成日程，完成后获得<span class="highlight">星星奖励</span>。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 三选一 radio 组 → <code>&lt;radio-group&gt;</code><br>
+        - 选中项绿色高亮<br>
+        - 模式预览区实时更新<br>
+        - 导航栏右侧"保存"按钮<br>
+        - <strong>第一期统一模式，此页面第二期上线</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: Loading ===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" style="color: var(--color-text-placeholder);">&#x2190; 返回</span>
+        <span class="nav-bar-title">展示模式</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="mode-page">
+          <div class="mode-card">
+            <div style="padding: 16px; display: flex; align-items: center; gap: 12px;">
+              <div class="skeleton" style="width: 48px; height: 48px; border-radius: 50%;"></div>
+              <div style="flex:1;">
+                <div class="skeleton skeleton--title" style="width:80px;"></div>
+                <div class="skeleton skeleton--text" style="width:120px; margin-top:6px;"></div>
+              </div>
+              <div class="skeleton" style="width:20px;height:20px;border-radius:50%;"></div>
+            </div>
+            <div style="padding: 16px; display: flex; align-items: center; gap: 12px;">
+              <div class="skeleton" style="width: 48px; height: 48px; border-radius: 50%;"></div>
+              <div style="flex:1;">
+                <div class="skeleton skeleton--title" style="width:80px;"></div>
+                <div class="skeleton skeleton--text" style="width:120px; margin-top:6px;"></div>
+              </div>
+              <div class="skeleton" style="width:20px;height:20px;border-radius:50%;"></div>
+            </div>
+            <div style="padding: 16px; display: flex; align-items: center; gap: 12px;">
+              <div class="skeleton" style="width: 48px; height: 48px; border-radius: 50%;"></div>
+              <div style="flex:1;">
+                <div class="skeleton skeleton--title" style="width:80px;"></div>
+                <div class="skeleton skeleton--text" style="width:120px; margin-top:6px;"></div>
+              </div>
+              <div class="skeleton" style="width:20px;height:20px;border-radius:50%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 当前设置加载中，骨架屏展示
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: 错误态 ===== -->
+  <div id="state-error" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">展示模式</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="error-state" style="padding-top: 80px;">
+          <div class="error-state__icon">&#x26A0;&#xFE0F;</div>
+          <div class="error-state__title">加载失败</div>
+          <div class="error-state__desc">无法获取展示模式设置</div>
+          <button class="btn btn--primary btn--sm" data-id="display-mode-retry-btn"
+                  onclick="alert('【原型演示】重试')">重试</button>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 网络异常导致无法加载<br>
+        - 显示错误 + 重试
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: 保存成功 ===== -->
+  <div id="state-saved" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回成员列表')">&#x2190; 返回</span>
+        <span class="nav-bar-title">展示模式</span>
+        <span class="nav-bar-action" style="color: var(--color-text-placeholder);">已保存</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="mode-page">
+          <div style="display:flex;align-items:center;padding:16px;margin-bottom:16px;background:white;border-radius:8px;">
+            <div class="avatar avatar--sm" style="background:#10AEFF;display:flex;align-items:center;justify-content:center;color:white;font-size:16px;margin-right:12px;">C</div>
+            <div>
+              <div style="font-size:16px;color:var(--color-text-primary);">小明</div>
+              <div style="font-size:12px;color:var(--color-primary);">已切换为：学龄前模式</div>
+            </div>
+          </div>
+
+          <div class="mode-card">
+            <div class="mode-radio-item selected" data-id="display-mode-option-preschool">
+              <div class="mode-radio-icon mode-radio-icon--preschool">&#x1F3B5;</div>
+              <div class="mode-radio-info">
+                <div class="mode-radio-name">学龄前</div>
+                <div class="mode-radio-desc">大图标 + 语音引导 + 卡片式日程 + 打勾即完成</div>
+              </div>
+              <div class="mode-radio-check"></div>
+            </div>
+            <div class="mode-radio-item">
+              <div class="mode-radio-icon mode-radio-icon--primary">&#x1F4DA;</div>
+              <div class="mode-radio-info">
+                <div class="mode-radio-name">小学</div>
+                <div class="mode-radio-desc">列表视图 + 时间轴 + 拍照打卡 + 星星奖励</div>
+              </div>
+              <div class="mode-radio-check"></div>
+            </div>
+            <div class="mode-radio-item">
+              <div class="mode-radio-icon mode-radio-icon--senior">&#x1F4D0;</div>
+              <div class="mode-radio-info">
+                <div class="mode-radio-name">高年级</div>
+                <div class="mode-radio-desc">紧凑列表 + 周视图 + 自主打卡 + 完成率统计</div>
+              </div>
+              <div class="mode-radio-check"></div>
+            </div>
+          </div>
+
+          <!-- Toast（模拟） -->
+          <!-- → wx.showToast({ title: '展示模式已更新', icon: 'success' }) -->
+          <div style="text-align:center;margin-top:16px;">
+            <span style="display:inline-block;background:var(--color-primary);color:white;padding:8px 16px;border-radius:4px;font-size:14px;">
+              &#x2713; 展示模式已更新
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 保存成功后右上角按钮变为"已保存"<br>
+        - Toast 提示"展示模式已更新" → <code>wx.showToast()</code><br>
+        - 孩子端界面立即按新模式渲染
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(s) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + s).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function selectMode(el, mode) {
+      el.parentElement.querySelectorAll('.mode-radio-item').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+  </script>
+</body>
+</html>

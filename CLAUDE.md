@@ -29,7 +29,7 @@ agent 驱动的四阶段流水线，通过 OpenSpec 文件（git 共享）交接
 
 ```
 Stage 1 产品: req-analyst → req-reviewer → 人审批 → commit
-Stage 2 研发: dev-architect → dev-architect-reviewer → 人审批 → dev-planning → dev-dotnet + dev-miniapp → commit
+Stage 2 研发: dev-architect → dev-architect-reviewer → 人审批 → dev-dotnet + dev-miniapp → commit
 Stage 3 测试: test-planner → test-writer → test-reviewer → test-runner → 人审批
 Stage 4 归档: openspec archive
 ```

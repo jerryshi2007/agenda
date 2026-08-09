@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>邀请确认页 · 家庭管理</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+    .confirm-page {
+      padding: 24px 16px; /* → 48rpx 32rpx */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .confirm-icon {
+      width: 64px; /* → 128rpx */
+      height: 64px; /* → 128rpx */
+      border-radius: 50%;
+      background: var(--color-primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin: 16px 0 24px; /* → 32rpx 48rpx */
+    }
+
+    .confirm-title {
+      font-size: 18px; /* → 36rpx */
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin-bottom: 8px; /* → 16rpx */
+    }
+
+    .confirm-subtitle {
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-secondary);
+      margin-bottom: 24px; /* → 48rpx */
+    }
+
+    .confirm-card {
+      width: 100%;
+      background: var(--color-bg-white);
+      border-radius: 8px; /* → 16rpx */
+      overflow: hidden;
+      margin-bottom: 24px; /* → 48rpx */
+    }
+
+    .confirm-item {
+      display: flex;
+      align-items: center;
+      padding: 16px; /* → 32rpx */
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .confirm-item:last-child {
+      border-bottom: none;
+    }
+
+    .confirm-item__label {
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-secondary);
+      width: 64px; /* → 128rpx */
+      flex-shrink: 0;
+    }
+
+    .confirm-item__value {
+      flex: 1;
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-primary);
+      text-align: right;
+    }
+
+    .confirm-item__value.highlight {
+      color: var(--color-primary);
+      font-weight: 500;
+    }
+
+    .confirm-actions {
+      width: 100%;
+      display: flex;
+      gap: 12px; /* → 24rpx */
+    }
+
+    .confirm-actions .btn {
+      flex: 1;
+    }
+
+    /* 已加入家庭提示 */
+    .already-member {
+      width: 100%;
+      text-align: center;
+      padding: 16px;
+      background: #FFF9E6;
+      border-radius: 8px; /* → 16rpx */
+      border: 1px solid #FFC300;
+      font-size: 14px; /* → 28rpx */
+      color: #8B6914;
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('normal')">正常态</button>
+    <button onclick="showState('loading')">Loading</button>
+    <button onclick="showState('already')">已在家庭中</button>
+    <button onclick="showState('full')">家庭已满</button>
+    <button onclick="showState('error')">网络错误</button>
+  </div>
+
+  <!-- ===== 状态 1: 正常态 ===== -->
+  <div id="state-normal" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <!-- 微信原生导航栏 -->
+      <!-- title: "加入家庭" -->
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回上一页')">&#x2190; 返回</span>
+        <span class="nav-bar-title">加入家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="confirm-page">
+          <div class="confirm-icon">&#x1F3E0;</div>
+          <div class="confirm-title">确认加入家庭</div>
+          <div class="confirm-subtitle">请确认以下信息</div>
+
+          <!-- → 信息确认卡片 -->
+          <div class="confirm-card">
+            <div class="confirm-item">
+              <span class="confirm-item__label">家庭名称</span>
+              <span class="confirm-item__value highlight">我们一家</span>
+            </div>
+            <div class="confirm-item">
+              <span class="confirm-item__label">邀请人</span>
+              <span class="confirm-item__value">小明妈妈</span>
+            </div>
+            <div class="confirm-item">
+              <span class="confirm-item__label">我的角色</span>
+              <!-- → 角色根据邀请码类型预设，家长邀请码 = 家长，孩子邀请码 = 孩子 -->
+              <span class="confirm-item__value">家长</span>
+            </div>
+          </div>
+
+          <div class="confirm-actions">
+            <!-- → <button data-id="invite-confirm-cancel-btn" bindtap="onCancel"> -->
+            <button class="btn btn--default btn--lg" data-id="invite-confirm-cancel-btn"
+                    onclick="alert('【原型演示】返回')">
+              取消
+            </button>
+            <!-- → <button data-id="invite-confirm-join-btn" bindtap="onConfirmJoin"> -->
+            <button class="btn btn--primary btn--lg" data-id="invite-confirm-join-btn"
+                    onclick="alert('【原型演示】加入成功 → 跳转日历视图')">
+              确认加入
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 被邀请人点击微信分享卡片 / 输入邀请码后跳转到此页<br>
+        - 角色由邀请码类型决定：家长邀请码 → 家长角色，孩子邀请码 → 孩子角色<br>
+        - 未登录用户先完成登录再进入此流程<br>
+        - "确认加入" → 加入成功 → 跳转日历视图
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: Loading ===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" style="color: var(--color-text-placeholder);">&#x2190; 返回</span>
+        <span class="nav-bar-title">加入家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="confirm-page">
+          <div class="confirm-icon">&#x1F3E0;</div>
+          <div class="confirm-title">确认加入家庭</div>
+          <div class="confirm-card">
+            <div class="confirm-item">
+              <span class="confirm-item__label">家庭名称</span>
+              <span class="confirm-item__value highlight">我们一家</span>
+            </div>
+            <div class="confirm-item">
+              <span class="confirm-item__label">邀请人</span>
+              <span class="confirm-item__value">小明妈妈</span>
+            </div>
+            <div class="confirm-item">
+              <span class="confirm-item__label">我的角色</span>
+              <span class="confirm-item__value">家长</span>
+            </div>
+          </div>
+          <div class="confirm-actions">
+            <button class="btn btn--default btn--lg disabled" disabled>取消</button>
+            <button class="btn btn--primary btn--lg disabled" disabled>
+              <span class="loading-spinner" style="width:18px;height:18px;border-width:2px;margin-right:8px;"></span>
+              加入中...
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 加入操作进行中<br>
+        - 两个按钮均禁用，防止重复操作
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: 已在家庭中 ===== -->
+  <div id="state-already" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">加入家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="confirm-page">
+          <div class="confirm-icon" style="background: #FFF3E0;">&#x26A0;&#xFE0F;</div>
+          <div class="confirm-title">无法加入</div>
+          <div class="confirm-subtitle">你已是该家庭的成员</div>
+
+          <div class="already-member">
+            你已在"我们一家"家庭中，无需重复加入
+          </div>
+
+          <div class="confirm-actions" style="margin-top: 24px; /* → 48rpx */">
+            <button class="btn btn--primary btn--block btn--lg" data-id="invite-confirm-goto-btn"
+                    onclick="alert('【原型演示】跳转日历视图')">
+              返回首页
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 被邀请人已在该家庭中<br>
+        - 提示"你已是该家庭成员"<br>
+        - 提供"返回首页"按钮跳转到日历视图
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: 家庭已满 ===== -->
+  <div id="state-full" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">加入家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="confirm-page">
+          <div class="confirm-icon" style="background: #FDECEC;">&#x1F6AB;</div>
+          <div class="confirm-title">无法加入</div>
+          <div class="confirm-subtitle">家庭已满（10 人），无法加入</div>
+
+          <div class="confirm-card" style="opacity: 0.6;">
+            <div class="confirm-item">
+              <span class="confirm-item__label">家庭名称</span>
+              <span class="confirm-item__value">我们一家</span>
+            </div>
+            <div class="confirm-item">
+              <span class="confirm-item__label">人数</span>
+              <span class="confirm-item__value" style="color: var(--color-danger);">10/10 人</span>
+            </div>
+          </div>
+
+          <div class="confirm-actions">
+            <button class="btn btn--default btn--block btn--lg" data-id="invite-confirm-back-btn"
+                    onclick="alert('【原型演示】返回')">
+              返回
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 家庭已达 10 人上限<br>
+        - 信息卡片置灰<br>
+        - 只有"返回"按钮
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 5: 网络错误 ===== -->
+  <div id="state-error" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">加入家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="confirm-page">
+          <div class="confirm-icon">&#x1F3E0;</div>
+          <div class="confirm-title">确认加入家庭</div>
+          <div class="confirm-card">
+            <div class="confirm-item">
+              <span class="confirm-item__label">家庭名称</span>
+              <span class="confirm-item__value highlight">我们一家</span>
+            </div>
+            <div class="confirm-item">
+              <span class="confirm-item__label">邀请人</span>
+              <span class="confirm-item__value">小明妈妈</span>
+            </div>
+            <div class="confirm-item">
+              <span class="confirm-item__label">我的角色</span>
+              <span class="confirm-item__value">家长</span>
+            </div>
+          </div>
+
+          <div class="error-state" style="padding: 0 0 16px;">
+            <div class="error-state__desc" style="margin-bottom: 0; font-size: 12px; /* → 24rpx */">
+              加入失败，请检查网络后重试
+            </div>
+          </div>
+
+          <div class="confirm-actions">
+            <button class="btn btn--default btn--lg" data-id="invite-confirm-cancel-btn"
+                    onclick="alert('【原型演示】返回')">取消</button>
+            <button class="btn btn--primary btn--lg" data-id="invite-confirm-join-btn"
+                    onclick="alert('【原型演示】重试加入')">重试</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 网络异常导致加入失败<br>
+        - 显示错误提示 + "重试"按钮
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(s) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + s).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

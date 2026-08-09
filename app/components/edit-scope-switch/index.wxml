@@ -1,0 +1,17 @@
+<!-- components/edit-scope-switch/index.wxml
+     编辑范围分段开关 —— 仅本次 / 全部日程 -->
+
+<view class="segmented-switch">
+  <view class="segmented-switch-item {{scope === 'ThisOnly' ? 'active' : ''}}"
+        data-id="schedule-edit-scope-this-only"
+        data-scope="ThisOnly"
+        bindtap="onSwitch">
+    仅本次
+  </view>
+  <view class="segmented-switch-item {{scope === 'ThisAndFuture' ? 'active' : ''}}"
+        data-id="schedule-edit-scope-all"
+        data-scope="ThisAndFuture"
+        bindtap="onSwitch">
+    全部日程
+  </view>
+</view>

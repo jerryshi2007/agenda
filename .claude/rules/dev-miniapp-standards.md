@@ -46,7 +46,7 @@ description: 微信小程序编码规范——编写或审查小程序前端代�
   └── app.js / app.json / app.wxss
   ```
   - 若采用 uni-app / Taro 等框架，以其项目模板约定为准。
-- **页面/组件命名**：页面目录和组件目录统一 kebab-case（如 `event-detail/`）。每个页面的四个文件（js/wxml/wxss/json）MUST 同名。
+- **页面/组件命名**：页面目录和组件目录统一 kebab-case（如 `schedule-detail/`）。每个页面的四个文件（js/wxml/wxss/json）MUST 同名。
 - **公共样式**：设计令牌和全局 Reset 统一放在 `app/styles/` 下，各页面通过 `@import` 引用（原生）或框架提供的全局样式引入方式。MUST NOT 复制粘贴公共样式到每个页面。
 - **API 调用封装**：所有 `wx.request` 调用 MUST 通过 `app/services/` 下的统一封装（含 baseURL、超时、请求/响应拦截器、401 自动续期）。MUST NOT 在页面/组件中裸调 `wx.request`。
 - **工具函数**：跨页面复用的纯函数 MUST 放在 `app/utils/` 下，按功能域分文件。MUST NOT 在多个页面中复制同一段工具函数。
@@ -54,9 +54,9 @@ description: 微信小程序编码规范——编写或审查小程序前端代�
 ### `data-id` 可测试性契约
 
 - **所有可交互元素必须添加 `data-id`**：按钮（含 icon-button）、输入框（input/textarea）、复选框（checkbox）、单选框（radio）、开关（switch）、导航链接（navigator）、弹窗容器、列表项、菜单项、Tab 项、分页控件——**MUST** 有 `data-id`。
-- **命名规范**：`data-id` 值遵循 `<组件/页面缩写>-<元素角色>` 模式。用 kebab-case 串联，从大到小描述：`"event-list-search-input"`、`"event-card-delete-btn"`、`"event-form-save-btn"`。页面/组件缩写从目录名推导（`pages/event-list/` → `event-list`），元素角色描述该元素在组件中的用途。
+- **命名规范**：`data-id` 值遵循 `<组件/页面缩写>-<元素角色>` 模式。用 kebab-case 串联，从大到小描述：`"schedule-list-search-input"`、`"schedule-card-delete-btn"`、`"schedule-form-save-btn"`。页面/组件缩写从目录名推导（`pages/schedule-list/` → `schedule-list`），元素角色描述该元素在组件中的用途。
 - **纯展示元素不需要 `data-id`**：纯展示文本、装饰图标、布局容器（仅做 flex/grid 用）。
-- **动态列表唯一性**：`wx:for` 渲染的列表项 `data-id` MUST 包含唯一标识符：`data-id="event-list-row-{{item.id}}"`。仅当项无 id 时才可用 `index`，但优先使用业务 id。
+- **动态列表唯一性**：`wx:for` 渲染的列表项 `data-id` MUST 包含唯一标识符：`data-id="schedule-list-row-{{item.id}}"`。仅当项无 id 时才可用 `index`，但优先使用业务 id。
 - **测试代码禁止以下定位方式**：CSS 类名（`.btn-primary`）、WXML 标签嵌套路径（`view > view > button:nth-child(2)`）、原生 `id` 属性、文本内容。定位统一走 `data-id`——一个属性，开发与测试双方共识。`data-id` 不替代原生 `id`（用于 DOM 锚点、无障碍等其他用途）。
 - **自定义组件上的 data-id**：在自定义组件标签上写 `data-id="xxx"` 时，属性会传递到组件的根节点而非内部具体交互元素。测试代码定位时应定位根节点再查找内部元素。如需直接定位内部元素，在内部原生标签上单独写 `data-id`。
 
@@ -97,13 +97,13 @@ description: 微信小程序编码规范——编写或审查小程序前端代�
 - ❌ `this.setData({ list: this.data.list.map(item => item.id === id ? {...item, checked: true} : item) })` — 全量替换列表，数据量大时性能差
 
 ### data-id
-- ✅ 组件中 `<button data-id="event-list-delete-btn-{{item.id}}" bindtap="onDelete">删除</button>`；测试中 `component.querySelector('[data-id="event-list-delete-btn-42"]')`
+- ✅ 组件中 `<button data-id="schedule-list-delete-btn-{{item.id}}" bindtap="onDelete">删除</button>`；测试中 `component.querySelector('[data-id="schedule-list-delete-btn-42"]')`
 - ❌ 测试中 `component.querySelector('.btn-danger')` — CSS 类名随设计调整而变
 - ❌ 测试中 `component.querySelectorAll('button')[2]` — DOM 顺序随重构而变
 
 ### API 封装
-- ✅ `const api = require('../../services/api'); api.get('/events', { familyId })` — 走封装
-- ❌ `wx.request({ url: 'https://api.example.com/events', ... })` — 裸调
+- ✅ `const api = require('../../services/api'); api.get('/schedules', { familyId })` — 走封装
+- ❌ `wx.request({ url: 'https://api.example.com/schedules', ... })` — 裸调
 
 ### Storage
 - ✅ `const STORAGE_KEYS = { TOKEN: 'auth_token', PRIVACY_CONSENT: 'privacy_consent' }; wx.setStorageSync(STORAGE_KEYS.TOKEN, jwt);`

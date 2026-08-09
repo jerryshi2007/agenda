@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>创建家庭页 · 家庭管理</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+    .create-page {
+      padding: 24px 16px; /* → 48rpx 32rpx */
+    }
+
+    .form-section {
+      background: var(--color-bg-white);
+      border-radius: 8px; /* → 16rpx */
+      overflow: hidden;
+      margin-bottom: 24px; /* → 48rpx */
+    }
+
+    .form-item {
+      display: flex;
+      align-items: center;
+      padding: 16px; /* → 32rpx */
+      border-bottom: 1px solid var(--color-border-light);
+      min-height: 48px; /* → 96rpx */
+    }
+
+    .form-item:last-child {
+      border-bottom: none;
+    }
+
+    .form-item__label {
+      width: 72px; /* → 144rpx */
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-primary);
+      flex-shrink: 0;
+    }
+
+    .form-item__input {
+      flex: 1;
+      border: none;
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-primary);
+      background: transparent;
+      text-align: right;
+    }
+
+    .form-item__input::placeholder {
+      color: var(--color-text-placeholder);
+    }
+
+    .form-item__value {
+      flex: 1;
+      text-align: right;
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      cursor: pointer;
+    }
+
+    .form-item__arrow {
+      display: inline-block;
+      width: 8px; /* → 16rpx */
+      height: 8px; /* → 16rpx */
+      border-top: 2px solid var(--color-text-placeholder);
+      border-right: 2px solid var(--color-text-placeholder);
+      transform: rotate(45deg);
+      margin-left: 8px; /* → 16rpx */
+    }
+
+    .char-count {
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-placeholder);
+      margin-left: 8px; /* → 16rpx */
+    }
+
+    .char-count.warn {
+      color: var(--color-danger);
+    }
+
+    .submit-area {
+      padding: 0;
+    }
+
+    /* 角色选择弹窗 */
+    .role-picker-mask {
+      position: fixed;
+      inset: 0;
+      background: var(--color-bg-mask);
+      z-index: 1000;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .role-picker {
+      width: 100%;
+      max-width: 375px; /* → 750rpx */
+      background: var(--color-bg-white);
+      border-radius: 12px 12px 0 0; /* → 24rpx */
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .role-picker__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px; /* → 32rpx */
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .role-picker__title {
+      font-size: 16px; /* → 32rpx */
+      font-weight: 500;
+    }
+
+    .role-picker__cancel {
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-secondary);
+      padding: 4px 8px; /* → 8rpx 16rpx */
+      cursor: pointer;
+    }
+
+    .role-option {
+      display: flex;
+      align-items: center;
+      padding: 16px; /* → 32rpx */
+      cursor: pointer;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .role-option:active {
+      background: var(--color-bg-page);
+    }
+
+    .role-option__icon {
+      width: 40px; /* → 80rpx */
+      height: 40px; /* → 80rpx */
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-right: 12px; /* → 24rpx */
+      flex-shrink: 0;
+    }
+
+    .role-option__icon--parent {
+      background: #E8F8EF;
+    }
+
+    .role-option__icon--child {
+      background: #E6F0FF;
+    }
+
+    .role-option__info {
+      flex: 1;
+    }
+
+    .role-option__name {
+      font-size: 16px; /* → 32rpx */
+      color: var(--color-text-primary);
+    }
+
+    .role-option__desc {
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    .role-option__check {
+      color: var(--color-primary);
+      font-size: 18px;
+      margin-left: 8px;
+    }
+
+    .role-option__check.hidden {
+      visibility: hidden;
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('normal')">正常态</button>
+    <button onclick="showState('loading')">Loading</button>
+    <button onclick="showState('error')">错误态</button>
+    <button onclick="showState('child-role')">选孩子角色</button>
+  </div>
+
+  <!-- ===== 状态 1: 正常态（选择家长角色）===== -->
+  <div id="state-normal" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <!-- 微信原生导航栏 -->
+      <!-- title: "创建家庭" -->
+      <!-- backgroundColor: "#FFFFFF" -->
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回上一页')">&#x2190; 返回</span>
+        <span class="nav-bar-title">创建家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="create-page">
+          <!-- → <scroll-view scroll-y> -->
+          <div class="form-section">
+            <!-- 家庭名称 -->
+            <!-- → <input data-id="create-family-name-input" value="{{familyName}}" bindinput="onNameInput" maxlength="20" placeholder="请输入家庭名称"> -->
+            <div class="form-item">
+              <span class="form-item__label">家庭名称</span>
+              <input class="form-item__input" type="text" data-id="create-family-name-input"
+                     placeholder="请输入家庭名称（2-20字）" maxlength="20" value="我们一家"
+                     oninput="updateCharCount(this)">
+              <span class="char-count" id="char-count">4/20</span>
+            </div>
+
+            <!-- 选择角色 -->
+            <!-- → <picker mode="selector" range="{{roles}}" data-id="create-family-role-picker" bindchange="onRoleChange"> -->
+            <div class="form-item" data-id="create-family-role-picker" onclick="toggleRolePicker()">
+              <span class="form-item__label">我的角色</span>
+              <div class="form-item__value">
+                <span id="selected-role-text">家长</span>
+                <span class="form-item__arrow"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 创建按钮 -->
+          <div class="submit-area">
+            <!-- → <button data-id="create-family-submit-btn" bindtap="onSubmit" disabled="{{!valid}}"> -->
+            <button class="btn btn--primary btn--block btn--lg" data-id="create-family-submit-btn"
+                    onclick="alert('【原型演示】创建成功 → 跳转日历视图（空态）')">
+              创建
+            </button>
+          </div>
+        </div>
+
+        <!-- 角色选择器弹窗（初始隐藏） -->
+        <!-- → <picker mode="selector"> 或自定义底部弹出面板 -->
+        <div class="role-picker-mask" id="role-picker-mask" style="display:none;" onclick="closeRolePicker(event)">
+          <div class="role-picker" onclick="event.stopPropagation()">
+            <div class="role-picker__header">
+              <span class="role-picker__cancel" onclick="closeRolePicker()">取消</span>
+              <span class="role-picker__title">选择角色</span>
+              <span style="width:40px;"></span>
+            </div>
+            <div class="role-option" data-id="create-family-role-parent" onclick="selectRole('parent')">
+              <div class="role-option__icon role-option__icon--parent">&#x1F9D1;</div>
+              <div class="role-option__info">
+                <div class="role-option__name">家长</div>
+                <div class="role-option__desc">管理家庭、创建日程、邀请成员</div>
+              </div>
+              <span class="role-option__check" id="check-parent">&#x2713;</span>
+            </div>
+            <div class="role-option" data-id="create-family-role-child" onclick="selectRole('child')">
+              <div class="role-option__icon role-option__icon--child">&#x1F476;</div>
+              <div class="role-option__info">
+                <div class="role-option__name">孩子</div>
+                <div class="role-option__desc">查看日程、完成打卡</div>
+              </div>
+              <span class="role-option__check hidden" id="check-child">&#x2713;</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 家庭名称：2-20 字符，支持中英文和 emoji<br>
+        - 角色选择 → <code>&lt;picker mode="selector"&gt;</code> 或底部弹出面板<br>
+        - 默认角色：家长<br>
+        - 创建成功 → 跳转日历视图（空态）
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: Loading（提交中）===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" style="color: var(--color-text-placeholder);">&#x2190; 返回</span>
+        <span class="nav-bar-title">创建家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="create-page">
+          <div class="form-section">
+            <div class="form-item">
+              <span class="form-item__label">家庭名称</span>
+              <input class="form-item__input" type="text" value="我们一家" disabled>
+              <span class="char-count">4/20</span>
+            </div>
+            <div class="form-item">
+              <span class="form-item__label">我的角色</span>
+              <div class="form-item__value">
+                <span>家长</span>
+                <span class="form-item__arrow"></span>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn--primary btn--block btn--lg disabled" data-id="create-family-submit-btn" disabled>
+            <span class="loading-spinner" style="width:18px;height:18px;border-width:2px;margin-right:8px;"></span>
+            创建中...
+          </button>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 按钮禁用 + 显示 loading spinner<br>
+        - 返回按钮也禁用，防止重复提交
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: 错误态（提交失败）===== -->
+  <div id="state-error" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回上一页')">&#x2190; 返回</span>
+        <span class="nav-bar-title">创建家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="create-page">
+          <div class="form-section">
+            <div class="form-item">
+              <span class="form-item__label">家庭名称</span>
+              <input class="form-item__input" type="text" value="我们一家">
+              <span class="char-count">4/20</span>
+            </div>
+            <div class="form-item">
+              <span class="form-item__label">我的角色</span>
+              <div class="form-item__value">
+                <span>家长</span>
+                <span class="form-item__arrow"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- → wx:if="{{submitError}}" → 错误提示 -->
+          <div class="error-state" style="padding: 8px 0 16px;">
+            <div class="error-state__desc" style="margin-bottom: 0; font-size: 12px; /* → 24rpx */">
+              创建失败，请检查网络后重试
+            </div>
+          </div>
+
+          <button class="btn btn--primary btn--block btn--lg" data-id="create-family-submit-btn"
+                  onclick="alert('【原型演示】重试提交')">
+            重试
+          </button>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 保留已填写内容<br>
+        - 显示错误提示<br>
+        - 按钮文案变为"重试"
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: 选择孩子角色（含提示）===== -->
+  <div id="state-child-role" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回上一页')">&#x2190; 返回</span>
+        <span class="nav-bar-title">创建家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="create-page">
+          <div class="form-section">
+            <div class="form-item">
+              <span class="form-item__label">家庭名称</span>
+              <input class="form-item__input" type="text" placeholder="请输入家庭名称（2-20字）" maxlength="20" oninput="updateCharCount(this)">
+              <span class="char-count" id="char-count-2">0/20</span>
+            </div>
+            <div class="form-item" onclick="alert('【原型演示】角色选择器')">
+              <span class="form-item__label">我的角色</span>
+              <div class="form-item__value">
+                <span style="color: #10AEFF;">孩子</span>
+                <span class="form-item__arrow"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 孩子角色提示 -->
+          <!-- → wx:if="{{role === 'child'}}" -->
+          <div class="prototype-note" style="margin: 0 0 16px; border-radius: 8px; /* → 16rpx */">
+            <strong>&#x26A0;&#xFE0F; 提示：</strong>创建后家庭暂无家长。建议创建后邀请家长来管理家庭。你可以在成员列表中将自己升级为家长。
+          </div>
+
+          <button class="btn btn--primary btn--block btn--lg" data-id="create-family-submit-btn"
+                  onclick="alert('【原型演示】以孩子角色创建家庭')">
+            创建
+          </button>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 选择"孩子"角色时，显示黄色提示条<br>
+        - 提示内容："暂无家长，建议邀请家长来管理家庭"<br>
+        - 创建后成员列表中可自行升级为家长
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(s) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + s).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function updateCharCount(input) {
+      var len = input.value.length;
+      var el = document.getElementById('char-count');
+      if (el) {
+        el.textContent = len + '/20';
+        el.className = len >= 18 ? 'char-count warn' : 'char-count';
+      }
+    }
+
+    function toggleRolePicker() {
+      document.getElementById('role-picker-mask').style.display = 'flex';
+    }
+
+    function closeRolePicker(e) {
+      if (!e || e.target === document.getElementById('role-picker-mask')) {
+        document.getElementById('role-picker-mask').style.display = 'none';
+      }
+    }
+
+    function selectRole(role) {
+      document.getElementById('check-parent').classList.toggle('hidden', role !== 'parent');
+      document.getElementById('check-child').classList.toggle('hidden', role !== 'child');
+      document.getElementById('selected-role-text').textContent = role === 'parent' ? '家长' : '孩子';
+      document.getElementById('selected-role-text').style.color = role === 'parent' ? 'var(--color-text-primary)' : '#10AEFF';
+      setTimeout(function() {
+        document.getElementById('role-picker-mask').style.display = 'none';
+      }, 200);
+    }
+  </script>
+</body>
+</html>

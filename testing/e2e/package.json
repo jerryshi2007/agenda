@@ -1,0 +1,29 @@
+{
+  "name": "agenda-e2e-tests",
+  "version": "1.0.0",
+  "description": "Agenda API E2E test suite (Playwright API testing)",
+  "private": true,
+  "scripts": {
+    "test": "npx playwright test",
+    "test:p0": "npx playwright test --grep '@P0'",
+    "test:p1": "npx playwright test --grep '@P1'",
+    "test:create": "npx playwright test schedule-create.spec.js",
+    "test:calendar": "npx playwright test calendar-view.spec.js",
+    "test:edit": "npx playwright test schedule-edit.spec.js",
+    "test:delete": "npx playwright test schedule-delete.spec.js",
+    "test:cancel": "npx playwright test schedule-cancel.spec.js",
+    "test:checkin": "npx playwright test schedule-checkin.spec.js",
+    "test:detail": "npx playwright test schedule-detail.spec.js",
+    "test:status": "npx playwright test instance-status.spec.js",
+    "test:integ": "npx playwright test integration.spec.js",
+    "report": "npx playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.0",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^10.0.0"
+  },
+  "dependencies": {
+    "pg": "^8.23.0"
+  }
+}

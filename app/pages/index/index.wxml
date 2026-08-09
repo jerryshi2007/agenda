@@ -1,0 +1,95 @@
+<!-- pages/index/index.wxml
+     日历首页 —— 月/周/日三视图 + 筛选栏 + 日期导航 -->
+
+<view class="page-container">
+  <!-- 日历头部 -->
+  <view class="cal-header">
+    <!-- 日期导航栏 -->
+    <view class="date-navigator" style="position: relative;">
+      <view class="date-nav-arrow" data-id="calendar-date-prev" bindtap="onPrev">
+        &#x2039;
+      </view>
+      <view class="date-nav-title" data-id="calendar-date-title" bindtap="onDatePicker">
+        {{navTitle}}
+      </view>
+      <view class="date-nav-arrow" data-id="calendar-date-next" bindtap="onNext">
+        &#x203A;
+      </view>
+      <view class="date-nav-today" data-id="calendar-today-btn" bindtap="onToday">今天</view>
+    </view>
+
+    <!-- 视图切换按钮组 -->
+    <view class="view-switcher" style="margin: 0 32rpx 16rpx;">
+      <view class="view-switcher-item {{currentView === 'month' ? 'active' : ''}}"
+            data-id="calendar-view-switch-month" bindtap="onSwitchView" data-view="month">月</view>
+      <view class="view-switcher-item {{currentView === 'week' ? 'active' : ''}}"
+            data-id="calendar-view-switch-week" bindtap="onSwitchView" data-view="week">周</view>
+      <view class="view-switcher-item {{currentView === 'day' ? 'active' : ''}}"
+            data-id="calendar-view-switch-day" bindtap="onSwitchView" data-view="day">日</view>
+    </view>
+
+    <!-- 筛选栏 -->
+    <view class="filter-bar">
+      <view class="filter-item {{selectedChildId ? 'active' : ''}}"
+            data-id="calendar-filter-child" bindtap="onChildFilter">
+        {{selectedChildId ? selectedChildName : '全部孩子'}}
+        <text class="filter-item-arrow">&#x25BE;</text>
+      </view>
+      <view class="filter-item {{selectedScheduleTypes.length > 0 ? 'active' : ''}}"
+            data-id="calendar-filter-type" bindtap="onTypeFilter">
+        {{selectedScheduleTypes.length > 0 ? selectedTypeLabel : '全部类型'}}
+        <text class="filter-item-arrow">&#x25BE;</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 日历视图主体 -->
+  <!-- loading 态 -->
+  <view wx:if="{{loading}}" class="loading-block" style="flex:1;">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载日程中...</view>
+  </view>
+
+  <!-- error 态 -->
+  <view wx:elif="{{error}}" class="error-state">
+    <view class="error-state-title">加载失败</view>
+    <view class="error-state-desc">无法加载日程数据，请检查网络后重试</view>
+    <view class="btn btn-primary btn-sm" data-id="calendar-retry-btn" bindtap="onRetry">重试</view>
+  </view>
+
+  <!-- 月视图 -->
+  <month-view wx:elif="{{currentView === 'month'}}"
+    cells="{{monthCells}}"
+    bind:celltap="onMonthCellTap"
+  />
+
+  <!-- 周视图 -->
+  <week-view wx:elif="{{currentView === 'week'}}"
+    weekDays="{{weekDays}}"
+    schedules="{{schedules}}"
+    loading="{{loading}}"
+    bind:scheduletap="onScheduleTap"
+    bind:checkintap="onQuickCheckin"
+  />
+
+  <!-- 日视图 -->
+  <day-view wx:elif="{{currentView === 'day'}}"
+    currentDate="{{currentDate}}"
+    schedules="{{schedules}}"
+    loading="{{loading}}"
+    bind:scheduletap="onScheduleTap"
+    bind:checkintap="onQuickCheckin"
+  />
+
+  <!-- 空态 -->
+  <view wx:if="{{!loading && !error && isEmpty}}" class="empty-state">
+    <view class="empty-state-icon">
+      <text style="font-size:96rpx;">&#x1F4C5;</text>
+    </view>
+    <view class="empty-state-title">还没有日程</view>
+    <view class="empty-state-desc">点击下方按钮，为孩子创建第一个日程吧</view>
+    <view class="btn btn-primary mt-lg" data-id="calendar-empty-create-btn" bindtap="onCreate">
+      创建日程
+    </view>
+  </view>
+</view>

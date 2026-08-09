@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日程详情页 · 日程管理</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+
+    .detail-page { background: var(--color-bg-page); }
+
+    /* 类型标签条 */
+    .detail-type-bar {
+      display: flex; align-items: center; justify-content: center;
+      padding: 6px 16px; /* → 12rpx 32rpx */
+      background: var(--color-bg-white);
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .detail-type-tag {
+      font-size: 12px; /* → 24rpx */ padding: 2px 10px; border-radius: 12px;
+    }
+    .detail-type-tag--activity { background: #E3F2FD; color: #10AEFF; }
+    .detail-type-tag--routine { background: #E8F8EF; color: #07C160; }
+    .detail-type-tag--homework { background: #FFF3E0; color: #FF9500; }
+
+    /* 打卡状态区 */
+    .detail-status {
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px 16px; /* → 40rpx 32rpx */
+      background: var(--color-bg-white);
+      border-bottom: 1px solid var(--color-border-light);
+      gap: 8px;
+    }
+
+    .detail-status-icon {
+      width: 40px; /* → 80rpx */ height: 40px; /* → 80rpx */
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .detail-status-icon--pending { background: #FFF3E0; color: #FF9500; }
+    .detail-status-icon--done { background: #E8F8EF; color: #07C160; }
+    .detail-status-icon--cancelled { background: var(--color-bg-page); color: var(--color-text-placeholder); }
+
+    .detail-status-text {
+      font-size: 18px; /* → 36rpx */ font-weight: 600;
+    }
+    .detail-status-text--pending { color: #FF9500; }
+    .detail-status-text--done { color: #07C160; }
+    .detail-status-text--cancelled { color: var(--color-text-placeholder); }
+
+    /* 信息区 */
+    .info-section {
+      background: var(--color-bg-white);
+      margin: 10px 0; /* → 20rpx */
+      border-top: 1px solid var(--color-border-light);
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .info-section-title {
+      padding: 12px 16px 4px; /* → 24rpx 32rpx */
+      font-size: 12px; /* → 24rpx */ color: var(--color-text-secondary);
+      font-weight: 500;
+    }
+
+    .info-row {
+      display: flex; padding: 10px 16px; /* → 20rpx 32rpx */
+      border-bottom: 1px solid var(--color-border-light);
+      font-size: 14px; /* → 28rpx */
+      align-items: flex-start;
+    }
+    .info-row:last-child { border-bottom: none; }
+
+    .info-label {
+      width: 64px; /* → 128rpx */ flex-shrink: 0;
+      color: var(--color-text-secondary); font-size: 14px; /* → 28rpx */
+    }
+
+    .info-value {
+      flex: 1; color: var(--color-text-primary);
+      line-height: 1.5;
+    }
+
+    /* 孩子标签列表 */
+    .child-tag-list { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .child-tag {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 13px; /* → 26rpx */ color: var(--color-text-primary);
+    }
+    .child-tag-avatar {
+      width: 22px; /* → 44rpx */ height: 22px; /* → 44rpx */
+      border-radius: 50%; font-size: 10px; color: var(--color-text-white);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* 打卡记录 */
+    .checkin-record {
+      display: flex; align-items: center; padding: 8px 16px; /* → 16rpx 32rpx */
+      border-bottom: 1px solid var(--color-border-light);
+      font-size: 14px; /* → 28rpx */ gap: 8px;
+    }
+    .checkin-record:last-child { border-bottom: none; }
+    .checkin-record-status { font-size: 12px; /* → 24rpx */ margin-left: auto; }
+    .checkin-record-status--done { color: #07C160; }
+
+    /* 操作按钮区 */
+    .detail-actions {
+      padding: 16px; /* → 32rpx */
+      display: flex; flex-direction: column;
+      gap: 10px; /* → 20rpx */
+    }
+
+    .detail-actions .btn { width: 100%; }
+
+    /* 确认弹窗内单选 */
+    .modal-radio-group {
+      text-align: left; padding: 0 8px;
+    }
+    .modal-radio-item {
+      display: flex; align-items: center; padding: 8px 0;
+      font-size: 14px; /* → 28rpx */ color: var(--color-text-primary);
+      cursor: pointer; gap: 8px;
+    }
+    .modal-radio-item input[type="radio"] { accent-color: var(--color-primary); }
+
+    .modal-warning {
+      font-size: 12px; /* → 24rpx */ color: var(--color-danger);
+      text-align: center; margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('normal-pending')">未完成</button>
+    <button onclick="showState('normal-done')">已完成</button>
+    <button onclick="showState('normal-cancelled')">已取消</button>
+    <button onclick="showState('loading')">Loading</button>
+    <button onclick="showState('error')">错误态</button>
+  </div>
+
+  <!-- ===== 状态 1: 正常态 - 未完成 ===== -->
+  <div id="state-normal-pending" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <!-- 微信原生导航栏 -->
+      <!-- title: "日程详情" -->
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回日历视图')">&#x2190; 返回</span>
+        <span class="nav-bar-title">日程详情</span>
+      </div>
+
+      <div class="page-body detail-page" style="padding: 0;">
+        <!-- 类型标签 -->
+        <div class="detail-type-bar">
+          <span class="detail-type-tag detail-type-tag--activity">课后活动</span>
+        </div>
+
+        <!-- 打卡状态区 -->
+        <div class="detail-status">
+          <div class="detail-status-icon detail-status-icon--pending">&#x25CB;</div>
+          <span class="detail-status-text detail-status-text--pending">未完成</span>
+        </div>
+
+        <!-- → <scroll-view scroll-y> -->
+        <!-- 基本信息区 -->
+        <div class="info-section">
+          <div class="info-section-title">基本信息</div>
+          <div class="info-row">
+            <span class="info-label">日期</span>
+            <span class="info-value">8月8日 周六</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">时间</span>
+            <span class="info-value">10:00 - 11:30</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">地点</span>
+            <span class="info-value">市游泳馆 2楼</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">关联孩子</span>
+            <span class="info-value">
+              <span class="child-tag-list">
+                <span class="child-tag">
+                  <span class="child-tag-avatar" style="background:#10AEFF;">明</span>小明
+                </span>
+                <span class="child-tag">
+                  <span class="child-tag-avatar" style="background:#FF9500;">华</span>小华
+                </span>
+              </span>
+            </span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">备注</span>
+            <span class="info-value">记得带泳镜和泳帽</span>
+          </div>
+        </div>
+
+        <!-- 重复信息区（仅重复日程显示） -->
+        <div class="info-section">
+          <div class="info-section-title">重复信息</div>
+          <div class="info-row">
+            <span class="info-label">重复规则</span>
+            <span class="info-value">每周二、周四、周六</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">结束日期</span>
+            <span class="info-value">2026年12月31日</span>
+          </div>
+        </div>
+
+        <!-- 打卡记录区 -->
+        <div class="info-section">
+          <div class="info-section-title">打卡记录</div>
+          <div class="checkin-record">
+            <span class="child-tag-avatar" style="background:#10AEFF;">明</span>
+            <span>小明</span>
+            <span class="checkin-record-status checkin-record-status--done">已完成 10:15</span>
+          </div>
+          <div class="checkin-record">
+            <span class="child-tag-avatar" style="background:#FF9500;">华</span>
+            <span>小华</span>
+            <span class="checkin-record-status" style="color:var(--color-text-secondary);">未完成</span>
+          </div>
+        </div>
+
+        <!-- 操作按钮区（家长端） -->
+        <div class="detail-actions">
+          <!-- → <button data-id="schedule-detail-checkin-btn" bindtap="onCheckin"> -->
+          <button class="btn btn--primary btn--block" data-id="schedule-detail-checkin-btn"
+                  onclick="alert('【原型演示】打卡确认 → 状态变更为已完成')">打卡确认</button>
+          <button class="btn btn--default btn--block" data-id="schedule-detail-edit-btn"
+                  onclick="alert('【原型演示】跳转编辑页 event/event-edit.html')">编辑</button>
+          <button class="btn btn--default btn--block" data-id="schedule-detail-cancel-btn"
+                  onclick="alert('【原型演示】弹出确认弹窗：确认取消本次？')">取消本次</button>
+          <button class="btn btn--danger btn--block" data-id="schedule-detail-delete-btn"
+                  onclick="alert('【原型演示】弹出删除确认弹窗：仅删除本次 / 本次及之后所有')">删除</button>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注（家长端 · 课后活动 · 未完成）：</strong><br>
+        - 打卡状态区：未完成 ○ + 橙色文字<br>
+        - 基本信息区：日期/时间/地点/关联孩子/备注<br>
+        - 重复信息区：仅重复日程显示（课后活动、日常作息）<br>
+        - 打卡记录区：显示关联孩子的打卡状态<br>
+        - 操作按钮：打卡确认、编辑、取消本次、删除<br>
+        - 孩子端仅显示打卡按钮，不显示编辑/取消/删除<br>
+        - 作业任务不显示"取消本次"按钮<br>
+        - 对应 US-EVT-20 查看详情 和 US-EVT-14 打卡确认
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: 正常态 - 已完成 ===== -->
+  <div id="state-normal-done" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">日程详情</span>
+      </div>
+      <div class="page-body detail-page" style="padding: 0;">
+        <div class="detail-type-bar">
+          <span class="detail-type-tag detail-type-tag--routine">日常作息</span>
+        </div>
+        <!-- 打卡状态 - 已完成 -->
+        <div class="detail-status">
+          <div class="detail-status-icon detail-status-icon--done">&#x2713;</div>
+          <span class="detail-status-text detail-status-text--done">已完成</span>
+        </div>
+        <div class="info-section">
+          <div class="info-section-title">基本信息</div>
+          <div class="info-row"><span class="info-label">日期</span><span class="info-value">8月8日 周六</span></div>
+          <div class="info-row"><span class="info-label">时间</span><span class="info-value">16:00 - 16:30</span></div>
+          <div class="info-row">
+            <span class="info-label">关联孩子</span>
+            <span class="info-value">
+              <span class="child-tag-list">
+                <span class="child-tag"><span class="child-tag-avatar" style="background:#10AEFF;">明</span>小明</span>
+              </span>
+            </span>
+          </div>
+        </div>
+        <div class="info-section">
+          <div class="info-section-title">重复信息</div>
+          <div class="info-row"><span class="info-label">重复规则</span><span class="info-value">每周一至周五、周日</span></div>
+          <div class="info-row"><span class="info-label">结束日期</span><span class="info-value">2026年12月31日</span></div>
+        </div>
+        <div class="info-section">
+          <div class="info-section-title">打卡记录</div>
+          <div class="checkin-record">
+            <span class="child-tag-avatar" style="background:#10AEFF;">明</span>
+            <span>小明</span>
+            <span class="checkin-record-status checkin-record-status--done">已完成 16:05</span>
+          </div>
+        </div>
+        <div class="detail-actions">
+          <!-- → 已完成：按钮变为"撤销打卡" (US-EVT-14 异常路径) -->
+          <button class="btn btn--default btn--block" data-id="schedule-detail-undo-btn"
+                  onclick="alert('【原型演示】撤销打卡 → 状态变更为未完成')">撤销打卡</button>
+          <button class="btn btn--default btn--block" data-id="schedule-detail-edit-btn-2"
+                  onclick="alert('【原型演示】跳转编辑页')">编辑</button>
+          <button class="btn btn--default btn--block" onclick="alert('【原型演示】取消本次')">取消本次</button>
+          <button class="btn btn--danger btn--block" onclick="alert('【原型演示】弹出删除确认弹窗')">删除</button>
+        </div>
+      </div>
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注（家长端 · 日常作息 · 已完成）：</strong><br>
+        - 打卡状态区：已完成 &#x2713; + 绿色文字<br>
+        - 打卡按钮变为"撤销打卡"<br>
+        - 打卡记录显示打卡时间 16:05<br>
+        - 日常作息无地点字段（与课后活动的差异）
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: 正常态 - 已取消 ===== -->
+  <div id="state-normal-cancelled" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">日程详情</span>
+      </div>
+      <div class="page-body detail-page" style="padding: 0;">
+        <div class="detail-type-bar">
+          <span class="detail-type-tag detail-type-tag--homework">作业任务</span>
+        </div>
+        <!-- 打卡状态 - 已取消 -->
+        <div class="detail-status">
+          <div class="detail-status-icon detail-status-icon--cancelled">&#x2014;</div>
+          <span class="detail-status-text detail-status-text--cancelled">已取消</span>
+        </div>
+        <div class="info-section">
+          <div class="info-section-title">基本信息</div>
+          <div class="info-row"><span class="info-label">截止日期</span><span class="info-value">8月8日 周六</span></div>
+          <div class="info-row"><span class="info-label">建议时间</span><span class="info-value">15:00 - 16:00</span></div>
+          <div class="info-row">
+            <span class="info-label">关联孩子</span>
+            <span class="info-value">
+              <span class="child-tag-list">
+                <span class="child-tag"><span class="child-tag-avatar" style="background:#FF9500;">华</span>小华</span>
+              </span>
+            </span>
+          </div>
+          <div class="info-row"><span class="info-label">备注</span><span class="info-value">做完后拍照发群里</span></div>
+        </div>
+        <!-- 作业任务不显示重复信息区 -->
+        <!-- 打卡记录区 -->
+        <div class="info-section">
+          <div class="info-section-title">打卡记录</div>
+          <div class="checkin-record">
+            <span class="child-tag-avatar" style="background:#FF9500;">华</span>
+            <span>小华</span>
+            <span class="checkin-record-status" style="color:var(--color-text-placeholder);">已取消</span>
+          </div>
+        </div>
+        <div class="detail-actions">
+          <!-- 已取消：不显示打卡按钮 (US-EVT-14 异常路径) -->
+          <!-- 显示"恢复本次"按钮 (US-EVT-13) -->
+          <button class="btn btn--primary btn--block" data-id="schedule-detail-restore-btn"
+                  onclick="alert('【原型演示】恢复本次 → 立即恢复为正常日程（无需二次确认）')">恢复本次</button>
+          <button class="btn btn--danger btn--block" data-id="schedule-detail-delete-btn-3"
+                  onclick="alert('【原型演示】弹出删除确认弹窗（作业任务：直接确认删除）')">删除</button>
+        </div>
+      </div>
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注（家长端 · 作业任务 · 已取消）：</strong><br>
+        - 打卡状态：已取消 — + 灰色文字<br>
+        - 不显示打卡按钮（US-EVT-14 异常路径）<br>
+        - 显示"恢复本次"按钮，点击立即恢复（US-EVT-13，无需二次确认）<br>
+        - 作业任务：不显示重复信息区、不显示"取消本次"按钮（US-EVT-12 异常）<br>
+        - 删除时显示简单确认弹窗（US-EVT-11）
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: Loading ===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back">&#x2190; 返回</span>
+        <span class="nav-bar-title">日程详情</span>
+      </div>
+      <div class="page-body detail-page" style="padding: 16px; /* → 32rpx */">
+        <!-- 骨架屏 -->
+        <div style="text-align:center;padding:16px;">
+          <div class="skeleton" style="width:80px;height:20px;margin:0 auto;border-radius:12px;"></div>
+        </div>
+        <div style="text-align:center;padding:20px;">
+          <div class="skeleton skeleton--avatar" style="margin:0 auto;"></div>
+          <div class="skeleton skeleton--title" style="margin:12px auto 0;"></div>
+        </div>
+        <div class="info-section" style="margin:10px 0;">
+          <div class="info-section-title"><div class="skeleton skeleton--text" style="width:60px;"></div></div>
+          <div class="info-row"><div class="skeleton skeleton--cell"></div></div>
+          <div class="info-row"><div class="skeleton skeleton--cell"></div></div>
+          <div class="info-row"><div class="skeleton skeleton--cell"></div></div>
+          <div class="info-row"><div class="skeleton skeleton--cell"></div></div>
+        </div>
+        <div class="info-section" style="margin:10px 0;">
+          <div class="info-section-title"><div class="skeleton skeleton--text" style="width:60px;"></div></div>
+          <div class="info-row"><div class="skeleton skeleton--cell"></div></div>
+          <div class="info-row"><div class="skeleton skeleton--cell"></div></div>
+        </div>
+        <div style="padding:16px;text-align:center;">
+          <div class="loading-spinner" style="margin:0 auto;"></div>
+        </div>
+      </div>
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 进入详情页时从服务端拉取最新数据（US-EVT-20 异常路径）<br>
+        - 骨架屏展示基本布局占位
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 5: 错误态 ===== -->
+  <div id="state-error" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back">&#x2190; 返回</span>
+        <span class="nav-bar-title">日程详情</span>
+      </div>
+      <div class="page-body page-body--center">
+        <div class="error-state">
+          <div class="error-state__icon">&#x26A0;&#xFE0F;</div>
+          <div class="error-state__title">加载失败</div>
+          <div class="error-state__desc">无法加载日程详情，请检查网络</div>
+          <button class="btn btn--primary btn--sm" onclick="alert('【原型演示】重试加载')">重试</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(s) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + s).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

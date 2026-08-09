@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>成员列表页 · 家庭管理</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+    .member-page {
+      padding: 0;
+      background: var(--color-bg-white);
+    }
+
+    /* 家庭头部信息 */
+    .family-header {
+      display: flex;
+      align-items: center;
+      padding: 16px; /* → 32rpx */
+      background: var(--color-bg-white);
+      border-bottom: 10px solid var(--color-bg-page);
+      cursor: pointer;
+    }
+
+    .family-header:active {
+      background: var(--color-bg-page);
+    }
+
+    .family-header-icon {
+      width: 44px; /* → 88rpx */
+      height: 44px; /* → 88rpx */
+      border-radius: 8px; /* → 16rpx */
+      background: var(--color-primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-right: 12px; /* → 24rpx */
+      flex-shrink: 0;
+    }
+
+    .family-header-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .family-header-name {
+      font-size: 18px; /* → 36rpx */
+      font-weight: 500;
+      color: var(--color-text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .family-header-name .edit-icon {
+      font-size: 14px;
+      color: var(--color-text-placeholder);
+    }
+
+    .family-header-meta {
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    .family-header-count {
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-secondary);
+      margin-left: 8px;
+    }
+
+    .family-header-count .current {
+      font-weight: 600;
+      color: var(--color-text-primary);
+    }
+
+    /* 成员分组 */
+    .member-group {
+      border-bottom: 10px solid var(--color-bg-page);
+    }
+
+    .member-group-header {
+      padding: 12px 16px; /* → 24rpx 32rpx */
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+      background: var(--color-bg-page);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .member-group-header .count {
+      font-size: 12px;
+    }
+
+    /* 成员项 */
+    .member-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px; /* → 28rpx 32rpx */
+      background: var(--color-bg-white);
+      cursor: pointer;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .member-item:last-child {
+      border-bottom: none;
+    }
+
+    .member-item:active {
+      background: var(--color-bg-page);
+    }
+
+    .member-avatar {
+      width: 44px; /* → 88rpx */
+      height: 44px; /* → 88rpx */
+      border-radius: 50%;
+      margin-right: 12px; /* → 24rpx */
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: var(--color-text-white);
+    }
+
+    .member-avatar--parent {
+      background: #07C160;
+    }
+
+    .member-avatar--child {
+      background: #10AEFF;
+    }
+
+    .member-avatar--deactivated {
+      background: var(--color-text-placeholder);
+    }
+
+    .member-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .member-name {
+      font-size: 16px; /* → 32rpx */
+      color: var(--color-text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .member-name .me-tag {
+      font-size: 10px; /* → 20rpx */
+      padding: 1px 5px;
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+      border-radius: 4px; /* → 8rpx */
+      font-weight: normal;
+    }
+
+    .member-name .creator-tag {
+      font-size: 10px; /* → 20rpx */
+      padding: 1px 5px;
+      background: #FFF3E0;
+      color: #FF9800;
+      border-radius: 4px; /* → 8rpx */
+      font-weight: normal;
+    }
+
+    .member-name .deactivated-tag {
+      font-size: 10px; /* → 20rpx */
+      padding: 1px 5px;
+      background: var(--color-bg-page);
+      color: var(--color-text-placeholder);
+      border-radius: 4px; /* → 8rpx */
+    }
+
+    .member-role {
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    .member-arrow {
+      color: var(--color-text-placeholder);
+      font-size: 14px;
+      margin-left: 8px;
+    }
+
+    /* 已注销成员灰显 */
+    .member-item--deactivated .member-name {
+      color: var(--color-text-placeholder);
+    }
+
+    /* 提示条 */
+    .member-tip {
+      padding: 12px 16px; /* → 24rpx 32rpx */
+      background: #FFF9E6;
+      border-bottom: 1px solid #FFC300;
+      font-size: 12px; /* → 24rpx */
+      color: #8B6914;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 邀请记录区 */
+    .invite-record-section {
+      border-bottom: 10px solid var(--color-bg-page);
+    }
+
+    .invite-record-section .section-title {
+      padding: 12px 16px; /* → 24rpx 32rpx */
+    }
+
+    .invite-record-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px; /* → 24rpx 32rpx */
+      background: var(--color-bg-white);
+      border-bottom: 1px solid var(--color-border-light);
+      font-size: 14px; /* → 28rpx */
+    }
+
+    .invite-record-item:last-child {
+      border-bottom: none;
+    }
+
+    .invite-record-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .invite-record-name {
+      color: var(--color-text-primary);
+    }
+
+    .invite-record-meta {
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    .invite-record-status {
+      font-size: 12px; /* → 24rpx */
+      padding: 2px 8px;
+      border-radius: 4px; /* → 8rpx */
+      flex-shrink: 0;
+    }
+
+    .invite-record-status--pending {
+      background: #FFF3E0;
+      color: #FF9800;
+    }
+
+    .invite-record-status--used {
+      background: var(--color-bg-page);
+      color: var(--color-text-placeholder);
+    }
+
+    .invite-record-revoke {
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-danger);
+      padding: 4px 8px;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+
+    /* 底部操作区 */
+    .member-actions {
+      padding: 16px; /* → 32rpx */
+    }
+
+    .member-actions .btn {
+      margin-bottom: 8px; /* → 16rpx */
+    }
+
+    .member-actions .btn:last-child {
+      margin-bottom: 0;
+    }
+
+    /* 暂无家长提示 */
+    .no-parent-tip {
+      margin: 12px 0;
+    }
+
+    /* 解散确认弹窗 */
+    .disband-input {
+      width: 100%;
+      height: 44px; /* → 88rpx */
+      border: 1px solid var(--color-border);
+      border-radius: 4px; /* → 8rpx */
+      padding: 0 12px; /* → 24rpx */
+      font-size: 14px; /* → 28rpx */
+      margin-top: 8px; /* → 16rpx */
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('normal')">正常态</button>
+    <button onclick="showState('no-parent')">无家长</button>
+    <button onclick="showState('loading')">Loading</button>
+    <button onclick="showState('error')">错误态</button>
+    <button onclick="showState('empty')">仅1人</button>
+  </div>
+
+  <!-- ===== 状态 1: 正常态（多成员家庭）===== -->
+  <div id="state-normal" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <!-- 微信原生导航栏 -->
+      <!-- title: "家庭成员" -->
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回"我的"页面')">&#x2190; 返回</span>
+        <span class="nav-bar-title">家庭成员</span>
+        <!-- → <button data-id="member-list-invite-btn" bindtap="onInvite"> -->
+        <span class="nav-bar-action" data-id="member-list-invite-btn"
+              onclick="alert('【原型演示】跳转邀请成员页 (family/invite-member.html)')">邀请</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="member-page">
+          <!-- 家庭头部 -->
+          <div class="family-header" onclick="alert('【原型演示】编辑家庭名称 - 内联编辑')">
+            <div class="family-header-icon">&#x1F3E0;</div>
+            <div class="family-header-info">
+              <div class="family-header-name">
+                我们一家
+                <span class="edit-icon">&#x270E;</span>
+              </div>
+              <div class="family-header-meta">创建于 2026-08-08</div>
+            </div>
+            <div class="family-header-count">
+              成员 <span class="current">4</span>/10
+            </div>
+          </div>
+
+          <!-- → <scroll-view scroll-y> -->
+
+          <!-- 家长组 -->
+          <!-- → wx:for="{{parentMembers}}" wx:key="id" -->
+          <div class="member-group">
+            <div class="member-group-header">
+              <span>家长</span>
+              <span class="count">2 人</span>
+            </div>
+
+            <div class="member-item" data-id="member-list-row-m1" onclick="alert('【原型演示】点击自己 - 不可操作自己')">
+              <div class="member-avatar member-avatar--parent">A</div>
+              <div class="member-info">
+                <div class="member-name">
+                  小明妈妈
+                  <span class="me-tag">我</span>
+                  <span class="creator-tag">创建者</span>
+                </div>
+                <div class="member-role">家长</div>
+              </div>
+              <div class="member-arrow">&#x203A;</div>
+            </div>
+
+            <div class="member-item" data-id="member-list-row-m2" onclick="alert('【原型演示】点击其他家长 → 弹窗：移除成员 / 转让创建者')">
+              <div class="member-avatar member-avatar--parent" style="background: #06AD56;">B</div>
+              <div class="member-info">
+                <div class="member-name">小明爸爸</div>
+                <div class="member-role">家长</div>
+              </div>
+              <div class="member-arrow">&#x203A;</div>
+            </div>
+          </div>
+
+          <!-- 孩子组 -->
+          <!-- → wx:for="{{childMembers}}" wx:key="id" -->
+          <div class="member-group">
+            <div class="member-group-header">
+              <span>孩子</span>
+              <span class="count">2 人</span>
+            </div>
+
+            <div class="member-item" data-id="member-list-row-c1" onclick="alert('【原型演示】点击孩子 → 弹窗：设置展示模式 / 移除成员')">
+              <div class="member-avatar member-avatar--child">C</div>
+              <div class="member-info">
+                <div class="member-name">小明</div>
+                <div class="member-role">小学模式</div>
+              </div>
+              <div class="member-arrow">&#x203A;</div>
+            </div>
+
+            <div class="member-item member-item--deactivated" data-id="member-list-row-c2"
+                    onclick="alert('【原型演示】已注销成员 - 不可交互')">
+              <div class="member-avatar member-avatar--deactivated">D</div>
+              <div class="member-info">
+                <div class="member-name">
+                  已注销用户
+                  <span class="deactivated-tag">已注销</span>
+                </div>
+                <div class="member-role">学龄前模式 · 30 天后自动移除</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 邀请记录 -->
+          <!-- → wx:if="{{inviteRecords.length > 0}}" -->
+          <div class="invite-record-section">
+            <div class="section-title" style="padding: 12px 16px; /* → 24rpx 32rpx */">邀请记录</div>
+
+            <!-- → wx:for="{{inviteRecords}}" wx:key="id" -->
+            <div class="invite-record-item" data-id="member-list-invite-record-1">
+              <div class="invite-record-info">
+                <div class="invite-record-name">小红</div>
+                <div class="invite-record-meta">邀请码 381529 · 2026-08-08 10:30 · 剩余 18h</div>
+              </div>
+              <span class="invite-record-status invite-record-status--pending">待使用</span>
+              <!-- → <button data-id="member-list-invite-revoke-1" bindtap="onRevokeInvite"> -->
+              <span class="invite-record-revoke" data-id="member-list-invite-revoke-1"
+                    onclick="alert('【原型演示】撤销邀请码 → 二次确认弹窗')">撤销</span>
+            </div>
+
+            <div class="invite-record-item" data-id="member-list-invite-record-2">
+              <div class="invite-record-info">
+                <div class="invite-record-name">小刚</div>
+                <div class="invite-record-meta">邀请码 729401 · 2026-08-07 15:00 · 已过期</div>
+              </div>
+              <span class="invite-record-status invite-record-status--used">已过期</span>
+            </div>
+
+            <div class="invite-record-item" data-id="member-list-invite-record-3">
+              <div class="invite-record-info">
+                <div class="invite-record-name">小红妈妈</div>
+                <div class="invite-record-meta">微信分享 · 2026-08-01 · 已加入</div>
+              </div>
+              <span class="invite-record-status invite-record-status--used">已加入</span>
+            </div>
+          </div>
+
+          <!-- 底部操作 -->
+          <div class="member-actions">
+            <!-- → <button data-id="member-list-leave-btn" bindtap="onLeaveFamily"> -->
+            <button class="btn btn--default btn--block" data-id="member-list-leave-btn"
+                    onclick="alert('【原型演示】创建者退出 → 阻止，提示"创建者无法退出"')">
+              退出家庭
+            </button>
+            <!-- → <button data-id="member-list-disband-btn" bindtap="onDisbandFamily"> -->
+            <button class="btn btn--danger btn--block" data-id="member-list-disband-btn"
+                    onclick="alert('【原型演示】解散家庭 → 输入家庭名称确认弹窗')">
+              解散家庭
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TabBar（家长端） -->
+      <!-- 微信原生 TabBar -->
+      <div class="tab-bar">
+        <div class="tab-bar-item" onclick="alert('【原型演示】切换到日历 Tab')">
+          <div class="tab-bar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <span class="tab-bar-label">日历</span>
+        </div>
+        <div class="tab-bar-item active">
+          <div class="tab-bar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <span class="tab-bar-label">我的</span>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 成员按角色分组显示，标注"我"和"创建者"<br>
+        - 点击成员 → 操作菜单（移除 / 转让创建者 / 设置展示模式）<br>
+        - 已注销成员灰显、不可交互<br>
+        - 导航栏右侧"邀请"按钮 → <code>family/invite-member.html</code><br>
+        - 底部"退出家庭"和"解散家庭"（创建者不可退出）
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: 无家长（孩子创建的家庭）===== -->
+  <div id="state-no-parent" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">家庭成员</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="member-page">
+          <div class="family-header">
+            <div class="family-header-icon">&#x1F3E0;</div>
+            <div class="family-header-info">
+              <div class="family-header-name">小明的家</div>
+              <div class="family-header-meta">创建于 2026-08-08</div>
+            </div>
+            <div class="family-header-count">
+              成员 <span class="current">1</span>/10
+            </div>
+          </div>
+
+          <!-- 无家长提示 -->
+          <div class="member-tip">
+            &#x26A0;&#xFE0F; 暂无家长，建议邀请家长来管理家庭
+          </div>
+
+          <div class="member-group">
+            <div class="member-group-header">
+              <span>孩子</span>
+              <span class="count">1 人</span>
+            </div>
+            <div class="member-item" data-id="member-list-row-self">
+              <div class="member-avatar member-avatar--child">C</div>
+              <div class="member-info">
+                <div class="member-name">
+                  小明
+                  <span class="me-tag">我</span>
+                </div>
+                <div class="member-role">孩子 · 统一模式（第一期）</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 自升级为家长 -->
+          <div class="member-actions">
+            <button class="btn btn--primary btn--block" data-id="member-list-upgrade-btn"
+                    onclick="alert('【原型演示】升级为家长 → 二次确认弹窗')">
+              升级为家长
+            </button>
+            <button class="btn btn--default btn--block" data-id="member-list-invite-btn-2"
+                    onclick="alert('【原型演示】跳转邀请成员页')">
+              邀请成员
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-bar-item">
+          <div class="tab-bar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <span class="tab-bar-label">日历</span>
+        </div>
+        <div class="tab-bar-item active">
+          <div class="tab-bar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <span class="tab-bar-label">我的</span>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 孩子创建家庭后，成员列表顶部常驻黄色提示<br>
+        - 提供"升级为家长"按钮<br>
+        - 不显示"退出家庭"（仅 1 人时可解散）
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: Loading ===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">家庭成员</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="member-page">
+          <!-- 骨架屏 -->
+          <div style="padding: 16px; display: flex; align-items: center; gap: 12px;">
+            <div class="skeleton" style="width: 44px; height: 44px; border-radius: 8px;"></div>
+            <div>
+              <div class="skeleton skeleton--title" style="width: 100px;"></div>
+              <div class="skeleton skeleton--text" style="width: 60px; margin-top: 6px;"></div>
+            </div>
+          </div>
+          <div class="member-group">
+            <div class="member-group-header">家长</div>
+            <div style="padding: 16px; display: flex; align-items: center; gap: 12px;">
+              <div class="skeleton skeleton--avatar"></div>
+              <div style="flex: 1;">
+                <div class="skeleton skeleton--title" style="width: 80px;"></div>
+                <div class="skeleton skeleton--text" style="width: 40px; margin-top: 6px;"></div>
+              </div>
+            </div>
+            <div style="padding: 16px; display: flex; align-items: center; gap: 12px;">
+              <div class="skeleton skeleton--avatar"></div>
+              <div style="flex: 1;">
+                <div class="skeleton skeleton--title" style="width: 80px;"></div>
+                <div class="skeleton skeleton--text" style="width: 40px; margin-top: 6px;"></div>
+              </div>
+            </div>
+          </div>
+          <div class="member-group">
+            <div class="member-group-header">孩子</div>
+            <div style="padding: 16px; display: flex; align-items: center; gap: 12px;">
+              <div class="skeleton skeleton--avatar"></div>
+              <div style="flex: 1;">
+                <div class="skeleton skeleton--title" style="width: 60px;"></div>
+                <div class="skeleton skeleton--text" style="width: 80px; margin-top: 6px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-bar-item"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F4C5;</div><span class="tab-bar-label">日历</span></div>
+        <div class="tab-bar-item active"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F464;</div><span class="tab-bar-label">我的</span></div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 成员列表加载中显示骨架屏<br>
+        - 家庭头部 + 成员列表骨架
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: 错误态 ===== -->
+  <div id="state-error" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">家庭成员</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="member-page">
+          <div class="family-header">
+            <div class="family-header-icon">&#x1F3E0;</div>
+            <div class="family-header-info">
+              <div class="family-header-name">我们一家</div>
+            </div>
+          </div>
+          <div class="error-state" style="padding: 48px 16px;">
+            <div class="error-state__icon">&#x26A0;&#xFE0F;</div>
+            <div class="error-state__title">加载失败</div>
+            <div class="error-state__desc">无法加载成员列表，请检查网络</div>
+            <button class="btn btn--primary btn--sm" data-id="member-list-retry-btn"
+                    onclick="alert('【原型演示】重试加载')">重试</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-bar-item"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F4C5;</div><span class="tab-bar-label">日历</span></div>
+        <div class="tab-bar-item active"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F464;</div><span class="tab-bar-label">我的</span></div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 网络错误导致无法加载成员列表<br>
+        - 显示错误提示 + 重试按钮
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 5: 仅剩 1 人 ===== -->
+  <div id="state-empty" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">家庭成员</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="member-page">
+          <div class="family-header">
+            <div class="family-header-icon">&#x1F3E0;</div>
+            <div class="family-header-info">
+              <div class="family-header-name">我们一家</div>
+              <div class="family-header-meta">创建于 2026-08-08</div>
+            </div>
+            <div class="family-header-count">
+              成员 <span class="current">1</span>/10
+            </div>
+          </div>
+
+          <div class="member-group">
+            <div class="member-group-header">
+              <span>家长</span>
+              <span class="count">1 人</span>
+            </div>
+            <div class="member-item">
+              <div class="member-avatar member-avatar--parent">A</div>
+              <div class="member-info">
+                <div class="member-name">
+                  小明妈妈
+                  <span class="me-tag">我</span>
+                  <span class="creator-tag">创建者</span>
+                </div>
+                <div class="member-role">家长</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding: 24px 16px; text-align: center; color: var(--color-text-secondary); font-size: 14px; /* → 28rpx */">
+            家庭只有你一个人，邀请成员加入吧
+          </div>
+
+          <div class="member-actions">
+            <button class="btn btn--primary btn--block" data-id="member-list-invite-btn-3"
+                    onclick="alert('【原型演示】跳转邀请成员页')">
+              邀请成员
+            </button>
+            <button class="btn btn--danger btn--block" data-id="member-list-disband-btn-2"
+                    onclick="alert('【原型演示】解散家庭 → 输入家庭名称确认弹窗')">
+              解散家庭
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-bar-item"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F4C5;</div><span class="tab-bar-label">日历</span></div>
+        <div class="tab-bar-item active"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F464;</div><span class="tab-bar-label">我的</span></div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 家庭仅剩 1 人时，任何角色均可解散<br>
+        - 不显示"退出家庭"按钮（仅 1 人退出 = 解散）<br>
+        - 引导邀请成员
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(s) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + s).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

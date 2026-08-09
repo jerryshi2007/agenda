@@ -247,7 +247,7 @@
 - **用户（User）**：微信 openid、昵称、头像、角色（家长/孩子）
 - **家庭（Family）**：家庭名称、创建者、创建时间
 - **家庭成员（FamilyMember）**：用户-家庭关联、角色、展示模式（孩子）
-- **日程（Event）**：名称、类型、重复规则、创建者、关联孩子
+- **日程（Schedule）**：名称、类型、重复规则、创建者、关联孩子
 - **时间槽（TimeSlot）**：日程的时间配置（7 天独立配置，存储星期几 + 开始/结束时间）
 - **模板（Template）**：模板名称、类型、预设内容（含时间槽）、创建者
 - **打卡记录（Checkin）**：日程关联、打卡时间、状态、打卡人 ID
@@ -262,7 +262,7 @@ User ──┬── FamilyMember ──┬── Family
        │                  │
        │                  ├── ChildSetting（展示模式等）
        │                  │
-       │                  ├── Event ── TimeSlot
+       │                  ├── Schedule ── TimeSlot
        │                  │     │
        │                  │     ├── Checkin
        │                  │     └── Cancellation

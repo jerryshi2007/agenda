@@ -1,0 +1,74 @@
+/* app/styles/tokens.wxss
+   设计令牌 —— 映射到 WeUI 设计变量体系
+   所有页面/组件通过 @import 引用此文件 */
+
+page {
+  /* 品牌色 */
+  --color-primary: #07C160;
+  --color-primary-dark: #06AD56;
+  --color-primary-light: #E8F8EF;
+  --color-primary-active: #059048;
+
+  /* 功能色 */
+  --color-danger: #FA5151;
+  --color-danger-light: #FDECEC;
+  --color-warning: #FFC300;
+  --color-info: #10AEFF;
+
+  /* 日程类型色 */
+  --color-type-activity: #10AEFF;
+  --color-type-activity-bg: #E3F2FD;
+  --color-type-routine: #07C160;
+  --color-type-routine-bg: #E8F8EF;
+  --color-type-homework: #FF9500;
+  --color-type-homework-bg: #FFF3E0;
+
+  /* 文字 */
+  --color-text-primary: #191919;
+  --color-text-secondary: #888888;
+  --color-text-placeholder: #B2B2B2;
+  --color-text-link: #576B95;
+  --color-text-white: #FFFFFF;
+
+  /* 背景 */
+  --color-bg-page: #F5F5F5;
+  --color-bg-white: #FFFFFF;
+  --color-bg-mask: rgba(0, 0, 0, 0.55);
+
+  /* 分割线 / 边框 */
+  --color-border: #E5E5E5;
+  --color-border-light: #F0F0F0;
+
+  /* 圆角 */
+  --radius-sm: 4rpx;
+  --radius-md: 8rpx;
+  --radius-lg: 12rpx;
+  --radius-round: 50%;
+
+  /* 间距 */
+  --spacing-xs: 4rpx;
+  --spacing-sm: 8rpx;
+  --spacing-md: 16rpx;
+  --spacing-lg: 24rpx;
+  --spacing-xl: 32rpx;
+
+  /* 字号 */
+  --font-size-xs: 20rpx;
+  --font-size-sm: 24rpx;
+  --font-size-base: 28rpx;
+  --font-size-md: 32rpx;
+  --font-size-lg: 34rpx;
+  --font-size-xl: 40rpx;
+  --font-size-xxl: 48rpx;
+
+  /* 行高 */
+  --line-height-base: 1.5;
+
+  /* 阴影 */
+  --shadow-sm: 0 2rpx 6rpx rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 8rpx 24rpx rgba(0, 0, 0, 0.12);
+
+  /* 动效 */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.3s ease;
+}

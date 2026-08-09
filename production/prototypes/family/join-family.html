@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>加入家庭页 · 家庭管理</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+    .join-page {
+      padding: 24px 16px; /* → 48rpx 32rpx */
+    }
+
+    .invite-code-section {
+      background: var(--color-bg-white);
+      border-radius: 8px; /* → 16rpx */
+      padding: 24px 16px; /* → 48rpx 32rpx */
+      margin-bottom: 24px; /* → 48rpx */
+      text-align: center;
+    }
+
+    .invite-code-title {
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-secondary);
+      margin-bottom: 16px; /* → 32rpx */
+    }
+
+    /* → <input type="number" data-id="join-family-code-input" maxlength="6" placeholder="输入6位邀请码"> */
+    .code-input-group {
+      display: flex;
+      justify-content: center;
+      gap: 8px; /* → 16rpx */
+      margin-bottom: 8px; /* → 16rpx */
+    }
+
+    .code-digit {
+      width: 44px; /* → 88rpx */
+      height: 52px; /* → 104rpx */
+      border: 2px solid var(--color-border);
+      border-radius: 8px; /* → 16rpx */
+      text-align: center;
+      font-size: 24px; /* → 48rpx */
+      font-weight: 600;
+      color: var(--color-text-primary);
+      background: var(--color-bg-page);
+      transition: border-color var(--transition-fast);
+    }
+
+    .code-digit:focus {
+      border-color: var(--color-primary);
+      outline: none;
+    }
+
+    .code-digit.filled {
+      border-color: var(--color-primary);
+      background: var(--color-bg-white);
+    }
+
+    .code-digit.error {
+      border-color: var(--color-danger);
+    }
+
+    .code-status {
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+      min-height: 18px;
+    }
+
+    .code-status--error {
+      color: var(--color-danger);
+    }
+
+    .join-btn {
+      margin-top: 8px; /* → 16rpx */
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('normal')">正常态</button>
+    <button onclick="showState('loading')">Loading</button>
+    <button onclick="showState('invalid')">无效邀请码</button>
+    <button onclick="showState('expired')">已过期</button>
+    <button onclick="showState('used')">已被使用</button>
+    <button onclick="showState('full')">家庭已满</button>
+    <button onclick="showState('error')">网络错误</button>
+  </div>
+
+  <!-- ===== 状态 1: 正常态 ===== -->
+  <div id="state-normal" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <!-- 微信原生导航栏 -->
+      <!-- title: "加入家庭" -->
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回上一页')">&#x2190; 返回</span>
+        <span class="nav-bar-title">加入家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="join-page">
+          <div class="invite-code-section">
+            <div class="invite-code-title">请输入 6 位邀请码</div>
+
+            <!-- → 实际实现用单个 <input type="number" maxlength="6"> 或用 6 个独立 input -->
+            <div class="code-input-group">
+              <input class="code-digit" type="text" maxlength="1" pattern="[0-9]" inputmode="numeric"
+                     data-id="join-family-code-digit-0" oninput="onCodeDigit(this, 0)">
+              <input class="code-digit" type="text" maxlength="1" pattern="[0-9]" inputmode="numeric"
+                     data-id="join-family-code-digit-1" oninput="onCodeDigit(this, 1)">
+              <input class="code-digit" type="text" maxlength="1" pattern="[0-9]" inputmode="numeric"
+                     data-id="join-family-code-digit-2" oninput="onCodeDigit(this, 2)">
+              <input class="code-digit" type="text" maxlength="1" pattern="[0-9]" inputmode="numeric"
+                     data-id="join-family-code-digit-3" oninput="onCodeDigit(this, 3)">
+              <input class="code-digit" type="text" maxlength="1" pattern="[0-9]" inputmode="numeric"
+                     data-id="join-family-code-digit-4" oninput="onCodeDigit(this, 4)">
+              <input class="code-digit" type="text" maxlength="1" pattern="[0-9]" inputmode="numeric"
+                     data-id="join-family-code-digit-5" oninput="onCodeDigit(this, 5)">
+            </div>
+            <div class="code-status" id="code-status">请输入家长提供的邀请码</div>
+          </div>
+
+          <!-- → <button data-id="join-family-submit-btn" bindtap="onSubmit" disabled="{{codeLength < 6}}"> -->
+          <button class="btn btn--primary btn--block btn--lg join-btn disabled"
+                  data-id="join-family-submit-btn" id="join-btn" disabled
+                  onclick="alert('【原型演示】验证邀请码 → 跳转确认页 (family/invite-confirm.html)')">
+            验证并加入
+          </button>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 6 位数字邀请码输入<br>
+        - 自动聚焦到第一个输入框<br>
+        - 输入满 6 位后按钮激活<br>
+        - 验证通过 → 跳转 <code>family/invite-confirm.html</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: Loading ===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" style="color: var(--color-text-placeholder);">&#x2190; 返回</span>
+        <span class="nav-bar-title">加入家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="join-page">
+          <div class="invite-code-section">
+            <div class="invite-code-title">请输入 6 位邀请码</div>
+            <div class="code-input-group">
+              <input class="code-digit filled" type="text" value="3" disabled>
+              <input class="code-digit filled" type="text" value="8" disabled>
+              <input class="code-digit filled" type="text" value="1" disabled>
+              <input class="code-digit filled" type="text" value="5" disabled>
+              <input class="code-digit filled" type="text" value="2" disabled>
+              <input class="code-digit filled" type="text" value="9" disabled>
+            </div>
+          </div>
+          <button class="btn btn--primary btn--block btn--lg disabled" data-id="join-family-submit-btn" disabled>
+            <span class="loading-spinner" style="width:18px;height:18px;border-width:2px;margin-right:8px;"></span>
+            验证中...
+          </button>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 正在验证邀请码有效性<br>
+        - 按钮禁用 + loading spinner<br>
+        - 输入框禁用
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: 无效邀请码 ===== -->
+  <div id="state-invalid" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回上一页')">&#x2190; 返回</span>
+        <span class="nav-bar-title">加入家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="join-page">
+          <div class="invite-code-section">
+            <div class="invite-code-title">请输入 6 位邀请码</div>
+            <div class="code-input-group">
+              <input class="code-digit error" type="text" value="0">
+              <input class="code-digit error" type="text" value="0">
+              <input class="code-digit error" type="text" value="0">
+              <input class="code-digit error" type="text" value="0">
+              <input class="code-digit error" type="text" value="0">
+              <input class="code-digit error" type="text" value="0">
+            </div>
+            <div class="code-status code-status--error" id="code-status-err">
+              邀请码无效，请检查后重试
+            </div>
+          </div>
+          <button class="btn btn--primary btn--block btn--lg" data-id="join-family-submit-btn"
+                  onclick="alert('【原型演示】重新验证')">
+            验证并加入
+          </button>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 输入框红色边框 + 红色错误提示文字<br>
+        - 用户修改任意数字后清除错误状态<br>
+        - 提示"邀请码无效，请检查后重试"
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: 已过期 ===== -->
+  <div id="state-expired" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回上一页')">&#x2190; 返回</span>
+        <span class="nav-bar-title">加入家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="join-page">
+          <div class="invite-code-section">
+            <div class="invite-code-title">请输入 6 位邀请码</div>
+            <div class="code-input-group">
+              <input class="code-digit error" type="text" value="1">
+              <input class="code-digit error" type="text" value="2">
+              <input class="code-digit error" type="text" value="3">
+              <input class="code-digit error" type="text" value="4">
+              <input class="code-digit error" type="text" value="5">
+              <input class="code-digit error" type="text" value="6">
+            </div>
+            <div class="code-status code-status--error">
+              邀请码已失效（超过 24 小时），请联系家长重新获取
+            </div>
+          </div>
+          <button class="btn btn--default btn--block btn--lg" data-id="join-family-back-btn"
+                  onclick="alert('【原型演示】返回')">
+            返回
+          </button>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 邀请码超过 24 小时有效期<br>
+        - 提示用户联系家长重新获取<br>
+        - 按钮变为"返回"（不再重试验证）
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 5: 已被使用 ===== -->
+  <div id="state-used" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回上一页')">&#x2190; 返回</span>
+        <span class="nav-bar-title">加入家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="join-page">
+          <div class="invite-code-section">
+            <div class="invite-code-title">请输入 6 位邀请码</div>
+            <div class="code-input-group">
+              <input class="code-digit error" type="text" value="1">
+              <input class="code-digit error" type="text" value="2">
+              <input class="code-digit error" type="text" value="3">
+              <input class="code-digit error" type="text" value="4">
+              <input class="code-digit error" type="text" value="5">
+              <input class="code-digit error" type="text" value="6">
+            </div>
+            <div class="code-status code-status--error">
+              邀请码已被使用
+            </div>
+          </div>
+          <button class="btn btn--default btn--block btn--lg" data-id="join-family-back-btn"
+                  onclick="alert('【原型演示】返回')">
+            返回
+          </button>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 邀请码一次性，已被他人使用<br>
+        - 提示"邀请码已被使用"<br>
+        - 并发保护：第一个成功，第二个失败
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 6: 家庭已满 ===== -->
+  <div id="state-full" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回上一页')">&#x2190; 返回</span>
+        <span class="nav-bar-title">加入家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="join-page">
+          <div class="invite-code-section">
+            <div class="invite-code-title">请输入 6 位邀请码</div>
+            <div class="code-input-group">
+              <input class="code-digit filled" type="text" value="1">
+              <input class="code-digit filled" type="text" value="2">
+              <input class="code-digit filled" type="text" value="3">
+              <input class="code-digit filled" type="text" value="4">
+              <input class="code-digit filled" type="text" value="5">
+              <input class="code-digit filled" type="text" value="6">
+            </div>
+            <div class="code-status code-status--error">
+              家庭已满（10 人），无法加入
+            </div>
+          </div>
+          <button class="btn btn--default btn--block btn--lg" data-id="join-family-back-btn"
+                  onclick="alert('【原型演示】返回')">
+            返回
+            </button>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 邀请码有效但家庭已达 10 人上限<br>
+        - 提示"家庭已满（10 人），无法加入"
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 7: 网络错误 ===== -->
+  <div id="state-error" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回上一页')">&#x2190; 返回</span>
+        <span class="nav-bar-title">加入家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="join-page">
+          <div class="invite-code-section">
+            <div class="invite-code-title">请输入 6 位邀请码</div>
+            <div class="code-input-group">
+              <input class="code-digit filled" type="text" value="3">
+              <input class="code-digit filled" type="text" value="8">
+              <input class="code-digit filled" type="text" value="1">
+              <input class="code-digit filled" type="text" value="5">
+              <input class="code-digit filled" type="text" value="2">
+              <input class="code-digit filled" type="text" value="9">
+            </div>
+          </div>
+          <div class="error-state" style="padding: 8px 0 16px;">
+            <div class="error-state__desc" style="margin-bottom: 0; font-size: 12px; /* → 24rpx */">
+              网络连接失败，请检查网络后重试
+            </div>
+          </div>
+          <button class="btn btn--primary btn--block btn--lg" data-id="join-family-submit-btn"
+                  onclick="alert('【原型演示】重新验证')">
+            重试
+          </button>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 网络异常导致验证失败<br>
+        - 保留已输入的邀请码<br>
+        - 点击"重试"重新验证
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(s) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + s).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function onCodeDigit(input, index) {
+      var val = input.value.replace(/[^0-9]/g, '');
+      input.value = val;
+      if (val) {
+        input.classList.add('filled');
+        // Auto-focus next
+        var next = document.querySelector('[data-id="join-family-code-digit-' + (index + 1) + '"]');
+        if (next) next.focus();
+      } else {
+        input.classList.remove('filled');
+      }
+      updateJoinBtn();
+    }
+
+    function updateJoinBtn() {
+      var all = document.querySelectorAll('[id^="state-normal"] .code-digit, [id^="state-error"] .code-digit');
+      var filled = 0;
+      all.forEach(function(d) { if (d.value) filled++; });
+      var btn = document.getElementById('join-btn');
+      if (btn) {
+        if (filled === 6) {
+          btn.classList.remove('disabled');
+          btn.disabled = false;
+        } else {
+          btn.classList.add('disabled');
+          btn.disabled = true;
+        }
+      }
+    }
+  </script>
+</body>
+</html>

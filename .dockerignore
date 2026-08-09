@@ -1,0 +1,28 @@
+# Build output
+**/bin/
+**/obj/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Dependencies
+**/node_modules/
+
+# Environment
+.env
+.env.*
+
+# Logs
+*.log
+
+# WeChat
+miniprogram_npm/
+project.private.config.json
+
+# Test results
+**/TestResults/
+**/coverage/

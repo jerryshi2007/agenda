@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日历月视图 · 日程管理</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+
+    /* 视图头部 — 月份 + 视图切换 + 筛选 */
+    .cal-header {
+      background: var(--color-bg-white);
+      border-bottom: 1px solid var(--color-border-light);
+      flex-shrink: 0;
+    }
+
+    /* 月份导航行 */
+    .cal-month-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px; /* → 16rpx 32rpx */
+    }
+
+    .cal-month-nav-arrow {
+      width: 32px; /* → 64rpx */
+      height: 32px; /* → 64rpx */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--color-text-primary);
+      cursor: pointer;
+      border-radius: var(--radius-round);
+    }
+
+    .cal-month-nav-arrow:active {
+      background: var(--color-bg-page);
+    }
+
+    .cal-month-title {
+      flex: 1;
+      text-align: center;
+      font-size: 16px; /* → 32rpx */
+      font-weight: 600;
+      color: var(--color-text-primary);
+      cursor: pointer;
+      padding: 4px 0;
+    }
+
+    /* 今天按钮 */
+    .cal-today-btn {
+      position: absolute;
+      right: 16px; /* → 32rpx */
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-primary);
+      cursor: pointer;
+      padding: 2px 10px;
+      border: 1px solid var(--color-primary);
+      border-radius: 12px; /* → 24rpx */
+    }
+
+    .cal-today-btn:active {
+      background: var(--color-primary-light);
+    }
+
+    /* 视图切换 */
+    .cal-view-toggle {
+      display: flex;
+      margin: 0 16px 8px; /* → 32rpx 16rpx */
+      border: 1px solid var(--color-border);
+      border-radius: 6px; /* → 12rpx */
+      overflow: hidden;
+    }
+
+    .cal-view-toggle-item {
+      flex: 1;
+      text-align: center;
+      padding: 6px 0; /* → 12rpx */
+      font-size: 13px; /* → 26rpx */
+      cursor: pointer;
+      color: var(--color-text-secondary);
+      background: var(--color-bg-white);
+      border-right: 1px solid var(--color-border);
+      transition: all var(--transition-fast);
+    }
+
+    .cal-view-toggle-item:last-child {
+      border-right: none;
+    }
+
+    .cal-view-toggle-item.active {
+      background: var(--color-primary);
+      color: var(--color-text-white);
+    }
+
+    /* 筛选栏 */
+    .cal-filter {
+      display: flex;
+      align-items: center;
+      gap: 8px; /* → 16rpx */
+      padding: 0 16px 8px; /* → 32rpx 16rpx */
+    }
+
+    /* → <picker mode="selector"> */
+    .cal-filter-item {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 32px; /* → 64rpx */
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+      background: var(--color-bg-page);
+      border-radius: 4px; /* → 8rpx */
+      cursor: pointer;
+      gap: 4px;
+    }
+
+    .cal-filter-item.active {
+      color: var(--color-primary);
+      background: var(--color-primary-light);
+    }
+
+    .cal-filter-arrow {
+      font-size: 10px;
+      color: var(--color-text-placeholder);
+    }
+
+    /* 星期头 */
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      padding: 6px 0; /* → 12rpx */
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+      background: var(--color-bg-white);
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .cal-weekdays .weekend {
+      color: var(--color-danger);
+    }
+
+    /* 日历网格 */
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      flex: 1;
+    }
+
+    .cal-cell {
+      position: relative; /* → relative 定位 */
+      border-bottom: 1px solid var(--color-border-light);
+      border-right: 1px solid var(--color-border-light);
+      min-height: 72px; /* → 144rpx */
+      padding: 4px; /* → 8rpx */
+      cursor: pointer;
+      transition: background var(--transition-fast);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cal-cell:nth-child(7n) {
+      border-right: none;
+    }
+
+    .cal-cell:active {
+      background: var(--color-bg-page);
+    }
+
+    .cal-cell--other-month .cal-cell-date {
+      color: var(--color-text-placeholder);
+    }
+
+    .cal-cell--today {
+      background: var(--color-primary-light);
+    }
+
+    .cal-cell--today .cal-cell-date {
+      background: var(--color-primary);
+      color: var(--color-text-white);
+    }
+
+    .cal-cell-date {
+      width: 26px; /* → 52rpx */
+      height: 26px; /* → 52rpx */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px; /* → 28rpx */
+      font-weight: 500;
+      color: var(--color-text-primary);
+      border-radius: var(--radius-round);
+    }
+
+    .cal-cell--weekend .cal-cell-date {
+      color: var(--color-danger);
+    }
+
+    /* 色点 */
+    .cal-dots {
+      display: flex;
+      gap: 3px; /* → 6rpx */
+      flex-wrap: wrap;
+      margin-top: 4px; /* → 8rpx */
+      padding-left: 2px;
+    }
+
+    .cal-dot {
+      width: 7px; /* → 14rpx */
+      height: 7px; /* → 14rpx */
+      border-radius: var(--radius-round);
+      flex-shrink: 0;
+    }
+
+    .cal-dot--activity {
+      background: #10AEFF; /* 课后活动-蓝 */
+    }
+
+    .cal-dot--routine {
+      background: #07C160; /* 日常作息-绿 */
+    }
+
+    .cal-dot--homework {
+      background: #FF9500; /* 作业任务-橙 */
+    }
+
+    .cal-dot-more {
+      font-size: 10px; /* → 20rpx */
+      color: var(--color-text-secondary);
+      line-height: 7px;
+    }
+
+    /* 页面主体 */
+    .cal-page-body {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--color-bg-white);
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('normal')">正常态</button>
+    <button onclick="showState('empty')">空态</button>
+    <button onclick="showState('loading')">Loading</button>
+    <button onclick="showState('error')">错误态</button>
+  </div>
+
+  <!-- ===== 状态 1: 正常态 ===== -->
+  <div id="state-normal" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <!-- 微信原生导航栏 -->
+      <!-- title: "日程" -->
+      <div class="nav-bar">
+        <span class="nav-bar-title">日程</span>
+      </div>
+
+      <!-- 日历头部 -->
+      <div class="cal-header">
+        <div class="cal-month-nav" style="position: relative;">
+          <!-- → <view bindtap="onPrevMonth"> -->
+          <span class="cal-month-nav-arrow" data-id="calendar-month-prev-btn"
+                onclick="alert('【原型演示】切换到上一个月')">&#x2039;</span>
+          <!-- → <picker mode="date" fields="month"> -->
+          <span class="cal-month-title" data-id="calendar-month-title"
+                onclick="alert('【原型演示】弹出月份选择器')">2026年 8月</span>
+          <!-- → <view bindtap="onNextMonth"> -->
+          <span class="cal-month-nav-arrow" data-id="calendar-month-next-btn"
+                onclick="alert('【原型演示】切换到下一个月')">&#x203A;</span>
+          <!-- → <view bindtap="onToday"> -->
+          <span class="cal-today-btn" data-id="calendar-month-today-btn"
+                onclick="alert('【原型演示】回到今天')">今天</span>
+        </div>
+
+        <!-- → <view class="segmented-control"> 视图切换 -->
+        <div class="cal-view-toggle">
+          <span class="cal-view-toggle-item active" data-id="calendar-month-view-month"
+                onclick="alert('【原型演示】当前已是月视图')">月</span>
+          <span class="cal-view-toggle-item" data-id="calendar-month-view-week"
+                onclick="alert('【原型演示】切换到周视图')">周</span>
+          <span class="cal-view-toggle-item" data-id="calendar-month-view-day"
+                onclick="alert('【原型演示】切换到日视图')">日</span>
+        </div>
+
+        <!-- 筛选栏 -->
+        <!-- → <picker mode="selector" range="{{childList}}"> / <picker mode="selector" range="{{typeList}}"> -->
+        <div class="cal-filter">
+          <span class="cal-filter-item active" data-id="calendar-month-filter-child"
+                onclick="alert('【原型演示】弹出孩子选择器')">
+            全部孩子 <span class="cal-filter-arrow">&#x25BE;</span>
+          </span>
+          <span class="cal-filter-item" data-id="calendar-month-filter-type"
+                onclick="alert('【原型演示】弹出类型选择器')">
+            全部类型 <span class="cal-filter-arrow">&#x25BE;</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- 日历主体内容 -->
+      <!-- → <scroll-view scroll-y enable-flex> -->
+      <div class="cal-page-body">
+        <!-- 星期头 -->
+        <div class="cal-weekdays">
+          <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span>
+          <span class="weekend">六</span><span class="weekend">日</span>
+        </div>
+
+        <!-- 日历网格 7x5 -->
+        <!-- → wx:for="{{calendarCells}}" wx:key="dateStr" -->
+        <div class="cal-grid">
+          <!-- 行 1: 非当月 - 非当月 - 非当月 - 非当月 - 非当月 - 8月1(六) - 8月2(日) -->
+          <div class="cal-cell cal-cell--other-month" data-id="calendar-month-cell-2026-07-27"
+               onclick="alert('【原型演示】点击非当月日期 → 切换到7月日视图')">
+            <span class="cal-cell-date">27</span>
+          </div>
+          <div class="cal-cell cal-cell--other-month" data-id="calendar-month-cell-2026-07-28"
+               onclick="alert('【原型演示】点击非当月日期 → 切换到7月日视图')">
+            <span class="cal-cell-date">28</span>
+          </div>
+          <div class="cal-cell cal-cell--other-month" data-id="calendar-month-cell-2026-07-29"
+               onclick="alert('【原型演示】点击非当月日期 → 切换到7月日视图')">
+            <span class="cal-cell-date">29</span>
+          </div>
+          <div class="cal-cell cal-cell--other-month" data-id="calendar-month-cell-2026-07-30"
+               onclick="alert('【原型演示】点击非当月日期 → 切换到7月日视图')">
+            <span class="cal-cell-date">30</span>
+          </div>
+          <div class="cal-cell cal-cell--other-month" data-id="calendar-month-cell-2026-07-31"
+               onclick="alert('【原型演示】点击非当月日期 → 切换到7月日视图')">
+            <span class="cal-cell-date">31</span>
+          </div>
+          <div class="cal-cell cal-cell--weekend" data-id="calendar-month-cell-2026-08-01"
+               onclick="alert('【原型演示】点击8月1日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">1</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--routine"></span>
+              <span class="cal-dot cal-dot--routine"></span>
+            </div>
+          </div>
+          <div class="cal-cell cal-cell--weekend" data-id="calendar-month-cell-2026-08-02"
+               onclick="alert('【原型演示】点击8月2日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">2</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--activity"></span>
+              <span class="cal-dot cal-dot--routine"></span>
+            </div>
+          </div>
+
+          <!-- 行 2: 3-9 -->
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-03"
+               onclick="alert('【原型演示】点击8月3日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">3</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--activity"></span>
+              <span class="cal-dot cal-dot--homework"></span>
+              <span class="cal-dot cal-dot--routine"></span>
+              <span class="cal-dot-more">+2</span>
+            </div>
+          </div>
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-04"
+               onclick="alert('【原型演示】点击8月4日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">4</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--activity"></span>
+              <span class="cal-dot cal-dot--routine"></span>
+            </div>
+          </div>
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-05"
+               onclick="alert('【原型演示】点击8月5日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">5</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--homework"></span>
+            </div>
+          </div>
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-06"
+               onclick="alert('【原型演示】点击8月6日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">6</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--activity"></span>
+              <span class="cal-dot cal-dot--activity"></span>
+              <span class="cal-dot cal-dot--routine"></span>
+            </div>
+          </div>
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-07"
+               onclick="alert('【原型演示】点击8月7日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">7</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--routine"></span>
+            </div>
+          </div>
+          <!-- 今天 -->
+          <div class="cal-cell cal-cell--today cal-cell--weekend" data-id="calendar-month-cell-2026-08-08"
+               onclick="alert('【原型演示】点击今天 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">8</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--activity"></span>
+              <span class="cal-dot cal-dot--activity"></span>
+              <span class="cal-dot cal-dot--routine"></span>
+              <span class="cal-dot-more">+1</span>
+            </div>
+          </div>
+          <div class="cal-cell cal-cell--weekend" data-id="calendar-month-cell-2026-08-09"
+               onclick="alert('【原型演示】点击8月9日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">9</span>
+          </div>
+
+          <!-- 行 3: 10-16 -->
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-10"
+               onclick="alert('【原型演示】点击8月10日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">10</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--activity"></span>
+              <span class="cal-dot cal-dot--homework"></span>
+            </div>
+          </div>
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-11"
+               onclick="alert('【原型演示】点击8月11日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">11</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--routine"></span>
+              <span class="cal-dot cal-dot--routine"></span>
+              <span class="cal-dot cal-dot--homework"></span>
+            </div>
+          </div>
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-12"
+               onclick="alert('【原型演示】点击8月12日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">12</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--activity"></span>
+            </div>
+          </div>
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-13"
+               onclick="alert('【原型演示】点击8月13日 → 日视图')">
+            <span class="cal-cell-date">13</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--activity"></span>
+              <span class="cal-dot cal-dot--routine"></span>
+            </div>
+          </div>
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-14"
+               onclick="alert('【原型演示】点击8月14日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">14</span>
+          </div>
+          <div class="cal-cell cal-cell--weekend" data-id="calendar-month-cell-2026-08-15"
+               onclick="alert('【原型演示】点击8月15日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">15</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--activity"></span>
+            </div>
+          </div>
+          <div class="cal-cell cal-cell--weekend" data-id="calendar-month-cell-2026-08-16"
+               onclick="alert('【原型演示】点击8月16日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">16</span>
+          </div>
+
+          <!-- 行 4: 17-23 -->
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-17"
+               onclick="alert('【原型演示】点击8月17日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">17</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--activity"></span>
+              <span class="cal-dot cal-dot--routine"></span>
+            </div>
+          </div>
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-18"
+               onclick="alert('【原型演示】点击8月18日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">18</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--homework"></span>
+            </div>
+          </div>
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-19"
+               onclick="alert('【原型演示】点击8月19日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">19</span>
+          </div>
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-20"
+               onclick="alert('【原型演示】点击8月20日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">20</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--activity"></span>
+              <span class="cal-dot cal-dot--activity"></span>
+              <span class="cal-dot cal-dot--routine"></span>
+            </div>
+          </div>
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-21"
+               onclick="alert('【原型演示】点击8月21日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">21</span>
+          </div>
+          <div class="cal-cell cal-cell--weekend" data-id="calendar-month-cell-2026-08-22"
+               onclick="alert('【原型演示】点击8月22日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">22</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--routine"></span>
+              <span class="cal-dot cal-dot--routine"></span>
+            </div>
+          </div>
+          <div class="cal-cell cal-cell--weekend" data-id="calendar-month-cell-2026-08-23"
+               onclick="alert('【原型演示】点击8月23日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">23</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--activity"></span>
+            </div>
+          </div>
+
+          <!-- 行 5: 24-30 -->
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-24"
+               onclick="alert('【原型演示】点击8月24日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">24</span>
+            <div class="cal-dots">
+              <span class="cal-dot cal-dot--activity"></span>
+              <span class="cal-dot cal-dot--routine"></span>
+            </div>
+          </div>
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-25"
+               onclick="alert('【原型演示】点击8月25日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">25</span>
+          </div>
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-26"
+               onclick="alert('【原型演示】点击8月26日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">26</span>
+          </div>
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-27"
+               onclick="alert('【原型演示】点击8月27日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">27</span>
+          </div>
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-28"
+               onclick="alert('【原型演示】点击8月28日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">28</span>
+          </div>
+          <div class="cal-cell cal-cell--weekend" data-id="calendar-month-cell-2026-08-29"
+               onclick="alert('【原型演示】点击8月29日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">29</span>
+          </div>
+          <div class="cal-cell cal-cell--weekend" data-id="calendar-month-cell-2026-08-30"
+               onclick="alert('【原型演示】点击8月30日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">30</span>
+          </div>
+
+          <!-- 行 6: 31 + 部分非当月 -->
+          <div class="cal-cell" data-id="calendar-month-cell-2026-08-31"
+               onclick="alert('【原型演示】点击8月31日 → 跳转日视图 calendar-day.html')">
+            <span class="cal-cell-date">31</span>
+          </div>
+          <div class="cal-cell cal-cell--other-month"><span class="cal-cell-date">1</span></div>
+          <div class="cal-cell cal-cell--other-month"><span class="cal-cell-date">2</span></div>
+          <div class="cal-cell cal-cell--other-month"><span class="cal-cell-date">3</span></div>
+          <div class="cal-cell cal-cell--other-month"><span class="cal-cell-date">4</span></div>
+          <div class="cal-cell cal-cell--other-month"><span class="cal-cell-date">5</span></div>
+          <div class="cal-cell cal-cell--other-month"><span class="cal-cell-date">6</span></div>
+        </div>
+      </div>
+
+      <!-- 微信原生 TabBar -->
+      <!-- tabs: [{name:"日历",icon:"calendar"},{name:"我的",icon:"user"}] -->
+      <div class="tab-bar">
+        <div class="tab-bar-item active">
+          <div class="tab-bar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <span class="tab-bar-label">日历</span>
+        </div>
+        <div class="tab-bar-item" onclick="alert('【原型演示】切换到"我的"Tab')">
+          <div class="tab-bar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <span class="tab-bar-label">我的</span>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 月视图仅展示色点（≤3个，超出显示"+N"），点击某天跳转日视图<br>
+        - 今天日期高亮（绿色背景 + 白字），非当月日期灰色<br>
+        - 顶部筛选栏：按孩子 / 按类型 → 映射为 <code>&lt;picker mode="selector"&gt;</code><br>
+        - 视图切换 [月|周|日] → 映射为 <code>&lt;view class="segmented-control"&gt;</code><br>
+        - 左右箭头切月，月份标题点击弹出日期选择器 → <code>&lt;picker mode="date" fields="month"&gt;</code><br>
+        - 日历网格 → <code>&lt;scroll-view scroll-y&gt;</code> 内 <code>display:grid</code> 布局<br>
+        - 月视图不提供快捷打卡入口（需进日视图）<br>
+        - 类型配色：蓝=课后活动 绿=日常作息 橙=作业任务
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: 空态 ===== -->
+  <div id="state-empty" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar"><span class="nav-bar-title">日程</span></div>
+      <div class="cal-header">
+        <div class="cal-month-nav" style="position: relative;">
+          <span class="cal-month-nav-arrow">&#x2039;</span>
+          <span class="cal-month-title">2026年 8月</span>
+          <span class="cal-month-nav-arrow">&#x203A;</span>
+          <span class="cal-today-btn">今天</span>
+        </div>
+        <div class="cal-view-toggle">
+          <span class="cal-view-toggle-item active">月</span>
+          <span class="cal-view-toggle-item">周</span>
+          <span class="cal-view-toggle-item">日</span>
+        </div>
+      </div>
+      <div class="page-body page-body--center">
+        <div class="empty-state">
+          <div class="empty-state__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48" color="var(--color-text-placeholder)">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <div class="empty-state__title">还没有日程</div>
+          <div class="empty-state__desc">点击下方按钮，为孩子创建第一个日程吧</div>
+          <button class="btn btn--primary mt-md" data-id="calendar-month-empty-create-btn"
+                  onclick="alert('【原型演示】跳转创建日程页 event/event-create.html')"
+                  style="margin-top: 16px; /* → 32rpx */">创建日程</button>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-bar-item active"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F4C5;</div><span class="tab-bar-label">日历</span></div>
+        <div class="tab-bar-item"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F464;</div><span class="tab-bar-label">我的</span></div>
+      </div>
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 空态显示插画 + "还没有日程" + "创建日程"按钮<br>
+        - 对应 BE-09：日历视图无任何日程时的空状态
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: Loading ===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar"><span class="nav-bar-title">日程</span></div>
+      <div class="cal-header">
+        <div class="cal-month-nav" style="position: relative;">
+          <span class="cal-month-nav-arrow">&#x2039;</span>
+          <span class="cal-month-title">2026年 8月</span>
+          <span class="cal-month-nav-arrow">&#x203A;</span>
+          <span class="cal-today-btn">今天</span>
+        </div>
+        <div class="cal-view-toggle">
+          <span class="cal-view-toggle-item active">月</span>
+          <span class="cal-view-toggle-item">周</span>
+          <span class="cal-view-toggle-item">日</span>
+        </div>
+      </div>
+      <!-- 骨架屏 -->
+      <div style="padding: 8px;">
+        <div class="cal-weekdays" style="border-bottom: none;">
+          <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span class="weekend">六</span><span class="weekend">日</span>
+        </div>
+        <div class="cal-grid" style="border-top: 1px solid var(--color-border-light);">
+          <!-- 生成35个骨架格 -->
+          <div class="cal-cell" style="display:flex;flex-direction:column;gap:4px;padding:6px 4px;border-bottom:1px solid var(--color-border-light);border-right:1px solid var(--color-border-light);min-height:72px;">
+            <div class="skeleton" style="width:26px;height:26px;border-radius:50%;"></div>
+            <div style="display:flex;gap:3px;"><div class="skeleton" style="width:7px;height:7px;border-radius:50%;"></div><div class="skeleton" style="width:7px;height:7px;border-radius:50%;"></div></div>
+          </div>
+          <div class="cal-cell" style="display:flex;flex-direction:column;gap:4px;padding:6px 4px;border-bottom:1px solid var(--color-border-light);border-right:1px solid var(--color-border-light);min-height:72px;">
+            <div class="skeleton" style="width:26px;height:26px;border-radius:50%;"></div>
+            <div style="display:flex;gap:3px;"><div class="skeleton" style="width:7px;height:7px;border-radius:50%;"></div></div>
+          </div>
+          <div class="cal-cell" style="display:flex;flex-direction:column;gap:4px;padding:6px 4px;border-bottom:1px solid var(--color-border-light);border-right:1px solid var(--color-border-light);min-height:72px;">
+            <div class="skeleton" style="width:26px;height:26px;border-radius:50%;"></div>
+            <div style="display:flex;gap:3px;"><div class="skeleton" style="width:7px;height:7px;border-radius:50%;"></div><div class="skeleton" style="width:7px;height:7px;border-radius:50%;"></div><div class="skeleton" style="width:7px;height:7px;border-radius:50%;"></div></div>
+          </div>
+          <div class="cal-cell" style="display:flex;flex-direction:column;gap:4px;padding:6px 4px;border-bottom:1px solid var(--color-border-light);border-right:1px solid var(--color-border-light);min-height:72px;">
+            <div class="skeleton" style="width:26px;height:26px;border-radius:50%;"></div>
+          </div>
+          <div class="cal-cell" style="display:flex;flex-direction:column;gap:4px;padding:6px 4px;border-bottom:1px solid var(--color-border-light);border-right:1px solid var(--color-border-light);min-height:72px;">
+            <div class="skeleton" style="width:26px;height:26px;border-radius:50%;"></div>
+            <div style="display:flex;gap:3px;"><div class="skeleton" style="width:7px;height:7px;border-radius:50%;"></div><div class="skeleton" style="width:7px;height:7px;border-radius:50%;"></div></div>
+          </div>
+          <div class="cal-cell" style="display:flex;flex-direction:column;gap:4px;padding:6px 4px;border-bottom:1px solid var(--color-border-light);min-height:72px;">
+            <div class="skeleton" style="width:26px;height:26px;border-radius:50%;"></div>
+          </div>
+          <div class="cal-cell" style="display:flex;flex-direction:column;gap:4px;padding:6px 4px;border-bottom:1px solid var(--color-border-light);min-height:72px;">
+            <div class="skeleton" style="width:26px;height:26px;border-radius:50%;"></div>
+            <div style="display:flex;gap:3px;"><div class="skeleton" style="width:7px;height:7px;border-radius:50%;"></div></div>
+          </div>
+          <!-- 简化为显示 loading 动画 -->
+        </div>
+        <div class="loading-block" style="padding: 24px; /* → 48rpx */">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">加载日程中...</div>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-bar-item active"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F4C5;</div><span class="tab-bar-label">日历</span></div>
+        <div class="tab-bar-item"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F464;</div><span class="tab-bar-label">我的</span></div>
+      </div>
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 加载中显示骨架屏 + 加载动画<br>
+        - 对应 BE-15：日历数据加载中状态
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: 错误态 ===== -->
+  <div id="state-error" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar"><span class="nav-bar-title">日程</span></div>
+      <div class="cal-header">
+        <div class="cal-month-nav" style="position: relative;">
+          <span class="cal-month-nav-arrow">&#x2039;</span>
+          <span class="cal-month-title">2026年 8月</span>
+          <span class="cal-month-nav-arrow">&#x203A;</span>
+          <span class="cal-today-btn">今天</span>
+        </div>
+        <div class="cal-view-toggle">
+          <span class="cal-view-toggle-item active">月</span>
+          <span class="cal-view-toggle-item">周</span>
+          <span class="cal-view-toggle-item">日</span>
+        </div>
+      </div>
+      <div class="page-body page-body--center">
+        <div class="error-state">
+          <div class="error-state__icon">&#x26A0;&#xFE0F;</div>
+          <div class="error-state__title">加载失败</div>
+          <div class="error-state__desc">无法加载日程数据，请检查网络后重试</div>
+          <button class="btn btn--primary btn--sm" data-id="calendar-month-retry-btn"
+                  onclick="alert('【原型演示】重试加载')">重试</button>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-bar-item active"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F4C5;</div><span class="tab-bar-label">日历</span></div>
+        <div class="tab-bar-item"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F464;</div><span class="tab-bar-label">我的</span></div>
+      </div>
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 对应 BE-15：日历数据加载失败<br>
+        - 显示错误提示 + 重试按钮<br>
+        - 可保留上次成功加载的缓存数据作为兜底展示
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(s) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + s).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

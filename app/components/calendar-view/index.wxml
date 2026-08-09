@@ -1,0 +1,29 @@
+<!-- components/calendar-view/index.wxml
+     日历视图容器 —— 统一三视图切换逻辑 -->
+
+<!-- 该组件已内联到 pages/index/index.wxml 中，此处提供独立封装版本 -->
+
+<view class="calendar-view">
+  <!-- loading 态 -->
+  <view wx:if="{{loading && view === 'month'}}" class="loading-block">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 月视图 -->
+  <block wx:elif="{{view === 'month'}}">
+    <month-view cells="{{cells}}" bind:celltap="onCellTap" />
+  </block>
+
+  <!-- 周视图 -->
+  <block wx:elif="{{view === 'week'}}">
+    <week-view weekDays="{{weekDays}}" schedules="{{schedules}}"
+               bind:scheduletap="onScheduleTap" bind:checkintap="onCheckinTap" />
+  </block>
+
+  <!-- 日视图 -->
+  <block wx:elif="{{view === 'day'}}">
+    <day-view currentDate="{{currentDate}}" schedules="{{schedules}}"
+              bind:scheduletap="onScheduleTap" bind:checkintap="onCheckinTap" />
+  </block>
+</view>

@@ -15,7 +15,7 @@ description: 每次会话启动时使用——建立 skill 优先原则，确保
 
 多个 skill 适用时，流程 skill 优先于实现 skill：
 
-- **非平凡需求变更** → 按阶段分派 agent（详见 CLAUDE.md 流水线）：`req-analyst → req-reviewer → 人审批 → dev-architect → dev-architect-reviewer → 人审批 → dev-planning → dev-dotnet + dev-vue3（并行）`
+- **非平凡需求变更** → 按阶段分派 agent（详见 CLAUDE.md 流水线）：`req-analyst → req-reviewer → 人审批 → dev-architect → dev-architect-reviewer → 人审批 → dev-dotnet + dev-miniapp（并行）`
 - **简单需求探索** → `req-brainstorming` 先，然后 `openspec-propose`
 - **修这个 bug** → `dev-debugging` 先，定位根因后再实现
 - **审查这段代码** → `dev-code-review`

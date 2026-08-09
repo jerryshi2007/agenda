@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>创建日程页 · 日程管理</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+
+    .create-page { background: var(--color-bg-page); display: flex; flex-direction: column; }
+
+    /* 步骤条 */
+    .steps {
+      display: flex; background: var(--color-bg-white);
+      border-bottom: 1px solid var(--color-border-light);
+      padding: 12px 16px; /* → 24rpx 32rpx */
+      gap: 4px;
+    }
+
+    .step {
+      flex: 1; display: flex; align-items: center; gap: 4px;
+      font-size: 11px; /* → 22rpx */ color: var(--color-text-placeholder);
+    }
+
+    .step-num {
+      width: 20px; /* → 40rpx */ height: 20px; /* → 40rpx */
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; flex-shrink: 0;
+      background: var(--color-border-light); color: var(--color-text-placeholder);
+    }
+
+    .step.active .step-num { background: var(--color-primary); color: var(--color-text-white); }
+    .step.active { color: var(--color-primary); }
+    .step.done .step-num { background: #07C160; color: var(--color-text-white); }
+    .step.done { color: #07C160; }
+
+    .step-line {
+      flex: 1; height: 2px; background: var(--color-border-light);
+      margin: 0 4px;
+    }
+    .step-line.done { background: #07C160; }
+
+    /* 步骤内容区 */
+    .step-content {
+      flex: 1; overflow-y: auto; padding: 0;
+    }
+
+    /* 步骤 1: 选孩子 */
+    .child-select-list { background: var(--color-bg-white); }
+    .child-select-item {
+      display: flex; align-items: center; padding: 14px 16px; /* → 28rpx 32rpx */
+      border-bottom: 1px solid var(--color-border-light);
+      cursor: pointer; gap: 12px;
+    }
+    .child-select-item:active { background: var(--color-bg-page); }
+    .child-select-item.selected { background: var(--color-primary-light); }
+
+    /* → <checkbox> 或自定义勾选圆 */
+    .child-select-check {
+      width: 24px; /* → 48rpx */ height: 24px; /* → 48rpx */
+      border-radius: 50%; border: 2px solid var(--color-border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all var(--transition-fast);
+      font-size: 14px;
+    }
+    .child-select-item.selected .child-select-check {
+      background: var(--color-primary); border-color: var(--color-primary);
+      color: var(--color-text-white);
+    }
+
+    /* 步骤 2: 选类型 */
+    .type-cards {
+      padding: 16px; /* → 32rpx */
+      display: flex; flex-direction: column;
+      gap: 12px; /* → 24rpx */
+    }
+
+    .type-card {
+      background: var(--color-bg-white); border: 2px solid var(--color-border);
+      border-radius: 12px; /* → 24rpx */ padding: 16px; /* → 32rpx */
+      cursor: pointer; transition: all var(--transition-fast);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .type-card:active { background: var(--color-bg-page); }
+    .type-card--activity:hover { border-color: #10AEFF; }
+    .type-card--routine:hover { border-color: #07C160; }
+    .type-card--homework:hover { border-color: #FF9500; }
+
+    .type-card-icon {
+      width: 44px; /* → 88rpx */ height: 44px; /* → 88rpx */
+      border-radius: 12px; /* → 24rpx */ display: flex; align-items: center;
+      justify-content: center; font-size: 22px; flex-shrink: 0;
+    }
+    .type-card-icon--activity { background: #E3F2FD; }
+    .type-card-icon--routine { background: #E8F8EF; }
+    .type-card-icon--homework { background: #FFF3E0; }
+
+    .type-card-info { flex: 1; }
+    .type-card-name { font-size: 16px; /* → 32rpx */ font-weight: 500; color: var(--color-text-primary); }
+    .type-card-desc { font-size: 12px; /* → 24rpx */ color: var(--color-text-secondary); margin-top: 2px; }
+    .type-card-arrow { color: var(--color-text-placeholder); }
+
+    .template-entry {
+      text-align: center; padding: 8px 0;
+      font-size: 14px; /* → 28rpx */ color: var(--color-text-link);
+      cursor: pointer;
+    }
+
+    /* 步骤 3: 填字段 */
+    .field-form {
+      background: var(--color-bg-white); padding: 16px; /* → 32rpx */
+    }
+
+    .field-group {
+      margin-bottom: 16px; /* → 32rpx */
+    }
+
+    .field-label {
+      display: block; font-size: 14px; /* → 28rpx */
+      color: var(--color-text-primary); margin-bottom: 6px; /* → 12rpx */
+      font-weight: 500;
+    }
+    .field-label .required { color: var(--color-danger); }
+
+    .field-input {
+      width: 100%; height: 40px; /* → 80rpx */
+      padding: 0 12px; /* → 24rpx */
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-primary);
+      border: 1px solid var(--color-border);
+      border-radius: 4px; /* → 8rpx */
+      background: var(--color-bg-white);
+    }
+    .field-input:focus { border-color: var(--color-primary); }
+    .field-input::placeholder { color: var(--color-text-placeholder); }
+
+    .field-textarea {
+      width: 100%; min-height: 72px; /* → 144rpx */
+      padding: 10px 12px; font-size: 14px; /* → 28rpx */
+      border: 1px solid var(--color-border); border-radius: 4px;
+      resize: vertical;
+    }
+
+    /* 星期选择 */
+    /* → <view class="checkbox-group"> */
+    .weekday-select {
+      display: flex; gap: 4px; flex-wrap: wrap;
+    }
+    .weekday-btn {
+      width: 38px; /* → 76rpx */ height: 38px; /* → 76rpx */
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 13px; /* → 26rpx */ border: 1px solid var(--color-border);
+      color: var(--color-text-secondary); cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .weekday-btn.selected { background: var(--color-primary); color: var(--color-text-white); border-color: var(--color-primary); }
+
+    /* 时间输入组 */
+    .time-range {
+      display: flex; align-items: center; gap: 8px; /* → 16rpx */
+    }
+    .time-range input { width: 100px; /* → 200rpx */ }
+
+    /* 逐天微调列表 */
+    .day-tweak-list { margin-top: 8px; /* → 16rpx */ }
+
+    .day-tweak-item {
+      display: flex; align-items: center; padding: 8px 0; gap: 8px;
+      font-size: 13px; /* → 26rpx */ border-bottom: 1px solid var(--color-border-light);
+    }
+    .day-tweak-day { width: 32px; /* → 64rpx */ color: var(--color-text-secondary); }
+    .day-tweak-time input { width: 70px; /* → 140rpx */ height: 32px; /* → 64rpx */ font-size: 12px; padding: 0 6px; border: 1px solid var(--color-border); border-radius: 4px; }
+
+    /* 步骤 4: 确认 */
+    .confirm-preview {
+      background: var(--color-bg-white); padding: 16px; /* → 32rpx */
+    }
+    .confirm-section {
+      margin-bottom: 12px; /* → 24rpx */ padding-bottom: 12px;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    .confirm-section:last-child { border-bottom: none; margin-bottom: 0; }
+    .confirm-section-title {
+      font-size: 12px; /* → 24rpx */ color: var(--color-text-secondary);
+      margin-bottom: 6px; /* → 12rpx */
+    }
+    .confirm-row {
+      display: flex; font-size: 14px; /* → 28rpx */
+      padding: 4px 0;
+    }
+    .confirm-label { width: 64px; /* → 128rpx */ color: var(--color-text-secondary); }
+    .confirm-value { flex: 1; color: var(--color-text-primary); }
+
+    /* 冲突提示 */
+    .conflict-warning {
+      background: #FFF9E6; border: 1px solid #FFC300;
+      border-radius: 8px; /* → 16rpx */ padding: 12px; /* → 24rpx */
+      margin-bottom: 12px; /* → 24rpx */ font-size: 13px; /* → 26rpx */
+      color: #8B6914; display: flex; align-items: flex-start; gap: 8px;
+    }
+
+    /* 底部按钮 */
+    .step-footer {
+      display: flex; gap: 10px; /* → 20rpx */
+      padding: 12px 16px; /* → 24rpx 32rpx */
+      background: var(--color-bg-white);
+      border-top: 1px solid var(--color-border-light);
+      flex-shrink: 0;
+    }
+    .step-footer .btn { flex: 1; }
+  </style>
+</head>
+<body>
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">步骤切换</div>
+    <button class="active" onclick="showStep(1)">步骤1: 选孩子</button>
+    <button onclick="showStep(2)">步骤2: 选类型</button>
+    <button onclick="showStep(3)">步骤3: 填字段</button>
+    <button onclick="showStep(4)">步骤4: 确认</button>
+    <div class="state-switcher__label" style="margin-top:4px;">特殊状态</div>
+    <button onclick="showState('no-child')">无孩子空态</button>
+    <button onclick="showState('conflict')">冲突检测</button>
+  </div>
+
+  <!-- ===== 主流程: 4 步骤 ===== -->
+  <div id="state-steps" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <!-- 微信原生导航栏 -->
+      <!-- title: "创建日程" -->
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回日历视图')">&#x2190; 返回</span>
+        <span class="nav-bar-title">创建日程</span>
+      </div>
+
+      <!-- 步骤条 -->
+      <div class="steps" id="stepsBar">
+        <span class="step active" id="step1"><span class="step-num">1</span>选孩子</span>
+        <span class="step-line"></span>
+        <span class="step" id="step2"><span class="step-num">2</span>选类型</span>
+        <span class="step-line"></span>
+        <span class="step" id="step3"><span class="step-num">3</span>填字段</span>
+        <span class="step-line"></span>
+        <span class="step" id="step4"><span class="step-num">4</span>确认</span>
+      </div>
+
+      <!-- 步骤内容 → <scroll-view scroll-y> -->
+      <div class="step-content" id="stepContent">
+        <!-- ===== 步骤 1: 选孩子 ===== -->
+        <div id="step-content-1">
+          <!-- → wx:for="{{familyChildren}}" wx:key="id" -->
+          <div class="child-select-list">
+            <div class="child-select-item selected" data-id="schedule-create-child-1" onclick="toggleChild(this)">
+              <span class="child-select-check">&#x2713;</span>
+              <div class="avatar avatar--sm" style="background:#10AEFF;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;">明</div>
+              <div style="flex:1;"><div style="font-size:16px;color:var(--color-text-primary);">小明</div><div style="font-size:12px;color:var(--color-text-secondary);">10岁 · 小学模式</div></div>
+            </div>
+            <div class="child-select-item" data-id="schedule-create-child-2" onclick="toggleChild(this)">
+              <span class="child-select-check"></span>
+              <div class="avatar avatar--sm" style="background:#FF9500;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;">华</div>
+              <div style="flex:1;"><div style="font-size:16px;color:var(--color-text-primary);">小华</div><div style="font-size:12px;color:var(--color-text-secondary);">7岁 · 小学模式</div></div>
+            </div>
+            <div class="child-select-item" data-id="schedule-create-child-3" onclick="toggleChild(this)">
+              <span class="child-select-check"></span>
+              <div class="avatar avatar--sm" style="background:#07C160;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;">红</div>
+              <div style="flex:1;"><div style="font-size:16px;color:var(--color-text-primary);">小红</div><div style="font-size:12px;color:var(--color-text-secondary);">5岁 · 学龄前模式</div></div>
+            </div>
+          </div>
+          <div class="prototype-note">
+            <strong>US-EVT-01 异常路径：</strong>未选择孩子时点击"下一步"→ 提示"请至少选择一个孩子"<br>
+            <strong>BE-08：</strong>无孩子时显示空状态（见状态切换器"无孩子空态"）
+          </div>
+        </div>
+
+        <!-- ===== 步骤 2: 选类型 ===== -->
+        <div id="step-content-2" style="display:none;">
+          <div class="type-cards">
+            <div class="type-card type-card--activity" data-id="schedule-create-type-activity" onclick="selectType('activity')">
+              <div class="type-card-icon type-card-icon--activity">&#x1F3CA;</div>
+              <div class="type-card-info">
+                <div class="type-card-name">课后活动</div>
+                <div class="type-card-desc">钢琴课、游泳课等固定时间段活动，支持每周重复</div>
+              </div>
+              <div class="type-card-arrow">&#x203A;</div>
+            </div>
+            <div class="type-card type-card--routine" data-id="schedule-create-type-routine" onclick="selectType('routine')">
+              <div class="type-card-icon type-card-icon--routine">&#x23F0;</div>
+              <div class="type-card-info">
+                <div class="type-card-name">日常作息</div>
+                <div class="type-card-desc">起床、练琴、阅读等每日例行事项，支持逐天微调</div>
+              </div>
+              <div class="type-card-arrow">&#x203A;</div>
+            </div>
+            <div class="type-card type-card--homework" data-id="schedule-create-type-homework" onclick="selectType('homework')">
+              <div class="type-card-icon type-card-icon--homework">&#x1F4DD;</div>
+              <div class="type-card-info">
+                <div class="type-card-name">作业任务</div>
+                <div class="type-card-desc">学校作业或学习任务，有截止日期，一次性完成</div>
+              </div>
+              <div class="type-card-arrow">&#x203A;</div>
+            </div>
+          </div>
+          <!-- → 从模板创建入口 (US-EVT-04) -->
+          <div class="template-entry" data-id="schedule-create-template-entry"
+               onclick="alert('【原型演示】跳转模板选择（模板模块）')">
+            &#x1F4CB; 从模板创建
+          </div>
+          <div class="prototype-note">
+            <strong>US-EVT-04：</strong>点击"从模板创建"→ 选择预设或自定义模板 → 字段自动填充 → 按需微调<br>
+            三种类型卡片，点击即进入步骤3
+          </div>
+        </div>
+
+        <!-- ===== 步骤 3: 填字段（以课后活动为例）===== -->
+        <div id="step-content-3" style="display:none;">
+          <div class="field-form">
+            <!-- 类型指示 -->
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:8px 12px;background:#E3F2FD;border-radius:8px;">
+              <span style="font-size:18px;">&#x1F3CA;</span>
+              <span style="font-size:14px;font-weight:500;color:#10AEFF;">课后活动</span>
+            </div>
+
+            <!-- 名称 -->
+            <div class="field-group">
+              <label class="field-label"><span class="required">*</span> 活动名称</label>
+              <input class="field-input" type="text" placeholder="如：钢琴课" value="游泳课"
+                     data-id="schedule-create-name-input">
+            </div>
+
+            <!-- 时间槽：选星期几 -->
+            <div class="field-group">
+              <label class="field-label"><span class="required">*</span> 星期几</label>
+              <div class="weekday-select">
+                <span class="weekday-btn" onclick="toggleWeekday(this)">一</span>
+                <span class="weekday-btn selected" onclick="toggleWeekday(this)">二</span>
+                <span class="weekday-btn" onclick="toggleWeekday(this)">三</span>
+                <span class="weekday-btn selected" onclick="toggleWeekday(this)">四</span>
+                <span class="weekday-btn" onclick="toggleWeekday(this)">五</span>
+                <span class="weekday-btn selected" onclick="toggleWeekday(this)">六</span>
+                <span class="weekday-btn" onclick="toggleWeekday(this)">日</span>
+              </div>
+            </div>
+
+            <!-- 默认时间 -->
+            <div class="field-group">
+              <label class="field-label"><span class="required">*</span> 默认时间段</label>
+              <div class="time-range">
+                <input class="field-input" type="time" value="10:00" style="width:100px;" data-id="schedule-create-time-start">
+                <span style="color:var(--color-text-secondary);">至</span>
+                <input class="field-input" type="time" value="11:30" style="width:100px;" data-id="schedule-create-time-end">
+              </div>
+            </div>
+
+            <!-- → 逐天微调（可选展开） -->
+            <div class="field-group">
+              <label class="field-label" style="cursor:pointer;color:var(--color-text-link);"
+                     onclick="alert('【原型演示】展开/收起逐天微调')">&#x2699; 逐天微调（可选）</label>
+              <div class="day-tweak-list">
+                <div class="day-tweak-item">
+                  <span class="day-tweak-day">周二</span>
+                  <input class="day-tweak-time" type="time" value="10:00">
+                  <span>至</span>
+                  <input class="day-tweak-time" type="time" value="11:30">
+                </div>
+                <div class="day-tweak-item">
+                  <span class="day-tweak-day">周四</span>
+                  <input class="day-tweak-time" type="time" value="10:00">
+                  <span>至</span>
+                  <input class="day-tweak-time" type="time" value="11:30">
+                </div>
+                <div class="day-tweak-item">
+                  <span class="day-tweak-day">周六</span>
+                  <input class="day-tweak-time" type="time" value="10:00">
+                  <span>至</span>
+                  <input class="day-tweak-time" type="time" value="11:30">
+                </div>
+              </div>
+            </div>
+
+            <!-- 地点（仅课后活动） -->
+            <div class="field-group">
+              <label class="field-label">地点 <span style="color:var(--color-text-secondary);font-weight:normal;">（选填）</span></label>
+              <input class="field-input" type="text" placeholder="如：少年宫3楼钢琴教室" value="市游泳馆 2楼"
+                     data-id="schedule-create-location-input">
+            </div>
+
+            <!-- 备注 -->
+            <div class="field-group">
+              <label class="field-label">备注 <span style="color:var(--color-text-secondary);font-weight:normal;">（选填）</span></label>
+              <textarea class="field-textarea" placeholder="如：记得带琴谱" data-id="schedule-create-note-input">记得带泳镜和泳帽</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 步骤 4: 确认创建 ===== -->
+        <div id="step-content-4" style="display:none;">
+          <div class="confirm-preview">
+            <div class="confirm-section">
+              <div class="confirm-section-title">日程类型</div>
+              <div class="confirm-row"><span class="confirm-value" style="color:#10AEFF;">&#x1F3CA; 课后活动</span></div>
+            </div>
+            <div class="confirm-section">
+              <div class="confirm-section-title">基本信息</div>
+              <div class="confirm-row"><span class="confirm-label">名称</span><span class="confirm-value">游泳课</span></div>
+              <div class="confirm-row"><span class="confirm-label">时间</span><span class="confirm-value">周二、周四、周六 10:00-11:30</span></div>
+              <div class="confirm-row"><span class="confirm-label">地点</span><span class="confirm-value">市游泳馆 2楼</span></div>
+              <div class="confirm-row"><span class="confirm-label">备注</span><span class="confirm-value">记得带泳镜和泳帽</span></div>
+            </div>
+            <div class="confirm-section">
+              <div class="confirm-section-title">关联孩子</div>
+              <div class="confirm-row" style="display:flex; gap:6px;">
+                <span style="background:#10AEFF;color:white;padding:2px 10px;border-radius:10px;font-size:13px;">小明</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 底部按钮 -->
+      <div class="step-footer" id="stepFooter">
+        <button class="btn btn--default" id="btnPrev" onclick="prevStep()" disabled>上一步</button>
+        <button class="btn btn--primary" id="btnNext" onclick="nextStep()">下一步</button>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 4 步流程：选孩子 → 选类型 → 填字段 → 确认<br>
+        - 步骤 1：多选孩子，至少选 1 个；仅 1 个孩子时预选但可取消<br>
+        - 步骤 2：三种类型卡片 + "从模板创建"入口<br>
+        - 步骤 3：根据类型展示不同字段<br>
+        &nbsp;&nbsp;- 课后活动：名称+星期几+时间段+地点+备注<br>
+        &nbsp;&nbsp;- 日常作息：名称+星期几+时间段+逐天微调<br>
+        &nbsp;&nbsp;- 作业任务：名称+截止日期+建议时间段+备注<br>
+        - 步骤 4：预览摘要 + 冲突检测提示（如有重叠）<br>
+        - "上一步/下一步"按钮，最后一步为"创建"<br>
+        - 对应 US-EVT-01/02/03 创建流程和 BE-01~BE-08 输入校验
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 特殊状态 1: 无孩子空态（步骤1）===== -->
+  <div id="state-no-child" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back">&#x2190; 返回</span>
+        <span class="nav-bar-title">创建日程</span>
+      </div>
+      <div class="steps">
+        <span class="step active"><span class="step-num">1</span>选孩子</span>
+        <span class="step-line"></span>
+        <span class="step"><span class="step-num">2</span>选类型</span>
+        <span class="step-line"></span>
+        <span class="step"><span class="step-num">3</span>填字段</span>
+        <span class="step-line"></span>
+        <span class="step"><span class="step-num">4</span>确认</span>
+      </div>
+      <div class="page-body page-body--center">
+        <div class="empty-state">
+          <div class="empty-state__icon">&#x1F476;</div>
+          <div class="empty-state__title">还没有孩子</div>
+          <div class="empty-state__desc">请先在家庭中添加孩子，才能创建日程</div>
+          <button class="btn btn--primary mt-md" data-id="schedule-create-go-family-btn"
+                  onclick="alert('【原型演示】跳转家庭管理 → 邀请孩子')">去添加孩子</button>
+        </div>
+      </div>
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注（BE-08）：</strong><br>
+        - 无孩子时步骤 1 显示空状态<br>
+        - 提供跳转"家庭管理"入口
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 特殊状态 2: 冲突检测（步骤4）===== -->
+  <div id="state-conflict" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back">&#x2190; 返回</span>
+        <span class="nav-bar-title">创建日程</span>
+      </div>
+      <div class="steps">
+        <span class="step done"><span class="step-num">&#x2713;</span>选孩子</span>
+        <span class="step-line done"></span>
+        <span class="step done"><span class="step-num">&#x2713;</span>选类型</span>
+        <span class="step-line done"></span>
+        <span class="step done"><span class="step-num">&#x2713;</span>填字段</span>
+        <span class="step-line done"></span>
+        <span class="step active"><span class="step-num">4</span>确认</span>
+      </div>
+      <div class="step-content">
+        <div class="confirm-preview">
+          <!-- 冲突检测提示 (US-EVT-05) -->
+          <div class="conflict-warning">
+            <span>&#x26A0;&#xFE0F;</span>
+            <span>该时段与 <strong>钢琴课</strong>（周二 10:00-11:00）存在时间重叠，是否继续创建？</span>
+          </div>
+          <div class="confirm-section">
+            <div class="confirm-section-title">日程类型</div>
+            <div class="confirm-row"><span class="confirm-value" style="color:#10AEFF;">&#x1F3CA; 课后活动</span></div>
+          </div>
+          <div class="confirm-section">
+            <div class="confirm-section-title">基本信息</div>
+            <div class="confirm-row"><span class="confirm-label">名称</span><span class="confirm-value">游泳课</span></div>
+            <div class="confirm-row"><span class="confirm-label">时间</span><span class="confirm-value">周二 10:00-11:30</span></div>
+          </div>
+          <div class="confirm-section">
+            <div class="confirm-section-title">关联孩子</div>
+            <div class="confirm-row"><span style="background:#10AEFF;color:white;padding:2px 10px;border-radius:10px;font-size:13px;">小明</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="step-footer">
+        <button class="btn btn--default" onclick="alert('【原型演示】返回步骤3修改')">返回修改</button>
+        <button class="btn btn--primary" data-id="schedule-create-conflict-continue-btn"
+                onclick="alert('【原型演示】忽略冲突，继续创建 → 返回日历视图')">继续创建</button>
+      </div>
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注（US-EVT-05 冲突检测）：</strong><br>
+        - 检测到同一孩子、同一时段已有日程时弹软提示<br>
+        - 黄色警告条显示冲突详情<br>
+        - "返回修改"→ 回到步骤 3；"继续创建"→ 仍然创建<br>
+        - 仅针对同一孩子检测，不同孩子不触发
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentStep = 1;
+    let selectedType = '';
+
+    function showStep(n) {
+      currentStep = n;
+      // Update step bar
+      for (let i = 1; i <= 4; i++) {
+        const step = document.getElementById('step' + i);
+        step.classList.remove('active', 'done');
+        if (i < n) step.classList.add('done');
+        if (i === n) step.classList.add('active');
+      }
+      // Update step lines
+      document.querySelectorAll('.step-line').forEach((line, idx) => {
+        line.classList.toggle('done', idx + 1 < n);
+      });
+      // Show/hide step content
+      for (let i = 1; i <= 4; i++) {
+        document.getElementById('step-content-' + i).style.display = i === n ? 'block' : 'none';
+      }
+      // Update footer buttons
+      document.getElementById('btnPrev').disabled = n === 1;
+      if (n === 4) {
+        document.getElementById('btnNext').textContent = '创建日程';
+        document.getElementById('btnNext').onclick = function() {
+          alert('【原型演示】创建成功 → 跳转日历视图，若检测到冲突则弹软提示');
+        };
+      } else {
+        document.getElementById('btnNext').textContent = '下一步';
+        document.getElementById('btnNext').onclick = nextStep;
+      }
+      // Update state switcher
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function nextStep() {
+      if (currentStep === 1) {
+        const selected = document.querySelectorAll('.child-select-item.selected');
+        if (selected.length === 0) {
+          alert('【原型演示 · 校验提醒】请至少选择一个孩子');
+          return;
+        }
+      }
+      if (currentStep === 2 && !selectedType) {
+        alert('【原型演示 · 校验提醒】请选择一种日程类型');
+        return;
+      }
+      if (currentStep < 4) showStep(currentStep + 1);
+    }
+
+    function prevStep() { if (currentStep > 1) showStep(currentStep - 1); }
+
+    function toggleChild(el) {
+      el.classList.toggle('selected');
+      const check = el.querySelector('.child-select-check');
+      check.innerHTML = el.classList.contains('selected') ? '&#x2713;' : '';
+    }
+
+    function selectType(type) {
+      selectedType = type;
+      document.querySelectorAll('.type-card').forEach(c => c.style.borderColor = 'var(--color-border)');
+      document.querySelector('.type-card--' + type).style.borderColor = type === 'activity' ? '#10AEFF' : type === 'routine' ? '#07C160' : '#FF9500';
+      nextStep();
+    }
+
+    function toggleWeekday(el) { el.classList.toggle('selected'); }
+
+    function showState(s) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + s).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

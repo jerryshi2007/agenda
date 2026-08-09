@@ -39,7 +39,7 @@ rules: [ui-miniapp-standards]
 
    ```html
    <!-- → wx:for="{{list}}" -->
-   <div class="list-item" data-id="event-list-row-1">
+   <div class="list-item" data-id="schedule-list-row-1">
    ```
 6. **标注 rpx 转换**——关键尺寸标注目标 rpx 值，方便开发转换：
    ```css

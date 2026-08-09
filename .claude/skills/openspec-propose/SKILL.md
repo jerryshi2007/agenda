@@ -17,7 +17,7 @@ Propose a new change - create the change and generate all artifacts in one step.
 I'll create a change with artifacts:
 - proposal.md (what & why)
 - design.md (how — 骨架，供 dev-architect 展开)
-- tasks.md (implementation steps — **骨架 tasks.md**，仅含 task 标题和一句话简述，供研发阶段 dev-planning 展开为详细 tasks.md。不写实现步骤和验证命令)
+- tasks.md (implementation steps — **骨架 tasks.md**，仅含 task 标题和一句话简述，供 dev-architect 调用 dev-planning skill 展开为详细 tasks.md。不写实现步骤和验证命令)
 
 When ready to implement, run /opsx:apply
 

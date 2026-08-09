@@ -1,0 +1,7 @@
+/* components/calendar-view/index.wxss */
+
+.calendar-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}

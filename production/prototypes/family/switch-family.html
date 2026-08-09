@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>切换家庭面板 · 家庭管理</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+    .switch-page {
+      padding: 16px; /* → 32rpx */
+    }
+
+    .family-list-card {
+      background: var(--color-bg-white);
+      border-radius: 8px; /* → 16rpx */
+      overflow: hidden;
+      margin-bottom: 16px; /* → 32rpx */
+    }
+
+    .family-list-item {
+      display: flex;
+      align-items: center;
+      padding: 16px; /* → 32rpx */
+      border-bottom: 1px solid var(--color-border-light);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+
+    .family-list-item:last-child {
+      border-bottom: none;
+    }
+
+    .family-list-item:active {
+      background: var(--color-bg-page);
+    }
+
+    .family-list-item.current {
+      background: var(--color-primary-light);
+    }
+
+    .family-list-icon {
+      width: 44px; /* → 88rpx */
+      height: 44px; /* → 88rpx */
+      border-radius: 8px; /* → 16rpx */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-right: 12px; /* → 24rpx */
+      flex-shrink: 0;
+    }
+
+    .family-list-icon--1 { background: #E8F8EF; }
+    .family-list-icon--2 { background: #E6F0FF; }
+    .family-list-icon--3 { background: #FFF3E0; }
+
+    .family-list-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .family-list-name {
+      font-size: 16px; /* → 32rpx */
+      color: var(--color-text-primary);
+      font-weight: 500;
+    }
+
+    .family-list-meta {
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    .family-list-check {
+      color: var(--color-primary);
+      font-size: 18px;
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+
+    .family-list-badge {
+      font-size: 10px; /* → 20rpx */
+      padding: 2px 6px;
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+      border-radius: 4px; /* → 8rpx */
+      margin-right: 8px;
+    }
+
+    .create-entry {
+      background: var(--color-bg-white);
+      border-radius: 8px; /* → 16rpx */
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('normal')">正常态（2 个家庭）</button>
+    <button onclick="showState('many')">多个家庭</button>
+    <button onclick="showState('loading')">Loading</button>
+    <button onclick="showState('error')">错误态</button>
+    <button onclick="showState('empty')">仅 1 个家庭</button>
+  </div>
+
+  <!-- ===== 状态 1: 正常态（2 个家庭）===== -->
+  <div id="state-normal" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <!-- 微信原生导航栏 -->
+      <!-- title: "切换家庭" -->
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】取消 → 返回"我的"页面')">&#x2190; 返回</span>
+        <span class="nav-bar-title">切换家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="switch-page">
+          <!-- → <scroll-view scroll-y> -->
+          <div class="family-list-card">
+            <!-- 当前家庭 -->
+            <!-- → wx:for="{{families}}" wx:key="id" -->
+            <div class="family-list-item current" data-id="switch-family-item-1"
+                 onclick="alert('【原型演示】已是当前家庭')">
+              <div class="family-list-icon family-list-icon--1">&#x1F3E0;</div>
+              <div class="family-list-info">
+                <div class="family-list-name">我们一家</div>
+                <div class="family-list-meta">家长 · 4 人</div>
+              </div>
+              <span class="family-list-badge">当前</span>
+              <span class="family-list-check">&#x2713;</span>
+            </div>
+
+            <!-- 其他家庭 -->
+            <div class="family-list-item" data-id="switch-family-item-2"
+                 onclick="alert('【原型演示】切换到"爷爷奶奶家"')">
+              <div class="family-list-icon family-list-icon--2">&#x1F3E1;</div>
+              <div class="family-list-info">
+                <div class="family-list-name">爷爷奶奶家</div>
+                <div class="family-list-meta">家长 · 3 人</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 创建新家庭 -->
+          <div class="create-entry">
+            <div class="cell" data-id="switch-family-create-btn"
+                 onclick="alert('【原型演示】跳转创建家庭页 (family/create-family.html)')">
+              <div class="cell-icon" style="background: #E8F8EF; color: var(--color-primary);">+</div>
+              <div class="cell__bd"><span class="cell__title">创建新家庭</span></div>
+              <div class="cell__ft"><span class="arrow"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 当前家庭：绿色高亮 + &#x2713; 勾选标记 + "当前"徽标<br>
+        - 点击其他家庭 → 切换并恢复该家庭的上次状态 → 跳转日历视图<br>
+        - "创建新家庭" → <code>family/create-family.html</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: 多个家庭（3+）===== -->
+  <div id="state-many" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】取消')">&#x2190; 返回</span>
+        <span class="nav-bar-title">切换家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="switch-page">
+          <div class="family-list-card">
+            <div class="family-list-item current" data-id="switch-family-item-1">
+              <div class="family-list-icon family-list-icon--1">&#x1F3E0;</div>
+              <div class="family-list-info">
+                <div class="family-list-name">我们一家</div>
+                <div class="family-list-meta">家长 · 4 人</div>
+              </div>
+              <span class="family-list-badge">当前</span>
+              <span class="family-list-check">&#x2713;</span>
+            </div>
+            <div class="family-list-item" data-id="switch-family-item-2">
+              <div class="family-list-icon family-list-icon--2">&#x1F3E1;</div>
+              <div class="family-list-info">
+                <div class="family-list-name">爷爷奶奶家</div>
+                <div class="family-list-meta">家长 · 3 人</div>
+              </div>
+            </div>
+            <div class="family-list-item" data-id="switch-family-item-3">
+              <div class="family-list-icon family-list-icon--3">&#x1F3D8;</div>
+              <div class="family-list-info">
+                <div class="family-list-name">课外活动组</div>
+                <div class="family-list-meta">家长 · 2 人</div>
+              </div>
+            </div>
+            <div class="family-list-item" data-id="switch-family-item-4">
+              <div class="family-list-icon" style="background: #F3E5F5;">&#x1F3EB;</div>
+              <div class="family-list-info">
+                <div class="family-list-name">学习小组</div>
+                <div class="family-list-meta">孩子 · 5 人</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="create-entry">
+            <div class="cell" data-id="switch-family-create-btn">
+              <div class="cell-icon" style="background: #E8F8EF; color: var(--color-primary);">+</div>
+              <div class="cell__bd"><span class="cell__title">创建新家庭</span></div>
+              <div class="cell__ft"><span class="arrow"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 多个家庭时列表可能较长 → <code>&lt;scroll-view&gt;</code><br>
+        - 创建新家庭始终在最底部
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: Loading ===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" style="color: var(--color-text-placeholder);">&#x2190; 返回</span>
+        <span class="nav-bar-title">切换家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="switch-page">
+          <div class="family-list-card">
+            <div style="padding: 16px; display: flex; align-items: center; gap: 12px;">
+              <div class="skeleton" style="width:44px;height:44px;border-radius:8px;"></div>
+              <div style="flex:1;">
+                <div class="skeleton skeleton--title" style="width:100px;"></div>
+                <div class="skeleton skeleton--text" style="width:60px;margin-top:6px;"></div>
+              </div>
+            </div>
+            <div style="padding: 16px; display: flex; align-items: center; gap: 12px;">
+              <div class="skeleton" style="width:44px;height:44px;border-radius:8px;"></div>
+              <div style="flex:1;">
+                <div class="skeleton skeleton--title" style="width:100px;"></div>
+                <div class="skeleton skeleton--text" style="width:60px;margin-top:6px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 家庭列表加载中，骨架屏展示
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: 错误态 ===== -->
+  <div id="state-error" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">切换家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="error-state" style="padding-top: 80px;">
+          <div class="error-state__icon">&#x26A0;&#xFE0F;</div>
+          <div class="error-state__title">加载失败</div>
+          <div class="error-state__desc">无法获取家庭列表，请检查网络</div>
+          <button class="btn btn--primary btn--sm" data-id="switch-family-retry-btn"
+                  onclick="alert('【原型演示】重试')">重试</button>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 网络错误导致加载失败<br>
+        - 显示错误 + 重试
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 5: 仅 1 个家庭 ===== -->
+  <div id="state-empty" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">切换家庭</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="switch-page">
+          <div class="empty-state" style="padding-top: 60px;">
+            <div class="empty-state__icon">&#x1F3E0;</div>
+            <div class="empty-state__title">只有一个家庭</div>
+            <div class="empty-state__desc">你目前只有"我们一家"一个家庭，创建一个新家庭后再来切换吧</div>
+          </div>
+
+          <div class="create-entry" style="margin-top: 16px;">
+            <div class="cell" data-id="switch-family-create-btn"
+                 onclick="alert('【原型演示】跳转创建家庭页')">
+              <div class="cell-icon" style="background: #E8F8EF; color: var(--color-primary);">+</div>
+              <div class="cell__bd"><span class="cell__title">创建新家庭</span></div>
+              <div class="cell__ft"><span class="arrow"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 只有 1 个家庭时，"切换家庭"入口隐藏或置灰<br>
+        - 此页面仅作为 URL 直接访问时的兜底展示<br>
+        - 引导用户创建新家庭
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(s) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + s).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

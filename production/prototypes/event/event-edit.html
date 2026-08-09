@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编辑日程页 · 日程管理</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+
+    .edit-page { background: var(--color-bg-page); display: flex; flex-direction: column; }
+
+    /* 编辑范围切换（分段开关） */
+    /* → <view class="segmented-control"> 映射 -->
+    .scope-toggle {
+      display: flex; margin: 12px 16px; /* → 24rpx 32rpx */
+      border: 1px solid var(--color-border); border-radius: 6px; overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .scope-toggle-item {
+      flex: 1; text-align: center; padding: 8px 0; /* → 16rpx */
+      font-size: 13px; /* → 26rpx */ cursor: pointer;
+      color: var(--color-text-secondary); background: var(--color-bg-white);
+      border-right: 1px solid var(--color-border);
+      transition: all var(--transition-fast);
+    }
+    .scope-toggle-item:last-child { border-right: none; }
+    .scope-toggle-item.active { background: var(--color-primary); color: var(--color-text-white); }
+
+    .scope-toggle-hint {
+      text-align: center; font-size: 11px; /* → 22rpx */
+      color: var(--color-text-placeholder);
+      margin-bottom: 8px; /* → 16rpx */
+    }
+
+    /* 编辑内容区 */
+    .edit-content {
+      flex: 1; overflow-y: auto; padding: 0;
+    }
+
+    .field-form {
+      background: var(--color-bg-white); padding: 16px; /* → 32rpx */
+    }
+
+    .field-group {
+      margin-bottom: 16px; /* → 32rpx */
+    }
+
+    .field-label {
+      display: block; font-size: 14px; /* → 28rpx */
+      color: var(--color-text-primary); margin-bottom: 6px; /* → 12rpx */
+      font-weight: 500;
+    }
+    .field-label .required { color: var(--color-danger); }
+
+    .field-input {
+      width: 100%; height: 40px; /* → 80rpx */
+      padding: 0 12px; /* → 24rpx */
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-primary);
+      border: 1px solid var(--color-border);
+      border-radius: 4px; /* → 8rpx */
+      background: var(--color-bg-white);
+    }
+    .field-input:focus { border-color: var(--color-primary); }
+
+    .field-textarea {
+      width: 100%; min-height: 72px;
+      padding: 10px 12px; font-size: 14px;
+      border: 1px solid var(--color-border); border-radius: 4px;
+      resize: vertical;
+    }
+
+    .weekday-select {
+      display: flex; gap: 4px; flex-wrap: wrap;
+    }
+    .weekday-btn {
+      width: 38px; /* → 76rpx */ height: 38px; /* → 76rpx */
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 13px; border: 1px solid var(--color-border);
+      color: var(--color-text-secondary); cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .weekday-btn.selected { background: var(--color-primary); color: var(--color-text-white); border-color: var(--color-primary); }
+
+    .time-range {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .time-range input { width: 100px; }
+
+    .day-tweak-list { margin-top: 8px; }
+    .day-tweak-item {
+      display: flex; align-items: center; padding: 8px 0; gap: 8px;
+      font-size: 13px; border-bottom: 1px solid var(--color-border-light);
+    }
+    .day-tweak-day { width: 32px; color: var(--color-text-secondary); }
+    .day-tweak-time input { width: 70px; height: 32px; font-size: 12px; padding: 0 6px; border: 1px solid var(--color-border); border-radius: 4px; }
+
+    /* 底部 */
+    .edit-footer {
+      padding: 12px 16px; /* → 24rpx 32rpx */
+      background: var(--color-bg-white);
+      border-top: 1px solid var(--color-border-light);
+      flex-shrink: 0;
+      display: flex; gap: 10px;
+    }
+    .edit-footer .btn { flex: 1; }
+  </style>
+</head>
+<body>
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">场景切换</div>
+    <button class="active" onclick="showState('repeat-this')">重复日程·仅本次</button>
+    <button onclick="showState('repeat-all')">重复日程·全部</button>
+    <button onclick="showState('homework')">作业任务编辑</button>
+    <button onclick="showState('loading')">Loading</button>
+  </div>
+
+  <!-- ===== 场景 1: 重复日程 · 仅本次（US-EVT-06）===== -->
+  <div id="state-repeat-this" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <!-- 微信原生导航栏 -->
+      <!-- title: "编辑日程" -->
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回详情页')">&#x2190; 返回</span>
+        <span class="nav-bar-title">编辑日程</span>
+      </div>
+
+      <!-- 编辑范围切换（仅重复日程显示） -->
+      <div class="scope-toggle">
+        <span class="scope-toggle-item active" data-id="schedule-edit-scope-this"
+              onclick="alert('【原型演示】当前已选中"仅本次"')">仅本次</span>
+        <span class="scope-toggle-item" data-id="schedule-edit-scope-all"
+              onclick="alert('【原型演示】切换为"全部日程"→ 已填内容保留不丢失')">全部日程</span>
+      </div>
+      <div class="scope-toggle-hint">修改仅影响 8月8日（周六）本次日程</div>
+
+      <!-- → <scroll-view scroll-y> -->
+      <div class="edit-content">
+        <div class="field-form">
+          <!-- 类型标签 -->
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:8px 12px;background:#E3F2FD;border-radius:8px;">
+            <span style="font-size:18px;">&#x1F3CA;</span>
+            <span style="font-size:14px;font-weight:500;color:#10AEFF;">课后活动</span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label"><span class="required">*</span> 活动名称</label>
+            <input class="field-input" type="text" value="游泳课" data-id="schedule-edit-name-input">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label"><span class="required">*</span> 星期几</label>
+            <div class="weekday-select">
+              <span class="weekday-btn">一</span>
+              <span class="weekday-btn selected">二</span>
+              <span class="weekday-btn">三</span>
+              <span class="weekday-btn selected">四</span>
+              <span class="weekday-btn">五</span>
+              <span class="weekday-btn selected">六</span>
+              <span class="weekday-btn">日</span>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label"><span class="required">*</span> 默认时间段</label>
+            <div class="time-range">
+              <input class="field-input" type="time" value="10:00" style="width:100px;">
+              <span style="color:var(--color-text-secondary);">至</span>
+              <input class="field-input" type="time" value="11:30" style="width:100px;">
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">地点 <span style="color:var(--color-text-secondary);font-weight:normal;">（选填）</span></label>
+            <input class="field-input" type="text" value="市游泳馆 2楼" data-id="schedule-edit-location-input">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">备注 <span style="color:var(--color-text-secondary);font-weight:normal;">（选填）</span></label>
+            <textarea class="field-textarea" data-id="schedule-edit-note-input">记得带泳镜和泳帽</textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="edit-footer">
+        <button class="btn btn--default" onclick="alert('【原型演示】放弃编辑，返回详情页')">取消</button>
+        <button class="btn btn--primary" data-id="schedule-edit-save-btn"
+                onclick="alert('【原型演示】保存（仅本次）→ 返回详情页，仅当天实例更新')">保存</button>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注（US-EVT-06 编辑仅本次 · 课后活动）：</strong><br>
+        - 分段开关默认选中"仅本次"，提示"修改仅影响本次日程"<br>
+        - 复用创建页布局，预填现有数据<br>
+        - 字段校验：名称必填、时间合法性、至少一天<br>
+        - 切换"全部日程"时已填内容保留不丢失（US-EVT-06 异常路径）<br>
+        - "仅本次"模式下，星期几和时间修改产生单独实例覆盖
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 场景 2: 重复日程 · 全部日程（US-EVT-07）===== -->
+  <div id="state-repeat-all" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回详情页')">&#x2190; 返回</span>
+        <span class="nav-bar-title">编辑日程</span>
+      </div>
+      <!-- 全部日程模式 -->
+      <div class="scope-toggle">
+        <span class="scope-toggle-item" data-id="schedule-edit-scope-this-2"
+              onclick="alert('【原型演示】切换为"仅本次"→ 已填内容保留')">仅本次</span>
+        <span class="scope-toggle-item active" data-id="schedule-edit-scope-all-2"
+              onclick="alert('【原型演示】当前已选中"全部日程"')">全部日程</span>
+      </div>
+      <div class="scope-toggle-hint">修改将影响当前及所有未来实例（历史实例不变）</div>
+
+      <div class="edit-content">
+        <div class="field-form">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:8px 12px;background:#E8F8EF;border-radius:8px;">
+            <span style="font-size:18px;">&#x23F0;</span>
+            <span style="font-size:14px;font-weight:500;color:#07C160;">日常作息</span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label"><span class="required">*</span> 作息名称</label>
+            <input class="field-input" type="text" value="练琴" data-id="schedule-edit-name-input-2">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label"><span class="required">*</span> 星期几</label>
+            <div class="weekday-select">
+              <span class="weekday-btn selected">一</span>
+              <span class="weekday-btn selected">二</span>
+              <span class="weekday-btn selected">三</span>
+              <span class="weekday-btn selected">四</span>
+              <span class="weekday-btn selected">五</span>
+              <span class="weekday-btn">六</span>
+              <span class="weekday-btn selected">日</span>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label"><span class="required">*</span> 默认时间段</label>
+            <div class="time-range">
+              <input class="field-input" type="time" value="16:00" style="width:100px;">
+              <span style="color:var(--color-text-secondary);">至</span>
+              <!-- 演示：修改了结束时间 (US-EVT-07: 16:00-16:30 → 17:00-17:30) -->
+              <input class="field-input" type="time" value="17:00" style="width:100px;border-color:var(--color-primary);">
+            </div>
+            <div class="form-hint">已从 16:30 修改为 17:00</div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">备注 <span style="color:var(--color-text-secondary);font-weight:normal;">（选填）</span></label>
+            <textarea class="field-textarea">至少练琴 30 分钟</textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="edit-footer">
+        <button class="btn btn--default" onclick="alert('【原型演示】放弃编辑')">取消</button>
+        <button class="btn btn--primary" data-id="schedule-edit-save-all-btn"
+                onclick="alert('【原型演示】保存（全部日程）→ 返回详情页，当前及所有未来实例时间更新为17:00-17:30')">保存</button>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注（US-EVT-07 编辑全部日程 · 日常作息）：</strong><br>
+        - "全部日程"模式下提示"修改影响当前及所有未来实例"<br>
+        - US-EVT-07 场景：周四 16:00-16:30 改为 17:00-17:30（无冲突）→ 全部未来实例时间更新<br>
+        - 日常作息无地点字段（与课后活动的差异）<br>
+        - 历史已过去的实例不变
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 场景 3: 作业任务编辑（US-EVT-08）===== -->
+  <div id="state-homework" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回详情页')">&#x2190; 返回</span>
+        <span class="nav-bar-title">编辑日程</span>
+      </div>
+
+      <!-- 作业任务：不显示分段开关 (US-EVT-08) -->
+      <div style="text-align:center;padding:8px 0;font-size:11px;color:var(--color-text-placeholder);">
+        作业任务 — 一次性任务，不区分编辑范围
+      </div>
+
+      <div class="edit-content">
+        <div class="field-form">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:8px 12px;background:#FFF3E0;border-radius:8px;">
+            <span style="font-size:18px;">&#x1F4DD;</span>
+            <span style="font-size:14px;font-weight:500;color:#FF9500;">作业任务</span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label"><span class="required">*</span> 任务名称</label>
+            <input class="field-input" type="text" value="数学练习册 P32-35" data-id="schedule-edit-name-input-3">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label"><span class="required">*</span> 截止日期</label>
+            <!-- → <picker mode="date"> -->
+            <input class="field-input" type="date" value="2026-08-08" data-id="schedule-edit-deadline-input"
+                   onclick="alert('【原型演示】弹出日期选择器 → <picker mode=\'date\'>')">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">建议时间段 <span style="color:var(--color-text-secondary);font-weight:normal;">（选填）</span></label>
+            <div class="time-range">
+              <input class="field-input" type="time" value="15:00" style="width:100px;">
+              <span style="color:var(--color-text-secondary);">至</span>
+              <input class="field-input" type="time" value="16:00" style="width:100px;">
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">备注 <span style="color:var(--color-text-secondary);font-weight:normal;">（选填）</span></label>
+            <textarea class="field-textarea">做完后拍照发群里</textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="edit-footer">
+        <button class="btn btn--default" onclick="alert('【原型演示】放弃编辑')">取消</button>
+        <button class="btn btn--primary" data-id="schedule-edit-save-hw-btn"
+                onclick="alert('【原型演示】保存 → 返回详情页，截止日期更新')">保存</button>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注（US-EVT-08 编辑作业任务）：</strong><br>
+        - 作业任务不显示"仅本次/全部"分段开关（一次性任务无序列概念）<br>
+        - 修改截止日期后，日历上该任务移动到新日期<br>
+        - 字段：名称（必填）+ 截止日期（必填）+ 建议时间段 + 备注
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: Loading ===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back">&#x2190; 返回</span>
+        <span class="nav-bar-title">编辑日程</span>
+      </div>
+      <div style="padding:16px;">
+        <div class="skeleton" style="width:100%;height:32px;border-radius:6px;"></div>
+      </div>
+      <div style="padding:16px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:8px 12px;border-radius:8px;">
+          <div class="skeleton" style="width:120px;height:20px;"></div>
+        </div>
+        <div class="skeleton skeleton--cell" style="margin-bottom:16px;"></div>
+        <div class="skeleton skeleton--cell" style="margin-bottom:16px;"></div>
+        <div class="skeleton skeleton--cell" style="margin-bottom:16px;"></div>
+        <div class="skeleton skeleton--cell"></div>
+      </div>
+      <div style="padding:16px;text-align:center;">
+        <div class="loading-spinner" style="margin:0 auto;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(s) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + s).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

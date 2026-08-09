@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>邀请成员页 · 家庭管理</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+    .invite-page {
+      padding: 0;
+    }
+
+    .invite-type-card {
+      background: var(--color-bg-white);
+      margin: 16px; /* → 32rpx */
+      border-radius: 8px; /* → 16rpx */
+      overflow: hidden;
+    }
+
+    .invite-type-card:first-child {
+      margin-top: 16px;
+    }
+
+    .invite-type-header {
+      display: flex;
+      align-items: center;
+      padding: 16px; /* → 32rpx */
+      cursor: pointer;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .invite-type-header:active {
+      background: var(--color-bg-page);
+    }
+
+    .invite-type-icon {
+      width: 44px; /* → 88rpx */
+      height: 44px; /* → 88rpx */
+      border-radius: 8px; /* → 16rpx */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-right: 12px; /* → 24rpx */
+      flex-shrink: 0;
+    }
+
+    .invite-type-icon--parent {
+      background: #E8F8EF;
+      color: var(--color-primary);
+    }
+
+    .invite-type-icon--child {
+      background: #E6F0FF;
+      color: #10AEFF;
+    }
+
+    .invite-type-info {
+      flex: 1;
+    }
+
+    .invite-type-name {
+      font-size: 16px; /* → 32rpx */
+      color: var(--color-text-primary);
+      font-weight: 500;
+    }
+
+    .invite-type-desc {
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    .invite-type-arrow {
+      color: var(--color-text-placeholder);
+    }
+
+    /* 孩子邀请表单（展开后） */
+    .invite-child-form {
+      padding: 16px; /* → 32rpx */
+      border-top: 1px solid var(--color-border-light);
+    }
+
+    .invite-child-form .form-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 0; /* → 24rpx */
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .invite-child-form .form-item:last-child {
+      border-bottom: none;
+    }
+
+    .invite-child-form .form-label {
+      width: 72px; /* → 144rpx */
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-primary);
+      flex-shrink: 0;
+    }
+
+    .invite-child-form .form-input {
+      flex: 1;
+      border: none;
+      font-size: 14px; /* → 28rpx */
+      text-align: right;
+      background: transparent;
+      color: var(--color-text-primary);
+    }
+
+    .invite-child-form .form-input::placeholder {
+      color: var(--color-text-placeholder);
+    }
+
+    .invite-child-form .form-value {
+      flex: 1;
+      text-align: right;
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .mode-options {
+      display: flex;
+      gap: 8px; /* → 16rpx */
+      margin-top: 8px; /* → 16rpx */
+    }
+
+    .mode-option {
+      flex: 1;
+      padding: 10px 8px; /* → 20rpx 16rpx */
+      border-radius: 8px; /* → 16rpx */
+      border: 2px solid var(--color-border);
+      text-align: center;
+      cursor: pointer;
+      font-size: 13px; /* → 26rpx */
+      transition: all var(--transition-fast);
+    }
+
+    .mode-option:active {
+      background: var(--color-bg-page);
+    }
+
+    .mode-option.selected {
+      border-color: var(--color-primary);
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+      font-weight: 500;
+    }
+
+    .mode-option__icon {
+      font-size: 24px;
+      display: block;
+      margin-bottom: 4px; /* → 8rpx */
+    }
+
+    .mode-option__name {
+      font-size: 12px; /* → 24rpx */
+    }
+
+    /* 微信分享模拟区 */
+    .share-preview {
+      padding: 16px; /* → 32rpx */
+      text-align: center;
+      background: var(--color-bg-page);
+      border-radius: 8px; /* → 16rpx */
+      margin: 16px;
+    }
+
+    .share-preview-card {
+      width: 240px; /* → 480rpx */
+      margin: 0 auto;
+      background: var(--color-bg-white);
+      border-radius: 8px; /* → 16rpx */
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .share-card-header {
+      background: var(--color-primary);
+      color: white;
+      padding: 20px 16px; /* → 40rpx 32rpx */
+      text-align: center;
+    }
+
+    .share-card-title {
+      font-size: 16px; /* → 32rpx */
+      font-weight: 600;
+    }
+
+    .share-card-body {
+      padding: 16px;
+      text-align: center;
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-secondary);
+    }
+
+    .share-card-footer {
+      padding: 12px;
+      text-align: center;
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-placeholder);
+      border-top: 1px solid var(--color-border-light);
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('normal')">正常态</button>
+    <button onclick="showState('parent-share')">邀请家长</button>
+    <button onclick="showState('child-form')">邀请孩子</button>
+    <button onclick="showState('loading')">Loading</button>
+    <button onclick="showState('error')">错误态</button>
+  </div>
+
+  <!-- ===== 状态 1: 正常态（选择邀请方式）===== -->
+  <div id="state-normal" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <!-- 微信原生导航栏 -->
+      <!-- title: "邀请成员" -->
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回成员列表')">&#x2190; 返回</span>
+        <span class="nav-bar-title">邀请成员</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="invite-page">
+          <!-- 邀请家长卡片 -->
+          <div class="invite-type-card" data-id="invite-member-parent-card" onclick="showState('parent-share')">
+            <div class="invite-type-header">
+              <div class="invite-type-icon invite-type-icon--parent">&#x1F9D1;</div>
+              <div class="invite-type-info">
+                <div class="invite-type-name">邀请家长</div>
+                <div class="invite-type-desc">通过微信分享小程序卡片，对方点击即可加入</div>
+              </div>
+              <div class="invite-type-arrow">&#x203A;</div>
+            </div>
+          </div>
+
+          <!-- 邀请孩子卡片 -->
+          <div class="invite-type-card" data-id="invite-member-child-card" onclick="showState('child-form')">
+            <div class="invite-type-header">
+              <div class="invite-type-icon invite-type-icon--child">&#x1F476;</div>
+              <div class="invite-type-info">
+                <div class="invite-type-name">邀请孩子</div>
+                <div class="invite-type-desc">输入孩子姓名和展示模式，生成 6 位邀请码</div>
+              </div>
+              <div class="invite-type-arrow">&#x203A;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 两种邀请方式并行展示<br>
+        - 家长邀请 → 微信分享面板（<code>wx.shareAppMessage</code> 或 button open-type="share"）<br>
+        - 孩子邀请 → 展开表单（姓名 + 展示模式）
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: 邀请家长（微信分享）===== -->
+  <div id="state-parent-share" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">邀请家长</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="invite-page">
+          <div class="share-preview">
+            <p style="margin-bottom: 16px; font-size: 14px; /* → 28rpx */ color: var(--color-text-secondary);">
+              点击下方按钮，将小程序卡片分享给微信好友
+            </p>
+
+            <!-- 小程序卡片预览 -->
+            <div class="share-preview-card">
+              <div class="share-card-header">
+                <div class="share-card-title">加入"我们一家"</div>
+              </div>
+              <div class="share-card-body">
+                小明妈妈 邀请你加入家庭<br>
+                角色：家长
+              </div>
+              <div class="share-card-footer">
+                家庭日程协作工具
+              </div>
+            </div>
+
+            <!-- → <button open-type="share" data-id="invite-member-share-btn"> -->
+            <button class="btn btn--primary btn--block btn--lg" style="margin-top: 16px;"
+                    data-id="invite-member-share-btn"
+                    onclick="alert('【原型演示】唤起微信分享面板 → 选择聊天发送小程序卡片')">
+              分享给微信好友
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 点击按钮 → 唤起微信分享面板<br>
+        - 被邀请人点击卡片 → 打开小程序 → <code>family/invite-confirm.html</code><br>
+        - 卡片可被转发，不限转发对象<br>
+        - 实现方式：<code>&lt;button open-type="share"&gt;</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: 邀请孩子（展开表单）===== -->
+  <div id="state-child-form" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">邀请孩子</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="invite-page">
+          <div class="invite-type-card" style="margin-top: 16px;">
+            <div class="invite-child-form">
+              <!-- → <input data-id="invite-member-child-name" value="{{childName}}" placeholder="请输入孩子姓名"> -->
+              <div class="form-item" style="padding-top: 0;">
+                <span class="form-label">孩子姓名</span>
+                <input class="form-input" type="text" data-id="invite-member-child-name"
+                       placeholder="请输入孩子姓名" maxlength="10" value="小明">
+              </div>
+
+              <!-- → <picker mode="selector" range="{{displayModes}}" data-id="invite-member-mode-picker"> -->
+              <div class="form-item" data-id="invite-member-mode-picker">
+                <span class="form-label">展示模式</span>
+                <div class="form-value">
+                  <span>小学模式</span>
+                  <span style="display:inline-block;width:8px;height:8px;border-top:2px solid var(--color-text-placeholder);border-right:2px solid var(--color-text-placeholder);transform:rotate(45deg);margin-left:8px;"></span>
+                </div>
+              </div>
+
+              <!-- 三选一模式（原型快速切换用，实际为 picker） -->
+              <div class="mode-options">
+                <div class="mode-option" data-id="invite-member-mode-preschool"
+                     onclick="selectMode(this, 'preschool')">
+                  <span class="mode-option__icon">&#x1F3B5;</span>
+                  <span class="mode-option__name">学龄前</span>
+                </div>
+                <div class="mode-option selected" data-id="invite-member-mode-primary"
+                     onclick="selectMode(this, 'primary')">
+                  <span class="mode-option__icon">&#x1F4DA;</span>
+                  <span class="mode-option__name">小学</span>
+                </div>
+                <div class="mode-option" data-id="invite-member-mode-senior"
+                     onclick="selectMode(this, 'senior')">
+                  <span class="mode-option__icon">&#x1F4D0;</span>
+                  <span class="mode-option__name">高年级</span>
+                </div>
+              </div>
+
+              <!-- → <button data-id="invite-member-generate-btn" bindtap="onGenerateCode"> -->
+              <button class="btn btn--primary btn--block btn--lg" style="margin-top: 16px;"
+                      data-id="invite-member-generate-btn"
+                      onclick="alert('【原型演示】生成邀请码 → 跳转邀请码展示页 (family/invite-code.html)')">
+                生成邀请码
+              </button>
+            </div>
+          </div>
+
+          <div style="padding: 12px 16px; font-size: 12px; /* → 24rpx */ color: var(--color-text-secondary);">
+            <strong>说明：</strong>
+            <ul style="margin-top: 4px; padding-left: 16px;">
+              <li>邀请码有效期为 24 小时</li>
+              <li>邀请码仅限一人使用</li>
+              <li>展示模式可在加入后修改（第二期）</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 姓名输入：2-10 字符<br>
+        - 展示模式 → <code>&lt;picker mode="selector"&gt;</code>（第一期统一模式，可暂不做选择）<br>
+        - "生成邀请码" → 调用后端 API → 跳转 <code>family/invite-code.html</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: Loading（生成邀请码中）===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" style="color: var(--color-text-placeholder);">&#x2190; 返回</span>
+        <span class="nav-bar-title">邀请孩子</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="invite-page">
+          <div class="invite-type-card" style="margin-top: 16px;">
+            <div class="invite-child-form">
+              <div class="form-item" style="padding-top: 0;">
+                <span class="form-label">孩子姓名</span>
+                <input class="form-input" type="text" value="小明" disabled>
+              </div>
+              <div class="form-item">
+                <span class="form-label">展示模式</span>
+                <div class="form-value"><span>小学模式</span></div>
+              </div>
+              <div class="mode-options">
+                <div class="mode-option">学龄前</div>
+                <div class="mode-option selected">小学</div>
+                <div class="mode-option">高年级</div>
+              </div>
+              <button class="btn btn--primary btn--block btn--lg disabled" style="margin-top: 16px;" disabled>
+                <span class="loading-spinner" style="width:18px;height:18px;border-width:2px;margin-right:8px;"></span>
+                生成中...
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 正在调用后端 API 生成邀请码<br>
+        - 按钮禁用 + loading spinner<br>
+        - 表单输入禁用
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 5: 错误态（生成失败）===== -->
+  <div id="state-error" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">邀请孩子</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="invite-page">
+          <div class="invite-type-card" style="margin-top: 16px;">
+            <div class="invite-child-form">
+              <div class="form-item" style="padding-top: 0;">
+                <span class="form-label">孩子姓名</span>
+                <input class="form-input" type="text" value="小明">
+              </div>
+              <div class="form-item">
+                <span class="form-label">展示模式</span>
+                <div class="form-value"><span>小学模式</span></div>
+              </div>
+              <div class="mode-options">
+                <div class="mode-option">学龄前</div>
+                <div class="mode-option selected">小学</div>
+                <div class="mode-option">高年级</div>
+              </div>
+
+              <div class="error-state" style="padding: 8px 0 0;">
+                <div class="error-state__desc" style="margin-bottom: 0; font-size: 12px; /* → 24rpx */">
+                  生成邀请码失败，请检查网络后重试
+                </div>
+              </div>
+
+              <button class="btn btn--primary btn--block btn--lg" style="margin-top: 8px;"
+                      data-id="invite-member-generate-btn"
+                      onclick="alert('【原型演示】重试生成')">
+                重试
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 网络异常导致生成失败<br>
+        - 保留已填写的表单内容<br>
+        - 显示错误提示 + "重试"按钮
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(s) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + s).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function selectMode(el, mode) {
+      el.parentElement.querySelectorAll('.mode-option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+  </script>
+</body>
+</html>
