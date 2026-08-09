@@ -36,6 +36,9 @@ public class Schedule
     /// <summary>衍生来源 Schedule Id（仅 ThisOnly 编辑产生）</summary>
     public Guid? SourceScheduleId { get; set; }
 
+    /// <summary>衍生日程覆盖日期（仅 ThisOnly 编辑产生，标记该衍生日程应用的特定日期）</summary>
+    public DateOnly? OverrideDate { get; set; }
+
     /// <summary>乐观锁版本号</summary>
     public byte[] RowVersion { get; set; } = Array.Empty<byte>();
 
@@ -48,5 +51,5 @@ public class Schedule
     public ICollection<Cancellation> Cancellations { get; set; } = new List<Cancellation>();
     public ICollection<ScheduleDateExclusion> DateExclusions { get; set; } = new List<ScheduleDateExclusion>();
     public Schedule? SourceSchedule { get; set; }
-    public ICollection<Schedule> DerivativeEvents { get; set; } = new List<Schedule>();
+    public ICollection<Schedule> DerivativeSchedules { get; set; } = new List<Schedule>();
 }

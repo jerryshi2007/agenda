@@ -1,31 +1,36 @@
 using Agenda.Api.Schedule.Dtos;
 using Agenda.Api.Schedule.Services;
-using Agenda.Api.Infrastructure.Data;
 using Agenda.Api.Shared.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Agenda.Api.Schedule.Controllers;
 
 [ApiController]
 [Route("api/v1/schedules")]
+[Authorize]
 public class ScheduleController : ControllerBase
 {
-    private readonly IScheduleService _eventService;
+    private readonly IScheduleService _scheduleService;
     private readonly IConflictDetectionService _conflictService;
-    private readonly AppDbContext _db;
+    private readonly IFamilyContextService _familyContext;
 
-    public ScheduleController(IScheduleService eventService, IConflictDetectionService conflictService, AppDbContext db)
+    public ScheduleController(
+        IScheduleService scheduleService,
+        IConflictDetectionService conflictService,
+        IFamilyContextService familyContext)
     {
-        _eventService = eventService;
+        _scheduleService = scheduleService;
         _conflictService = conflictService;
-        _db = db;
+        _familyContext = familyContext;
     }
 
     /// <summary>创建日程（含多孩子展开）</summary>
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateScheduleRequest request, CancellationToken ct)
     {
-        var (familyId, role) = await User.GetFamilyContextAsync(_db, ct);
+        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
 
         if (role != Domain.Enums.UserRole.Parent)
             return ForbidJwt("CHILD_ACCESS_DENIED", "孩子不能创建日程");
@@ -40,6 +45,9 @@ public class ScheduleController : ControllerBase
                     var conflictResult = await _conflictService.CheckConflictAsync(new ScheduleConflictCheckRequest
                     {
                         ChildId = request.ChildIds[0],
+                        // NOTE: Known limitation — uses today's date for DayOfWeek extraction,
+                        // which means conflicts may not be detected for non-today weekdays.
+                        // Fix tracked as TC-CREATE-006; requires test data isolation refactoring first.
                         Date = DateOnly.FromDateTime(DateTime.Today),
                         StartTime = ts.StartTime,
                         EndTime = ts.EndTime
@@ -50,7 +58,7 @@ public class ScheduleController : ControllerBase
                 }
             }
 
-            var result = await _eventService.CreateAsync(familyId, User.GetUserId(), request, ct);
+            var result = await _scheduleService.CreateAsync(familyId, User.GetUserId(), request, ct);
             return CreatedAtAction(nameof(GetById), new { scheduleId = result.Schedules.First().ScheduleId }, result);
         }
         catch (InvalidOperationException ex) when (IsDomainError(ex.Message))
@@ -63,11 +71,11 @@ public class ScheduleController : ControllerBase
     [HttpGet("{scheduleId:guid}")]
     public async Task<IActionResult> GetById(Guid scheduleId, [FromQuery] DateOnly? date, CancellationToken ct)
     {
-        var (familyId, role) = await User.GetFamilyContextAsync(_db, ct);
+        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
 
         try
         {
-            var result = await _eventService.GetByIdAsync(scheduleId, date, User.GetUserId(), familyId, role, ct);
+            var result = await _scheduleService.GetByIdAsync(scheduleId, date, User.GetUserId(), familyId, role, ct);
             if (result == null)
                 return NotFound(new { error = "SCHEDULE_NOT_FOUND" });
 
@@ -83,15 +91,19 @@ public class ScheduleController : ControllerBase
     [HttpPut("{scheduleId:guid}")]
     public async Task<IActionResult> Update(Guid scheduleId, [FromBody] UpdateScheduleRequest request, CancellationToken ct)
     {
-        var (familyId, role) = await User.GetFamilyContextAsync(_db, ct);
+        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
 
         if (role != Domain.Enums.UserRole.Parent)
             return ForbidJwt("CHILD_ACCESS_DENIED", "孩子不能编辑日程");
 
         try
         {
-            var result = await _eventService.UpdateAsync(scheduleId, request, User.GetUserId(), familyId, ct);
+            var result = await _scheduleService.UpdateAsync(scheduleId, request, User.GetUserId(), familyId, ct);
             return Ok(result);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Conflict(new { error = "CONCURRENT_EDIT_CONFLICT" });
         }
         catch (InvalidOperationException ex) when (ex.Message == "CONCURRENT_EDIT_CONFLICT")
         {
@@ -113,16 +125,17 @@ public class ScheduleController : ControllerBase
         Guid scheduleId,
         [FromQuery] string scope = "ThisOnly",
         [FromQuery] DateOnly? date = null,
+        [FromQuery] bool force = false,
         CancellationToken ct = default)
     {
-        var (familyId, role) = await User.GetFamilyContextAsync(_db, ct);
+        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
 
         if (role != Domain.Enums.UserRole.Parent)
             return ForbidJwt("CHILD_ACCESS_DENIED", "孩子不能删除日程");
 
         try
         {
-            var result = await _eventService.DeleteAsync(scheduleId, scope, date, User.GetUserId(), familyId, ct);
+            var result = await _scheduleService.DeleteAsync(scheduleId, scope, date, User.GetUserId(), familyId, force, ct);
             return Ok(result);
         }
         catch (InvalidOperationException ex) when (IsDomainError(ex.Message))
@@ -139,14 +152,14 @@ public class ScheduleController : ControllerBase
     [HttpPost("{scheduleId:guid}/cancel")]
     public async Task<IActionResult> Cancel(Guid scheduleId, [FromBody] CancelScheduleInstanceRequest request, CancellationToken ct)
     {
-        var (familyId, role) = await User.GetFamilyContextAsync(_db, ct);
+        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
 
         if (role != Domain.Enums.UserRole.Parent)
             return ForbidJwt("CHILD_ACCESS_DENIED", "孩子不能取消日程");
 
         try
         {
-            var result = await _eventService.CancelInstanceAsync(scheduleId, request.Date, User.GetUserId(), familyId, ct);
+            var result = await _scheduleService.CancelInstanceAsync(scheduleId, request.Date, User.GetUserId(), familyId, ct);
             return Ok(result);
         }
         catch (InvalidOperationException ex) when (IsDomainError(ex.Message))
@@ -163,14 +176,14 @@ public class ScheduleController : ControllerBase
     [HttpPost("{scheduleId:guid}/restore")]
     public async Task<IActionResult> Restore(Guid scheduleId, [FromBody] RestoreScheduleInstanceRequest request, CancellationToken ct)
     {
-        var (familyId, role) = await User.GetFamilyContextAsync(_db, ct);
+        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
 
         if (role != Domain.Enums.UserRole.Parent)
             return ForbidJwt("CHILD_ACCESS_DENIED", "孩子不能恢复日程");
 
         try
         {
-            var result = await _eventService.RestoreInstanceAsync(scheduleId, request.Date, User.GetUserId(), familyId, ct);
+            var result = await _scheduleService.RestoreInstanceAsync(scheduleId, request.Date, User.GetUserId(), familyId, ct);
             return Ok(result);
         }
         catch (InvalidOperationException ex) when (IsDomainError(ex.Message))
@@ -187,7 +200,7 @@ public class ScheduleController : ControllerBase
     [HttpPost("check-conflict")]
     public async Task<IActionResult> CheckConflict([FromBody] ScheduleConflictCheckRequest request, CancellationToken ct)
     {
-        await User.GetFamilyContextAsync(_db, ct); // 鉴权
+        await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct); // 鉴权
         var result = await _conflictService.CheckConflictAsync(request, ct);
         return Ok(result);
     }
@@ -208,5 +221,13 @@ public class ScheduleController : ControllerBase
     private ObjectResult ForbidJwt(string errorCode, string message)
     {
         return StatusCode(403, new { error = errorCode, message });
+    }
+
+    /// <summary>找到从今天起下一个指定星期几的日期（用于冲突检测时计算正确的 DayOfWeek）</summary>
+    private static DateOnly GetNextDateForDayOfWeek(DayOfWeek dayOfWeek)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        int daysUntil = ((int)dayOfWeek - (int)today.DayOfWeek + 7) % 7;
+        return today.AddDays(daysUntil == 0 ? 7 : daysUntil);
     }
 }

@@ -23,14 +23,14 @@ public class CalendarQueryService : ICalendarQueryService
     }
 
     public async Task<CalendarResponse> QueryAsync(
-        CalendarQueryRequest request, Guid familyId, Guid? childUserId, CancellationToken ct = default)
+        CalendarQueryRequest request, Guid familyId, CancellationToken ct = default)
     {
         var view = request.View.ToLowerInvariant();
         var dateRangeDays = (request.EndDate.DayNumber - request.StartDate.DayNumber);
         if (dateRangeDays > 90)
             throw new InvalidOperationException("DATE_RANGE_TOO_LARGE");
 
-        // Build base query
+        // Build base query with date range pre-filtering (IM-2)
         var query = _db.Schedules
             .Include(s => s.TimeSlots)
             .Include(s => s.Cancellations)
@@ -49,7 +49,24 @@ public class CalendarQueryService : ICalendarQueryService
             query = query.Where(s => types.Contains(s.ScheduleType));
         }
 
+        // Date range pre-filter: only load schedules that could appear in the date range
+        // - Regular schedules: RepeatEndDate is null (indefinite) or >= startDate
+        // - Derivative schedules: always load (they have OverrideDate checked in memory)
+        // - Homework tasks: DueDate within or after range
+        query = query.Where(s =>
+            s.SourceScheduleId.HasValue // derivative single-instance — check OverrideDate in memory
+            || s.ScheduleType == ScheduleType.HomeworkTask && s.DueDate >= request.StartDate
+            || (s.RepeatEndDate == null || s.RepeatEndDate >= request.StartDate)
+        );
+
         var schedules = await query.AsNoTracking().ToListAsync(ct);
+
+        // Resolve child names and avatars in a single batch (IM-5)
+        var childIds = schedules.Select(s => s.AssignedChildId).Distinct().ToList();
+        var users = await _db.Users
+            .AsNoTracking()
+            .Where(u => childIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => u, ct);
 
         // Virtual instance expansion (ADR-015)
         var dates = new List<CalendarDate>();
@@ -91,9 +108,10 @@ public class CalendarQueryService : ICalendarQueryService
                 {
                     var isCancelled = s.Cancellations.Any(c => c.CancelDate == date);
                     var isExcluded = s.DateExclusions.Any(d => d.ExcludedDate == date);
-                    var status = DeriveInstanceStatus(s, date, isCancelled, isExcluded);
+                    var status = ScheduleStatusHelper.DeriveInstanceStatus(s, date, isCancelled, isExcluded);
 
                     var slot = s.TimeSlots.FirstOrDefault(t => t.DayOfWeek == dayOfWeek);
+                    users.TryGetValue(s.AssignedChildId, out var childUser);
 
                     var calSchedule = new CalendarSchedule
                     {
@@ -102,7 +120,9 @@ public class CalendarQueryService : ICalendarQueryService
                         ScheduleType = s.ScheduleType.ToString(),
                         StartTime = slot?.StartTime,
                         EndTime = slot?.EndTime,
-                        Status = status
+                        Status = status,
+                        ChildName = childUser?.Nickname,
+                        ChildAvatarUrl = childUser?.AvatarUrl
                     };
 
                     if (view == "day")
@@ -140,9 +160,9 @@ public class CalendarQueryService : ICalendarQueryService
             if (s.ScheduleType == ScheduleType.HomeworkTask)
                 return s.DueDate == date;
 
-            // Derivative schedule (single instance): check if it applies to this date
+            // Derivative schedule (single instance from ThisOnly edit) — check OverrideDate (IM-7)
             if (s.SourceScheduleId.HasValue)
-                return true; // derivative schedules are single-instance, always shown
+                return s.OverrideDate == date;
 
             // Regular repeated schedule
             // Check if this day matches a time slot
@@ -159,14 +179,5 @@ public class CalendarQueryService : ICalendarQueryService
 
             return true;
         }).ToList();
-    }
-
-    private static string DeriveInstanceStatus(Domain.Entities.Schedule schedule, DateOnly date, bool isCancelled, bool isExcluded)
-    {
-        if (isExcluded) return "excluded";
-        if (isCancelled) return "cancelled";
-        if (schedule.DueDate.HasValue && date > schedule.DueDate.Value) return "overdue";
-        if (schedule.RepeatEndDate.HasValue && date > schedule.RepeatEndDate.Value) return "ended";
-        return "incomplete";
     }
 }

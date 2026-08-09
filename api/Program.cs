@@ -3,7 +3,6 @@ using System.Threading.RateLimiting;
 using Agenda.Api.Infrastructure.Data;
 using Agenda.Api.Infrastructure.Middleware;
 using Agenda.Api.Shared.Extensions;
-using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +16,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ---- Authentication (minimal JWT skeleton) ----
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "AgendaDevKey_MinLength32Chars!!";
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException("Jwt:Key configuration is required. Set via environment variable or user secrets.");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "agenda-api";
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -45,10 +45,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
-
-// ---- FluentValidation ----
-builder.Services.AddFluentValidationAutoValidation()
-    .AddFluentValidationClientsideAdapters();
 
 // ---- Controllers + Swagger ----
 builder.Services.AddControllers();

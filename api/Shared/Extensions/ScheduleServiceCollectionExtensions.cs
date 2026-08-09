@@ -7,6 +7,9 @@ public static class ScheduleServiceCollectionExtensions
 {
     public static IServiceCollection AddScheduleModule(this IServiceCollection services)
     {
+        // Family context
+        services.AddScoped<IFamilyContextService, FamilyContextService>();
+
         // Schedule module services
         services.AddScoped<IScheduleService, ScheduleService>();
         services.AddScoped<IConflictDetectionService, ConflictDetectionService>();

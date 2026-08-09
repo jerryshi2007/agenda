@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Agenda.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260809110306_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260809121037_AddOverrideDate")]
+    partial class AddOverrideDate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -143,6 +143,9 @@ namespace Agenda.Api.Migrations
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<DateOnly?>("OverrideDate")
+                        .HasColumnType("date");
 
                     b.Property<DateOnly?>("RepeatEndDate")
                         .HasColumnType("date");

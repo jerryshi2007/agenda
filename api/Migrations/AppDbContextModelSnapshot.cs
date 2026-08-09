@@ -141,6 +141,9 @@ namespace Agenda.Api.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<DateOnly?>("OverrideDate")
+                        .HasColumnType("date");
+
                     b.Property<DateOnly?>("RepeatEndDate")
                         .HasColumnType("date");
 
@@ -314,7 +317,7 @@ namespace Agenda.Api.Migrations
             modelBuilder.Entity("Agenda.Api.Domain.Entities.Schedule", b =>
                 {
                     b.HasOne("Agenda.Api.Domain.Entities.Schedule", "SourceSchedule")
-                        .WithMany("DerivativeEvents")
+                        .WithMany("DerivativeSchedules")
                         .HasForeignKey("SourceScheduleId")
                         .OnDelete(DeleteBehavior.Restrict);
 
@@ -349,7 +352,7 @@ namespace Agenda.Api.Migrations
 
                     b.Navigation("DateExclusions");
 
-                    b.Navigation("DerivativeEvents");
+                    b.Navigation("DerivativeSchedules");
 
                     b.Navigation("TimeSlots");
                 });

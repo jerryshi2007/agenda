@@ -33,7 +33,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=agenda_dev;Username=postgres;Password=postgres
-      Jwt__Key: AgendaDevKey_MinLength32Chars!!
+      Jwt__Key: AgendaDevKey-2026-ProductionSecret-MustBeAtLeast64BytesLong!!
       Jwt__Issuer: agenda-api
     ports:
       - "5000:8080"

@@ -43,7 +43,7 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Domain.Entities.Sc
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(e => e.SourceSchedule)
-            .WithMany(e => e.DerivativeEvents)
+            .WithMany(e => e.DerivativeSchedules)
             .HasForeignKey(e => e.SourceScheduleId)
             .OnDelete(DeleteBehavior.Restrict);
     }

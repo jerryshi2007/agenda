@@ -77,8 +77,9 @@ public class ScheduleService : IScheduleService
             await _db.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to create schedule for family {FamilyId}, group {GroupKey}", familyId, groupKey);
             await transaction.RollbackAsync(ct);
             throw;
         }
@@ -111,6 +112,8 @@ public class ScheduleService : IScheduleService
     public async Task<ScheduleResponse?> GetByIdAsync(
         Guid scheduleId, DateOnly? date, Guid userId, Guid familyId, Domain.Enums.UserRole role, CancellationToken ct = default)
     {
+        var targetDate = date ?? DateOnly.FromDateTime(DateTime.Today);
+
         var schedule = await _db.Schedules
             .Include(e => e.TimeSlots)
             .Include(e => e.Cancellations)
@@ -120,15 +123,42 @@ public class ScheduleService : IScheduleService
 
         if (schedule == null) return null;
 
+        // Check for derivative schedule (ThisOnly edit creates a derivative with OverrideDate)
+        if (date.HasValue)
+        {
+            var derivative = await _db.Schedules
+                .Include(e => e.TimeSlots)
+                .Include(e => e.Cancellations)
+                .Include(e => e.DateExclusions)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e =>
+                    e.SourceScheduleId == scheduleId &&
+                    e.FamilyId == familyId &&
+                    !e.IsDeleted &&
+                    e.OverrideDate == targetDate, ct);
+
+            if (derivative != null)
+                schedule = derivative;
+        }
+
         // 孩子端只能看自己的数据
         if (role == Domain.Enums.UserRole.Child && schedule.AssignedChildId != userId)
             throw new UnauthorizedAccessException("CHILD_ACCESS_DENIED");
 
-        var targetDate = date ?? DateOnly.FromDateTime(DateTime.Today);
+        // Resolve child name (IM-4)
+        string? assignedChildName = null;
+        if (schedule.AssignedChildId != Guid.Empty)
+        {
+            var childUser = await _db.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == schedule.AssignedChildId, ct);
+            assignedChildName = childUser?.Nickname;
+        }
+
         var isCancelled = schedule.Cancellations.Any(c => c.CancelDate == targetDate);
         var isExcluded = schedule.DateExclusions.Any(d => d.ExcludedDate == targetDate);
 
-        var status = DeriveInstanceStatus(schedule, targetDate, isCancelled, isExcluded);
+        var status = ScheduleStatusHelper.DeriveInstanceStatus(schedule, targetDate, isCancelled, isExcluded);
 
         var canEdit = role == Domain.Enums.UserRole.Parent;
         var canCancel = role == Domain.Enums.UserRole.Parent && schedule.ScheduleType != ScheduleType.HomeworkTask && !isCancelled;
@@ -152,6 +182,7 @@ public class ScheduleService : IScheduleService
             RepeatRule = BuildRepeatRule(schedule),
             Location = schedule.Location,
             AssignedChildId = schedule.AssignedChildId,
+            AssignedChildName = assignedChildName,
             Notes = schedule.Notes,
             InstanceStatus = status,
             IsCancelled = isCancelled,
@@ -171,9 +202,9 @@ public class ScheduleService : IScheduleService
     public async Task<UpdateScheduleResponse> UpdateAsync(
         Guid scheduleId, UpdateScheduleRequest request, Guid userId, Guid familyId, CancellationToken ct = default)
     {
+        ValidateUpdateRequest(request);
+
         var scope = request.Scope ?? "ThisOnly";
-        if (scope != "ThisOnly" && scope != "ThisAndFuture")
-            throw new InvalidOperationException("INVALID_SCOPE");
 
         var schedule = await _db.Schedules
             .Include(e => e.TimeSlots)
@@ -193,22 +224,24 @@ public class ScheduleService : IScheduleService
         {
             if (scope == "ThisOnly")
             {
-                // Create derivative Schedule (ADR-018)
+                // Create derivative Schedule with OverrideDate (ADR-018, IM-7)
                 CreateDerivativeSchedule(schedule, request, userId);
             }
             else // ThisAndFuture
             {
                 UpdateScheduleFields(schedule, request);
                 await UpdateTimeSlotsAsync(schedule, request, ct);
-                // Delete future derivative events
+                // Delete future derivative schedules
                 await DeleteFutureDerivativesAsync(schedule.Id, request.Date, ct);
             }
 
             await _db.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to update schedule {ScheduleId} for family {FamilyId}, scope {Scope}",
+                scheduleId, familyId, scope);
             await transaction.RollbackAsync(ct);
             throw;
         }
@@ -222,15 +255,31 @@ public class ScheduleService : IScheduleService
     }
 
     public async Task<DeleteScheduleResponse> DeleteAsync(
-        Guid scheduleId, string scope, DateOnly? date, Guid userId, Guid familyId, CancellationToken ct = default)
+        Guid scheduleId, string scope, DateOnly? date, Guid userId, Guid familyId, bool force = false, CancellationToken ct = default)
     {
         if (scope != "ThisOnly" && scope != "ThisAndFuture")
             throw new InvalidOperationException("INVALID_SCOPE");
 
         var schedule = await _db.Schedules
             .Include(e => e.DateExclusions)
+            .Include(e => e.Cancellations)
             .FirstOrDefaultAsync(e => e.Id == scheduleId && e.FamilyId == familyId && !e.IsDeleted, ct)
             ?? throw new KeyNotFoundException("SCHEDULE_NOT_FOUND");
+
+        // Force: hard soft-delete for test cleanup (removes from conflict detection via IsDeleted)
+        if (force)
+        {
+            schedule.IsDeleted = true;
+            schedule.UpdatedAt = DateTimeOffset.UtcNow;
+            await _db.SaveChangesAsync(ct);
+            return new DeleteScheduleResponse
+            {
+                Deleted = true,
+                Scope = "force",
+                Date = date ?? DateOnly.FromDateTime(DateTime.Today),
+                Method = "soft_delete"
+            };
+        }
 
         // Homework tasks get soft-deleted
         if (schedule.ScheduleType == ScheduleType.HomeworkTask)
@@ -289,6 +338,12 @@ public class ScheduleService : IScheduleService
                     .ToList();
                 _db.ScheduleDateExclusions.RemoveRange(futureExclusions);
 
+                // Clean up future Cancellation records (IM-6)
+                var futureCancellations = schedule.Cancellations
+                    .Where(c => c.CancelDate > truncatedEndDate)
+                    .ToList();
+                _db.Cancellations.RemoveRange(futureCancellations);
+
                 await _db.SaveChangesAsync(ct);
                 await transaction.CommitAsync(ct);
 
@@ -302,8 +357,10 @@ public class ScheduleService : IScheduleService
                 };
             }
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to delete schedule {ScheduleId} for family {FamilyId}, scope {Scope}, date {Date}",
+                scheduleId, familyId, scope, targetDate);
             await transaction.RollbackAsync(ct);
             throw;
         }
@@ -389,25 +446,83 @@ public class ScheduleService : IScheduleService
 
     private static void ValidateCreateRequest(ScheduleType scheduleType, CreateScheduleRequest request)
     {
+        // Name
+        if (string.IsNullOrWhiteSpace(request.Name))
+            throw new InvalidOperationException("SCHEDULE_NAME_EMPTY");
+        if (request.Name.Length > 50)
+            throw new InvalidOperationException("SCHEDULE_NAME_TOO_LONG");
+
+        // ScheduleType
+        if (string.IsNullOrWhiteSpace(request.ScheduleType) ||
+            !Enum.TryParse<ScheduleType>(request.ScheduleType, out _))
+            throw new InvalidOperationException("SCHEDULE_TYPE_INVALID");
+
+        // ChildIds
+        if (request.ChildIds == null || request.ChildIds.Count == 0)
+            throw new InvalidOperationException("CHILD_NOT_SELECTED");
+
+        // Location
+        if (!string.IsNullOrEmpty(request.Location) && request.Location.Length > 100)
+            throw new InvalidOperationException("LOCATION_TOO_LONG");
+
+        // Notes
+        if (!string.IsNullOrEmpty(request.Notes) && request.Notes.Length > 500)
+            throw new InvalidOperationException("NOTES_TOO_LONG");
+
+        // RepeatEndDate
+        if (request.RepeatEndDate.HasValue &&
+            request.RepeatEndDate.Value < DateOnly.FromDateTime(DateTime.Today))
+            throw new InvalidOperationException("REPEAT_END_DATE_INVALID");
+
         if (scheduleType == ScheduleType.HomeworkTask)
         {
-            if (request.DueDate == null || request.DueDate.Value < DateOnly.FromDateTime(DateTime.Today))
+            if (request.DueDate == null)
                 throw new InvalidOperationException("DUE_DATE_REQUIRED");
+            if (request.DueDate.Value < DateOnly.FromDateTime(DateTime.Today))
+                throw new InvalidOperationException("DUE_DATE_INVALID");
         }
         else
         {
-            if (request.TimeSlots.Count == 0)
+            if (request.TimeSlots == null || request.TimeSlots.Count == 0)
                 throw new InvalidOperationException("NO_DAY_SELECTED");
+
+            foreach (var ts in request.TimeSlots)
+            {
+                if (ts.StartTime >= ts.EndTime)
+                    throw new InvalidOperationException("TIME_SLOT_INVALID");
+            }
         }
     }
 
-    private static string DeriveInstanceStatus(Domain.Entities.Schedule schedule, DateOnly date, bool isCancelled, bool isExcluded)
+    private static void ValidateUpdateRequest(UpdateScheduleRequest request)
     {
-        if (isExcluded) return "excluded";
-        if (isCancelled) return "cancelled";
-        if (schedule.DueDate.HasValue && date > schedule.DueDate.Value) return "overdue";
-        if (schedule.RepeatEndDate.HasValue && date > schedule.RepeatEndDate.Value) return "ended";
-        return "incomplete";
+        if (!string.IsNullOrEmpty(request.Scope) &&
+            request.Scope != "ThisOnly" && request.Scope != "ThisAndFuture")
+            throw new InvalidOperationException("INVALID_SCOPE");
+
+        if (request.Name != null && string.IsNullOrWhiteSpace(request.Name))
+            throw new InvalidOperationException("SCHEDULE_NAME_EMPTY");
+        if (!string.IsNullOrWhiteSpace(request.Name) && request.Name.Length > 50)
+            throw new InvalidOperationException("SCHEDULE_NAME_TOO_LONG");
+
+        if (!string.IsNullOrEmpty(request.Location) && request.Location.Length > 100)
+            throw new InvalidOperationException("LOCATION_TOO_LONG");
+
+        if (!string.IsNullOrEmpty(request.Notes) && request.Notes.Length > 500)
+            throw new InvalidOperationException("NOTES_TOO_LONG");
+
+        if (request.RepeatEndDate.HasValue &&
+            request.RepeatEndDate.Value < DateOnly.FromDateTime(DateTime.Today))
+            throw new InvalidOperationException("REPEAT_END_DATE_INVALID");
+
+        if (request.TimeSlots != null)
+        {
+            foreach (var ts in request.TimeSlots)
+            {
+                if (ts.StartTime >= ts.EndTime)
+                    throw new InvalidOperationException("TIME_SLOT_INVALID");
+            }
+        }
     }
 
     private static string? BuildRepeatRule(Domain.Entities.Schedule schedule)
@@ -442,13 +557,14 @@ public class ScheduleService : IScheduleService
             AssignedChildId = original.AssignedChildId,
             CreatedBy = createdBy,
             GroupKey = original.GroupKey,
-            RepeatEndDate = null, // single instance
+            RepeatEndDate = request.Date, // single instance — ends on the override date (IM-7)
             Location = request.Location ?? original.Location,
             Notes = request.Notes ?? original.Notes,
             DueDate = request.DueDate ?? original.DueDate,
             SuggestedStartTime = request.SuggestedStartTime ?? original.SuggestedStartTime,
             SuggestedEndTime = request.SuggestedEndTime ?? original.SuggestedEndTime,
             SourceScheduleId = original.Id,
+            OverrideDate = request.Date, // IM-7: mark which date this derivative applies to
             RowVersion = Array.Empty<byte>(),
             IsDeleted = false,
             CreatedAt = DateTimeOffset.UtcNow,
@@ -521,9 +637,15 @@ public class ScheduleService : IScheduleService
 
     private async Task DeleteFutureDerivativesAsync(Guid sourceScheduleId, DateOnly? fromDate, CancellationToken ct)
     {
-        var derivatives = await _db.Schedules
-            .Where(s => s.SourceScheduleId == sourceScheduleId && !s.IsDeleted)
-            .ToListAsync(ct);
+        var query = _db.Schedules
+            .Where(s => s.SourceScheduleId == sourceScheduleId && !s.IsDeleted);
+
+        if (fromDate.HasValue)
+        {
+            query = query.Where(s => s.OverrideDate >= fromDate.Value);
+        }
+
+        var derivatives = await query.ToListAsync(ct);
 
         foreach (var d in derivatives)
         {

@@ -4,5 +4,5 @@ namespace Agenda.Api.Schedule.Services;
 
 public interface ICalendarQueryService
 {
-    Task<CalendarResponse> QueryAsync(CalendarQueryRequest request, Guid familyId, Guid? childUserId, CancellationToken ct = default);
+    Task<CalendarResponse> QueryAsync(CalendarQueryRequest request, Guid familyId, CancellationToken ct = default);
 }
