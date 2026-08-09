@@ -58,12 +58,12 @@ npm install --save-dev jest miniprogram-simulate
 const simulate = require('miniprogram-simulate')
 const path = require('path')
 
-describe('event-card', () => {
+describe('schedule-card', () => {
   let componentId
 
   beforeAll(() => {
     // 加载自定义组件（需先 build 或使用源码路径）
-    componentId = simulate.load(path.resolve(__dirname, '../../components/event-card/index'))
+    componentId = simulate.load(path.resolve(__dirname, '../../components/schedule-card/index'))
   })
 
   test('渲染日程名称和类型标签', () => {
@@ -73,8 +73,8 @@ describe('event-card', () => {
       timeSlot: '16:00-17:00'
     })
 
-    const nameEl = component.querySelector('[data-id="event-card-name"]')
-    const typeEl = component.querySelector('[data-id="event-card-type-tag"]')
+    const nameEl = component.querySelector('[data-id="schedule-card-name"]')
+    const typeEl = component.querySelector('[data-id="schedule-card-type-tag"]')
 
     expect(nameEl.textContent).toBe('钢琴课')
     expect(typeEl.textContent).toBe('课后活动')
@@ -87,7 +87,7 @@ describe('event-card', () => {
       canCheckin: true
     })
 
-    const checkinBtn = component.querySelector('[data-id="event-card-checkin-btn"]')
+    const checkinBtn = component.querySelector('[data-id="schedule-card-checkin-btn"]')
     const onCheckin = jest.fn()
     component.addEventListener('checkin', onCheckin)
 
@@ -136,7 +136,7 @@ const miniProgram = await launch({
 
 const page = await miniProgram.currentPage()
 // 使用 data-id 定位元素
-const btn = await page.$('[data-id="event-list-add-btn"]')
+const btn = await page.$('[data-id="schedule-list-add-btn"]')
 await btn.tap()
 ```
 
@@ -159,19 +159,19 @@ describe('[E2E] 日程创建', () => {
 
   test('[E2E-01] 从首页进入创建日程页', async () => {
     page = await miniProgram.currentPage()
-    const addBtn = await page.$('[data-id="home-add-event-btn"]')
+    const addBtn = await page.$('[data-id="home-add-schedule-btn"]')
     await addBtn.tap()
     await miniProgram.waitFor(500) // 等待页面跳转
 
     page = await miniProgram.currentPage()
-    expect(page.path).toBe('pages/event-form/index')
+    expect(page.path).toBe('pages/schedule-form/index')
   })
 
   test('[E2E-02] 填写并提交日程', async () => {
-    const nameInput = await page.$('[data-id="event-form-name-input"]')
+    const nameInput = await page.$('[data-id="schedule-form-name-input"]')
     await nameInput.input('钢琴课')
 
-    const saveBtn = await page.$('[data-id="event-form-save-btn"]')
+    const saveBtn = await page.$('[data-id="schedule-form-save-btn"]')
     await saveBtn.tap()
 
     await miniProgram.waitFor(1000)

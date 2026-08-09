@@ -2,6 +2,8 @@
 // 日历首页 —— 视图切换、数据获取、手势交互、筛选联动
 
 const calendarService = require('../../services/calendar');
+const scheduleService = require('../../services/schedule');
+const checkinService = require('../../services/checkin');
 const dateUtils = require('../../utils/date-utils');
 const app = getApp();
 
@@ -194,8 +196,6 @@ Page({
    */
   onQuickCheckin(e) {
     const { scheduleId, date } = e.detail;
-    const scheduleService = require('../../services/schedule');
-    const checkinService = require('../../services/checkin');
 
     checkinService.checkin(scheduleId, date).then(() => {
       wx.showToast({ title: '打卡成功', icon: 'success', duration: 1500 });

@@ -2,14 +2,23 @@
 
 | 字段 | 值 |
 |------|-----|
-| 状态 | dev-ready |
+| 状态 | in-progress |
 | 创建日期 | 2026-08-08 |
-| 最后更新 | 2026-08-08 |
+| 最后更新 | 2026-08-09 |
 
 ## 状态流转
 
     draft → confirmed → dev-ready → in-progress → done
-                        ↑ 当前
+                                    ↑ 当前
+
+## 阶段进度
+
+| 阶段 | 状态 |
+|------|------|
+| Stage 1 产品 | ✅ done |
+| Stage 2 研发 | ✅ done（代码审查修复完成） |
+| Stage 3 测试 | 🔄 in-progress（test-planner 启动） |
+| Stage 4 归档 | ⬜ pending |
 
 ## 关联文档
 

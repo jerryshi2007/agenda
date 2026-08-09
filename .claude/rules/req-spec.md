@@ -108,7 +108,7 @@ draft → confirmed → dev-ready → in-progress → done
 <!-- CONFIRMED: YYYY-MM-DD -->
 ```
 
-`dev-ready` 是下游 agent 的启动信号——dev-architect、dev-planning 通过读取 staging 目录中的此标记判断需求是否可执行。
+`dev-ready` 是下游 agent 的启动信号——dev-architect 通过读取 staging 目录中的此标记判断需求是否可执行。
 
 ## 示例
 

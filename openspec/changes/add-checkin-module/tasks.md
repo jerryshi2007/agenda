@@ -10,12 +10,12 @@
 |------|-----|
 | 覆盖 US | CHK-01~06, CHK-26, CHK-27（8 个 Must） |
 | 预估总工时 | 3 个工作日 |
-| 依赖 | auth-module（JWT 中间件）、Event 最小化骨架 |
+| 依赖 | auth-module（JWT 中间件）、Schedule 最小化骨架 |
 
 ### 依赖关系
 
 ```
-1.数据模型 ──→ 2.IEventQueryService ──→ 3.窗口查询API ──→ 4.打卡API
+1.数据模型 ──→ 2.IScheduleQueryService ──→ 3.窗口查询API ──→ 4.打卡API
                  │                         │                  │
                  └──→ 6.结算任务           ├──→ 5.撤销API     │
                                            │                  │
@@ -44,22 +44,22 @@
 
 - [ ] **1.3** `Checkin.cs` 实体  
   路径：`api/Domain/Entities/Checkin.cs`  
-  字段：`Id (long, PK)`, `EventId (Guid, NOT NULL)`, `Date (DateOnly, NOT NULL)`, `UserId (Guid, NOT NULL)`, `CheckinAt (DateTimeOffset, NOT NULL)`, `Source (CheckinSource, NOT NULL)`, `CreatedAt (DateTimeOffset, NOT NULL)`  
+  字段：`Id (long, PK)`, `ScheduleId (Guid, NOT NULL)`, `Date (DateOnly, NOT NULL)`, `UserId (Guid, NOT NULL)`, `CheckinAt (DateTimeOffset, NOT NULL)`, `Source (CheckinSource, NOT NULL)`, `CreatedAt (DateTimeOffset, NOT NULL)`  
   验证：编译通过；字段与 design.md §3 ER 一致；无 Status/IsDeleted 字段
 
 - [ ] **1.4** `CheckinConfiguration.cs`  
   路径：`api/Infrastructure/Data/Configurations/CheckinConfiguration.cs`  
-  内容：EF Core Fluent API 配置 `UNIQUE(EventId, Date)`、索引 `(EventId, Date)`、索引 `(UserId)`  
+  内容：EF Core Fluent API 配置 `UNIQUE(ScheduleId, Date)`、索引 `(ScheduleId, Date)`、索引 `(UserId)`  
   验证：迁移生成后 DB 中存在对应约束和索引
 
-- [ ] **1.5** `Event.cs` + `Cancellation.cs` 最小化骨架  
-  路径：`api/Domain/Entities/Event.cs`, `api/Domain/Entities/Cancellation.cs`  
-  内容：仅包含 Checkin 模块查询所需的字段（Id, EventType, StartTime, EndTime, DueDate, RepeatRule, RepeatEndDate, FamilyId, AssignedChildId, IsDeleted / Id, EventId, CancelDate）  
+- [ ] **1.5** `Schedule.cs` + `Cancellation.cs` 最小化骨架  
+  路径：`api/Domain/Entities/Schedule.cs`, `api/Domain/Entities/Cancellation.cs`  
+  内容：仅包含 Checkin 模块查询所需的字段（Id, EventType, StartTime, EndTime, DueDate, RepeatRule, RepeatEndDate, FamilyId, AssignedChildId, IsDeleted / Id, ScheduleId, CancelDate）  
   验证：编译通过；字段覆盖设计文档第 3 节依赖实体定义
 
 - [ ] **1.6** 扩展 `AppDbContext`  
   路径：`api/Infrastructure/Data/AppDbContext.cs`  
-  内容：新增 `DbSet<Checkin>`, `DbSet<Event>`, `DbSet<Cancellation>`  
+  内容：新增 `DbSet<Checkin>`, `DbSet<Schedule>`, `DbSet<Cancellation>`  
   验证：编译通过
 
 - [ ] **1.7** 创建并应用 EF Core 迁移  
@@ -68,20 +68,20 @@
 
 ---
 
-## 2. 后端：IEventQueryService 接口定义
+## 2. 后端：IScheduleQueryService 接口定义
 
 **预估工时**：0.15d | **依赖**：任务 1 完成
 
-- [ ] **2.1** `IEventQueryService` 接口  
-  路径：`api/Checkin/IEventQueryService.cs`  
-  方法签名：`Task<EventCheckinInfo?> GetEventForCheckinAsync(Guid eventId, DateOnly date, CancellationToken ct)`  
-  返回 DTO 包含：EventId, EventType, StartTime, EndTime, DueDate, FamilyId, AssignedChildId, IsCancelled  
+- [ ] **2.1** `IScheduleQueryService` 接口  
+  路径：`api/Checkin/IScheduleQueryService.cs`  
+  方法签名：`Task<ScheduleCheckinInfo?> GetScheduleForCheckinAsync(Guid scheduleId, DateOnly date, CancellationToken ct)`  
+  返回 DTO 包含：ScheduleId, EventType, StartTime, EndTime, DueDate, FamilyId, AssignedChildId, IsCancelled  
   验证：编译通过；接口定义与 `CheckinService` 的需求匹配
 
-- [ ] **2.2** `MockEventQueryService` 实现  
-  路径：`api/Checkin/MockEventQueryService.cs`  
+- [ ] **2.2** `MockScheduleQueryService` 实现  
+  路径：`api/Checkin/MockScheduleQueryService.cs`  
   内容：返回硬编码测试数据（课后活动/日常作息/作业任务各一条），供开发阶段使用  
-  验证：调用返回非 null 的有效 `EventCheckinInfo`
+  验证：调用返回非 null 的有效 `ScheduleCheckinInfo`
 
 ---
 
@@ -91,7 +91,7 @@
 
 - [ ] **3.1** `CheckinService.GetCheckinWindowAsync()`  
   路径：`api/Checkin/CheckinService.cs`  
-  实现：调用 `IEventQueryService` → 状态推导 → 返回 `CheckinWindowResponse`  
+  实现：调用 `IScheduleQueryService` → 状态推导 → 返回 `CheckinWindowResponse`  
   **状态推导顺序**（遵循 B2 修复）：步骤 1 先查 Checkin → 步骤 2 查 Cancellation（加"无 Checkin"条件）→ 步骤 3 终态判定 → 步骤 4 默认"进行中"  
   验证：单元测试覆盖 6 种状态（未完成/已完成/已取消/已结束/未完成终态/逾期未完成）
 
@@ -110,17 +110,17 @@
   规则：`serverTime >= startTime - 30min` → canCheckin=true；`serverTime < startTime - 30min` → canCheckin=false, reason=EARLY, remainingSeconds  
   验证：单元测试：startTime=16:00, serverTime=15:31 → canCheckin=true；serverTime=15:29 → canCheckin=false
 
-- [ ] **3.5** `GET /api/v1/checkin/window/{eventId}/{date}` 端点  
+- [ ] **3.5** `GET /api/v1/checkin/window/{scheduleId}/{date}` 端点  
   路径：`api/Checkin/CheckinController.cs`  
   认证：`[Authorize]` + JWT  
-  权限：校验当前用户是否为 Event 所属家庭成员（403 否则）  
-  响应 shape：`{ eventId, date, canCheckin, canUndo, reason, remainingSeconds, status, statusLabel, serverTime }`  
+  权限：校验当前用户是否为 Schedule 所属家庭成员（403 否则）  
+  响应 shape：`{ scheduleId, date, canCheckin, canUndo, reason, remainingSeconds, status, statusLabel, serverTime }`  
   **status 枚举覆盖**：incomplete, completed, cancelled, ended, overdue（S1 修复）  
   验证：集成测试覆盖 6 种响应变体
 
 - [ ] **3.6** DI 注册  
   位置：`Program.cs`  
-  内容：`services.AddScoped<ICheckinService, CheckinService>()`, `services.AddScoped<IEventQueryService, MockEventQueryService>()`  
+  内容：`services.AddScoped<ICheckinService, CheckinService>()`, `services.AddScoped<IScheduleQueryService, MockScheduleQueryService>()`  
   验证：应用启动无 DI 解析异常
 
 ---
@@ -131,9 +131,9 @@
 
 - [ ] **4.1** `POST /api/v1/checkin` 端点  
   路径：`api/Checkin/CheckinController.cs`  
-  Request：`{ eventId: Guid, date: DateOnly }`  
-  Response (成功)：`{ checkinId, eventId, date, checkinAt, source }`  
-  Response (幂等)：`{ checkinId, eventId, date, alreadyCheckedIn: true, checkinAt }`  
+  Request：`{ scheduleId: Guid, date: DateOnly }`  
+  Response (成功)：`{ checkinId, scheduleId, date, checkinAt, source }`  
+  Response (幂等)：`{ checkinId, scheduleId, date, alreadyCheckedIn: true, checkinAt }`  
   认证：`[Authorize]` + JWT  
   权限：校验家庭成员身份（403 否则）
 
@@ -149,8 +149,8 @@
 
 - [ ] **4.4** FluentValidation 校验  
   路径：`api/Checkin/Validators/CheckinRequestValidator.cs`  
-  规则：`eventId` 非空, `date` 非空且不能是未来日期（> today）  
-  验证：单元测试：空 eventId → 400；未来日期 → 400
+  规则：`scheduleId` 非空, `date` 非空且不能是未来日期（> today）  
+  验证：单元测试：空 scheduleId → 400；未来日期 → 400
 
 ---
 
@@ -158,9 +158,9 @@
 
 **预估工时**：0.2d | **依赖**：任务 4 完成
 
-- [ ] **5.1** `DELETE /api/v1/checkin/{eventId}/{date}` 端点  
+- [ ] **5.1** `DELETE /api/v1/checkin/{scheduleId}/{date}` 端点  
   路径：`api/Checkin/CheckinController.cs`  
-  Response (成功)：`{ eventId, date, undone: true, status: "incomplete" }`  
+  Response (成功)：`{ scheduleId, date, undone: true, status: "incomplete" }`  
   认证：`[Authorize]` + JWT  
   权限：同一家庭成员可撤销（含家长撤销孩子打卡）
 
@@ -198,7 +198,7 @@
 - [ ] **6.3** `SettlementJob.cs`  
   路径：`api/Infrastructure/Jobs/SettlementJob.cs`  
   属性：`[AutomaticRetry(Attempts = 3, OnAttemptsExceeded = AttemptsExceededAction.Fail)]`  
-  实现：遍历昨日 Event → 按孩子分组 → Per-child 事务（`BeginTransactionAsync`）→ 验证性遍历（首期不写库）  
+  实现：遍历昨日 Schedule → 按孩子分组 → Per-child 事务（`BeginTransactionAsync`）→ 验证性遍历（首期不写库）  
   验证：Dashboard 中手动触发 Job，日志输出遍历结果
 
 - [ ] **6.4** Recurring Job 注册  
@@ -220,16 +220,16 @@
 
 - [ ] **7.1** `services/checkin.js` — getCheckinWindow  
   路径：`app/services/checkin.js`  
-  方法：`getCheckinWindow(eventId, date)` → `GET /api/v1/checkin/window/{eventId}/{date}`  
+  方法：`getCheckinWindow(scheduleId, date)` → `GET /api/v1/checkin/window/{scheduleId}/{date}`  
   返回：窗口状态响应 JSON  
   错误处理：复用 `services/api.js` 统一拦截器（401 续期 / 网络错误 Toast）
 
 - [ ] **7.2** `services/checkin.js` — doCheckin  
-  方法：`doCheckin(eventId, date)` → `POST /api/v1/checkin`  
+  方法：`doCheckin(scheduleId, date)` → `POST /api/v1/checkin`  
   处理幂等响应：`alreadyCheckedIn: true` 时同样视为成功
 
 - [ ] **7.3** `services/checkin.js` — undoCheckin  
-  方法：`undoCheckin(eventId, date)` → `DELETE /api/v1/checkin/{eventId}/{date}`  
+  方法：`undoCheckin(scheduleId, date)` → `DELETE /api/v1/checkin/{scheduleId}/{date}`  
   错误映射：`TERMINAL_STATE` → "已结算，不可撤销"；`NOT_CHECKED_IN` → "无打卡记录"
 
 ---
@@ -240,7 +240,7 @@
 
 - [ ] **8.1** 窗口状态查询  
   位置：`pages/event-detail/index.js` — `onShow()` / `onLoad()`  
-  实现：从 URL 参数获取 `eventId` + `date` → 调用 `getCheckinWindow` → 更新 data  
+  实现：从 URL 参数获取 `scheduleId` + `date` → 调用 `getCheckinWindow` → 更新 data  
   验证：页面打开后按钮状态与 API 返回一致
 
 - [ ] **8.2** 按钮状态机  

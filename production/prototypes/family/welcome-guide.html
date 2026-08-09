@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>首次引导页 · 家庭管理</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+    .welcome-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100%;
+      padding: 48px 32px; /* → 96rpx 64rpx */
+    }
+
+    .welcome-illust {
+      width: 120px; /* → 240rpx */
+      height: 120px; /* → 240rpx */
+      margin-bottom: 32px; /* → 64rpx */
+      background: var(--color-primary-light);
+      border-radius: 60px; /* → 120rpx */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 56px;
+    }
+
+    .welcome-title {
+      font-size: 22px; /* → 44rpx */
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin-bottom: 8px; /* → 16rpx */
+      text-align: center;
+    }
+
+    .welcome-desc {
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-secondary);
+      text-align: center;
+      margin-bottom: 48px; /* → 96rpx */
+      line-height: 1.6;
+    }
+
+    .welcome-actions {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px; /* → 24rpx */
+    }
+
+    .welcome-btn {
+      width: 100%;
+      height: 48px; /* → 96rpx */
+      border-radius: 8px; /* → 16rpx */
+      font-size: 16px; /* → 32rpx */
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .welcome-btn--create {
+      background: var(--color-primary);
+      color: var(--color-text-white);
+    }
+
+    .welcome-btn--create:active {
+      background: var(--color-primary-active);
+    }
+
+    .welcome-btn--join {
+      background: var(--color-bg-white);
+      color: var(--color-primary);
+      border: 1px solid var(--color-primary);
+    }
+
+    .welcome-btn--join:active {
+      background: var(--color-primary-light);
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('normal')">正常态</button>
+    <button onclick="showState('loading')">Loading</button>
+    <button onclick="showState('error')">错误态</button>
+  </div>
+
+  <!-- ===== 状态 1: 正常态 ===== -->
+  <!-- → wx:if="{{isNormal}}" -->
+  <div id="state-normal" class="demo-state">
+    <div class="phone-frame">
+      <!-- 微信原生导航栏 -->
+      <!-- title: "" -->
+      <!-- backgroundColor: "#FFFFFF" -->
+      <div class="status-bar"></div>
+      <div class="page-body page-body--center" style="background: var(--color-bg-page);">
+        <div class="welcome-page">
+          <div class="welcome-illust">&#x1F3E0;</div>
+          <div class="welcome-title">欢迎使用家庭日程</div>
+          <div class="welcome-desc">帮家长规划孩子日程，孩子查看执行。创建或加入一个家庭开始吧。</div>
+          <div class="welcome-actions">
+            <!-- → <button data-id="welcome-create-btn" bindtap="onCreateFamily"> -->
+            <button class="welcome-btn welcome-btn--create" data-id="welcome-create-btn" onclick="alert('【原型演示】跳转创建家庭页 (family/create-family.html)')">
+              + 创建家庭
+            </button>
+            <!-- → <button data-id="welcome-join-btn" bindtap="onJoinFamily"> -->
+            <button class="welcome-btn welcome-btn--join" data-id="welcome-join-btn" onclick="alert('【原型演示】跳转加入家庭页 (family/join-family.html)')">
+              # 加入家庭
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 用户登录后无家庭时进入此页<br>
+        - "创建家庭" → <code>family/create-family.html</code><br>
+        - "加入家庭" → <code>family/join-family.html</code><br>
+        - <strong>不显示 TabBar</strong>（无家庭无日历视图）
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: Loading ===== -->
+  <!-- → wx:if="{{isLoading}}" -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="page-body page-body--center" style="background: var(--color-bg-page);">
+        <div class="loading-block">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">加载中...</div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 页面初始化时检查用户家庭状态<br>
+        - 显示 loading spinner
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: 错误态（网络异常）===== -->
+  <!-- → wx:if="{{isError}}" -->
+  <div id="state-error" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="page-body page-body--center" style="background: var(--color-bg-page);">
+        <div class="error-state">
+          <div class="error-state__icon">&#x26A0;&#xFE0F;</div>
+          <div class="error-state__title">网络连接失败</div>
+          <div class="error-state__desc">无法检查家庭状态，请检查网络后重试</div>
+          <!-- → <button data-id="welcome-retry-btn" bindtap="onRetry"> -->
+          <button class="btn btn--primary btn--sm" data-id="welcome-retry-btn" onclick="alert('【原型演示】重新加载')">重试</button>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 网络异常导致无法获取家庭列表<br>
+        - 用户点击"重试"重新查询
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(s) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + s).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

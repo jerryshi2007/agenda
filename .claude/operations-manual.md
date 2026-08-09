@@ -42,7 +42,7 @@
 | 角色 | 使用的 Agent | 职责 |
 |------|-------------|------|
 | **产品经理** | req-analyst, req-reviewer, ui-designer | 需求探索、梳理、审核、原型设计 |
-| **研发工程师** | dev-architect, dev-architect-reviewer, dev-planning, dev-dotnet, dev-vue3, dev-reviewer | 架构设计、任务分解、编码实现、代码审查 |
+| **研发工程师** | dev-architect, dev-architect-reviewer, dev-dotnet, dev-vue3, dev-miniapp, dev-reviewer | 架构设计、任务分解、编码实现、代码审查 |
 | **测试工程师** | test-planner, test-writer, test-reviewer, test-runner | 测试策略、E2E 脚本、测试审查、执行报告 |
 | **任何人** | （主代理直接执行） | 归档 |
 
@@ -60,7 +60,7 @@
 
 ```text
 Stage 1 产品: req-analyst → req-reviewer + ui-designer（并行）→ 人审批 → git commit
-Stage 2 研发: git pull → dev-architect → dev-architect-reviewer → 人审批 → dev-planning → dev-dotnet + dev-vue3 (并行) → git commit
+Stage 2 研发: git pull → dev-architect → dev-architect-reviewer → 人审批 → dev-dotnet + dev-miniapp (并行) → git commit
 Stage 3 测试: git pull → test-planner → test-writer → test-reviewer → test-runner → 人审批
 Stage 4 归档: openspec archive（任何人）
 ```
@@ -220,11 +220,11 @@ Stage 4 归档: openspec archive（任何人）
 
 | Agent | 触发时机 | 输入 | 产出 |
 |-------|---------|------|------|
-| **dev-architect** | 产品审批通过后，编码前 | proposal + delta specs | design.md |
-| **dev-architect-reviewer** | design.md 完成后 | design.md | design-review.md（三判决） |
-| **dev-planning** | 架构审核通过后 | proposal + specs + design.md | tasks.md |
+| **dev-architect** | 产品审批通过后，编码前 | proposal + delta specs | design.md + tasks.md |
+| **dev-architect-reviewer** | design.md 完成后 | design.md + tasks.md | design-review.md（三判决） |
 | **dev-dotnet** | tasks.md 完成后（并行） | .NET task | .NET 代码 + 测试 |
 | **dev-vue3** | tasks.md 完成后（并行） | Vue 3 task | Vue 3 代码 + 测试 |
+| **dev-miniapp** | tasks.md 完成后（并行） | 小程序 task | 小程序代码 + 测试 |
 | **dev-reviewer** | 代码改动后（SDD 内或独立调度） | git diff | 审查报告（双判决） |
 
 ### 4.2 dev-architect · 研发架构师
@@ -238,7 +238,7 @@ Stage 4 归档: openspec archive（任何人）
   ↓
 【Gate 0: 变更规模评估】
   是否涉及多个模块？新实体/API？跨模块数据流？
-  ├── 全部否 → 纯单模块小改动 → 跳过本 agent，直接交给 dev-planning
+  ├── 全部否 → 纯单模块小改动 → 跳过本 agent，直接交给 dev-dotnet + dev-miniapp
   └── 任一是 → 非平凡变更 → 进入设计
   ↓
 【前置检查】确认 proposal + delta specs 存在
@@ -295,9 +295,9 @@ Stage 4 归档: openspec archive（任何人）
 
 **三判决**：设计质量 / 规则合规 / 审批建议
 
-### 4.4 dev-planning · 研发计划员
+### 4.4 dev-architect 的 task 分解职责
 
-**职责**：将 design.md 分解为 bite-sized tasks，产出 tasks.md。
+**dev-architect** 在设计完成后，调用 `dev-planning` skill 将 design.md 分解为 bite-sized tasks，产出 tasks.md。
 
 **Task 硬约束**：
 
@@ -305,7 +305,7 @@ Stage 4 归档: openspec archive（任何人）
 |------|------|
 | 右尺寸 | 1-3 个文件变更，半天内可完成 |
 | 自带验证命令 | 每个 task 注明 `dotnet test --filter` 或 `pnpm test run` |
-| 标注负责 agent | `.NET 后端` → `dev-dotnet`，`Vue 3 前端` → `dev-vue3` |
+| 标注负责 agent | `.NET 后端` → `dev-dotnet`，`小程序前端` → `dev-miniapp` |
 | 标注依赖 | 每个 task 标注依赖哪些 task 先完成 |
 | 无占位符 | 禁止 TBD/TODO/"类似 Task N" |
 
@@ -399,7 +399,7 @@ Stage 4 归档: openspec archive（任何人）
 2. "帮我做这个需求的架构设计" → 主代理分派 dev-architect → 产出 design.md
 3. "审核一下这个设计" → 主代理分派 dev-architect-reviewer → 产出 design-review.md
 4. 研发人员审批设计
-5. "分解一下任务" → 主代理分派 dev-planning → 产出 tasks.md
+5. "分解一下任务" → 主代理分派 dev-architect → 产出 tasks.md（dev-architect 内部调用 dev-planning skill）
 6. "开始实现" → 主代理并行分派 dev-dotnet + dev-vue3
 7. 编码完成后自动走收尾链：dev-verification → dev-code-review → dev-finishing-branch
 8. git commit（交接给测试阶段）
@@ -562,7 +562,7 @@ Rule 不自动加载，由 Skill 在 frontmatter 中声明 `rules: [...]`，被�
 | 审核需求 | "审核一下这个需求文档" | req-reviewer |
 | 架构设计 | "帮我做 XXX 的架构设计" | dev-architect |
 | 审核架构 | "审核一下这个技术设计" | dev-architect-reviewer |
-| 分解任务 | "把 XXX 拆成任务" | dev-planning |
+| 分解任务 | "把 XXX 拆成任务" | dev-architect（内部调用 dev-planning skill） |
 | 写后端代码 | "帮我实现 XXX 的后端" | dev-dotnet |
 | 写前端代码 | "帮我实现 XXX 的前端" | dev-vue3 |
 | 代码审查 | "帮我审查一下这个改动" | dev-reviewer |

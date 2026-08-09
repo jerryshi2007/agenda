@@ -2,23 +2,23 @@
 
 ### Requirement: Checkin Time Window Determination
 
-The system SHALL determine check-in eligibility based on event type, event time boundaries, and server time. The system SHALL allow check-in only within the valid time window for each event type.
+The system SHALL determine check-in eligibility based on schedule type, schedule time boundaries, and server time. The system SHALL allow check-in only within the valid time window for each schedule type.
 
 #### Scenario: Early check-in window opens 30 minutes before start
-- **WHEN** server time reaches (event start time - 30 minutes) for any event type
+- **WHEN** server time reaches (schedule start time - 30 minutes) for any schedule type
 - **THEN** the check-in API SHALL return `canCheckin: true`, and the frontend SHALL render the check-in button as clickable
 
 #### Scenario: Early check-in window not yet open
-- **WHEN** server time is before (event start time - 30 minutes) for any event type
+- **WHEN** server time is before (schedule start time - 30 minutes) for any schedule type
 - **THEN** the check-in API SHALL return `canCheckin: false, reason: "EARLY", remainingSeconds: <N>`, and the frontend SHALL render the check-in button as disabled with countdown text "N 分钟后可打卡"
 
-#### Scenario: Check-in allowed during the event
-- **WHEN** server time >= event start time and the event instance is not in terminal state
+#### Scenario: Check-in allowed during the schedule
+- **WHEN** server time >= schedule start time and the schedule instance is not in terminal state
 - **THEN** the check-in API SHALL return `canCheckin: true`
 
 ### Requirement: Activity Overdue Determination
 
-The system SHALL mark an after-school activity event instance as "已结束" (ended) when server time exceeds (end time + 2 hours) AND the instance has not been checked in.
+The system SHALL mark an after-school activity schedule instance as "已结束" (ended) when server time exceeds (end time + 2 hours) AND the instance has not been checked in.
 
 #### Scenario: Activity still within grace period
 - **WHEN** an after-school activity ends at 17:00, server time is 18:30, and the instance is not checked in
@@ -34,19 +34,19 @@ The system SHALL mark an after-school activity event instance as "已结束" (en
 
 ### Requirement: Routine Overdue Determination
 
-The system SHALL mark a daily routine event instance as "未完成" (not completed, terminal) when server time passes 24:00 on the event date AND the instance has not been checked in.
+The system SHALL mark a daily routine schedule instance as "未完成" (not completed, terminal) when server time passes 24:00 on the schedule date AND the instance has not been checked in.
 
 #### Scenario: Routine still checkable on the same day
-- **WHEN** a routine event's date is today, server time is 23:00, and the instance is not checked in
+- **WHEN** a routine schedule's date is today, server time is 23:00, and the instance is not checked in
 - **THEN** the check-in API SHALL return `canCheckin: true`
 
 #### Scenario: Routine overdue after midnight
-- **WHEN** a routine event's date was yesterday, server time is 00:01 today, settlement has executed, and the instance was not checked in
+- **WHEN** a routine schedule's date was yesterday, server time is 00:01 today, settlement has executed, and the instance was not checked in
 - **THEN** the instance status SHALL be "未完成" (terminal). The check-in API SHALL return `canCheckin: false, reason: "TERMINAL_STATE"`. The frontend SHALL render red "未完成" text without check-in button.
 
 ### Requirement: Homework Overdue Determination
 
-The system SHALL mark a homework task event instance as "逾期未完成" (overdue not completed) when server time passes 24:00 on the due date AND the instance has not been checked in.
+The system SHALL mark a homework task schedule instance as "逾期未完成" (overdue not completed) when server time passes 24:00 on the due date AND the instance has not been checked in.
 
 #### Scenario: Homework still checkable on the due date
 - **WHEN** a homework task's due date is Oct 27, server time is 22:00 Oct 27, and the instance is not checked in
@@ -58,15 +58,15 @@ The system SHALL mark a homework task event instance as "逾期未完成" (overd
 
 ### Requirement: No Makeup Check-in After Terminal State
 
-The system SHALL NOT allow check-in for any event instance in a terminal state (已结束 / 未完成 / 逾期未完成 / 已取消).
+The system SHALL NOT allow check-in for any schedule instance in a terminal state (已结束 / 未完成 / 逾期未完成 / 已取消).
 
 #### Scenario: Terminal state blocks check-in
-- **WHEN** an event instance is in any terminal state (已结束 / 未完成 / 逾期未完成 / 已取消)
+- **WHEN** a schedule instance is in any terminal state (已结束 / 未完成 / 逾期未完成 / 已取消)
 - **THEN** the check-in API SHALL return `canCheckin: false, reason: "TERMINAL_STATE"`. The frontend SHALL NOT display any check-in button, only the terminal state text.
 
 #### Scenario: Parent attempts recovery via editing
 - **WHEN** a parent attempts to use the edit function for a historical instance
-- **THEN** the backend SHALL prevent editing the time of a historical instance to a future date. If recovery is needed, the parent SHALL use manual operations (edit event or contact support).
+- **THEN** the backend SHALL prevent editing the time of a historical instance to a future date. If recovery is needed, the parent SHALL use manual operations (edit schedule or contact support).
 
 ### Requirement: Server Time as Source of Truth
 
@@ -82,7 +82,7 @@ The system SHALL use server time for all time-based decisions (check-in window, 
 
 ### Requirement: Undo Check-in Before Settlement
 
-The system SHALL allow undoing a check-in when the event instance is in "已完成" status AND the check-in time window is still open. Undoing SHALL delete the check-in record and revert the instance status to "未完成".
+The system SHALL allow undoing a check-in when the schedule instance is in "已完成" status AND the check-in time window is still open. Undoing SHALL delete the check-in record and revert the instance status to "未完成".
 
 #### Scenario: Undo check-in within time window
 - **WHEN** a user has checked in a routine "练琴", the instance status is "已完成", and the current time is before 24:00 on the same day (time window still open)
@@ -106,20 +106,20 @@ The system SHALL allow undoing a check-in when the event instance is in "已完�
 
 ### Requirement: Check-in Record Creation
 
-The system SHALL create a check-in record when a user performs check-in. Each event instance SHALL have at most one check-in record.
+The system SHALL create a check-in record when a user performs check-in. Each schedule instance SHALL have at most one check-in record.
 
 #### Scenario: Successful check-in
-- **WHEN** a user (parent or child) performs check-in on an eligible event instance
-- **THEN** the system SHALL create a check-in record with: event instance ID, check-in user ID, server timestamp, operation source (parent/child). The event instance status SHALL change to "已完成".
+- **WHEN** a user (parent or child) performs check-in on an eligible schedule instance
+- **THEN** the system SHALL create a check-in record with: schedule instance ID, check-in user ID, server timestamp, operation source (parent/child). The schedule instance status SHALL change to "已完成".
 
 #### Scenario: Duplicate check-in (idempotent)
-- **WHEN** multiple users (parent and child) press check-in simultaneously on the same event instance
+- **WHEN** multiple users (parent and child) press check-in simultaneously on the same schedule instance
 - **THEN** the first request SHALL succeed (create record, status = "已完成"). Subsequent requests SHALL return `alreadyCheckedIn: true` (idempotent, no error).
 
 ### Requirement: Check-in Time Window Query
 
-The system SHALL provide an API to query the current check-in eligibility for an event instance without performing the check-in.
+The system SHALL provide an API to query the current check-in eligibility for a schedule instance without performing the check-in.
 
 #### Scenario: Query check-in window status
-- **WHEN** a user views an event detail page
+- **WHEN** a user views a schedule detail page
 - **THEN** the API SHALL return `{ canCheckin: boolean, canUndo: boolean, reason?: string, remainingSeconds?: number }` based on server time and instance state.

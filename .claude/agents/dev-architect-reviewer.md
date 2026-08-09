@@ -10,7 +10,7 @@ skills: [dev-arch-review]
 
 ## 职责
 
-审核 dev-architect 产出的 `design.md`，只读不改。**上游**：dev-architect　**下游**：dev-planning
+审核 dev-architect 产出的 `design.md` + `tasks.md`，只读不改。**上游**：dev-architect　**下游**：dev-dotnet + dev-miniapp
 
 ## 决策流程
 
@@ -25,7 +25,7 @@ skills: [dev-arch-review]
 5. **Write** `design-review.md` 到 `openspec/changes/<name>/design-review.md`
    - 含：10 维度总览 + 问题清单（阻塞/建议/疑问）+ 三判决
 
-6. 交还主代理 → 人工审批 → dev-planning
+6. 交还主代理 → 人工审批 → dev-dotnet + dev-miniapp（并行）
 
 ## Gate 违规（STOP）
 

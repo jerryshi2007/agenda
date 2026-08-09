@@ -1,7 +1,7 @@
 ---
 name: dev-planning
 description: 技术设计 design.md 完成后使用——将需求分解为 bite-sized tasks，产出 tasks.md 到 openspec/changes/<name>/。非平凡实现任务动手前使用。
-rules: [dev-code-quality, openspec-workflow]
+rules: [dev-code-quality, openspec-workflow, dev-miniapp-standards]
 ---
 
 # dev-planning · 研发计划
@@ -39,7 +39,7 @@ rules: [dev-code-quality, openspec-workflow]
 
 2. **读取编码规范**（约束 task 粒度与规范）
    - Read `rules/dev-dotnet-standards.md`
-   - Read `rules/dev-vue3-standards.md`
+   - Read `rules/dev-miniapp-standards.md`
    - Read `rules/dev-code-quality.md`
    - Read `rules/dev-security.md`
 
@@ -51,7 +51,7 @@ rules: [dev-code-quality, openspec-workflow]
    - **自带测试循环**——每个 task 描述中注明"完成后运行什么命令验证"
    - **无占位符**（遵循 `dev-code-quality` rule）——禁止 TBD、TODO、"类似 Task N"、"参考 XX 实现"
    - **有明确的输入/输出**——输入是什么（依赖哪个 task 的产出）、输出是什么（产生哪些文件）
-   - **标注负责 agent**——`.NET 后端` → `dev-dotnet`，`Vue 3 前端` → `dev-vue3`
+   - **标注负责 agent**——`.NET 后端` → `dev-dotnet`，`小程序前端` → `dev-miniapp`
    - **标注上层依赖**——此 task 依赖哪些 task 先完成
 
    task 模板：
@@ -59,7 +59,7 @@ rules: [dev-code-quality, openspec-workflow]
    ```markdown
    ### Task N: <简短描述>
 
-   - **负责 agent**：`dev-dotnet` / `dev-vue3`
+   - **负责 agent**：`dev-dotnet` / `dev-miniapp`
    - **依赖**：Task N-1, Task N-2（无依赖则写"无"）
    - **输入**：<依赖 task 产出的文件/接口>
    - **产出文件**：

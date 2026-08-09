@@ -100,7 +100,7 @@ description: 小程序 UI 标准与原型规范——出小程序原型或实现
 ## 示例
 
 ### UI 组件
-- ✅ `<van-dialog data-id="event-cancel-dialog" show="{{ showCancelDialog }}" title="取消日程" message="确定要取消本次日程吗？" show-cancel-button bind:confirm="onConfirmCancel" />` — 使用组件库弹窗，加 data-id
+- ✅ `<van-dialog data-id="schedule-cancel-dialog" show="{{ showCancelDialog }}" title="取消日程" message="确定要取消本次日程吗？" show-cancel-button bind:confirm="onConfirmCancel" />` — 使用组件库弹窗，加 data-id
 - ❌ `<view class="modal"><view class="modal-mask"><view class="modal-content">...` — 手写弹窗，组件库已有
 
 ### 设计令牌

@@ -95,7 +95,7 @@ agenda/
 │   │   ├── Entities/
 │   │   │   ├── User.cs                     # 已有
 │   │   │   ├── Checkin.cs                  # NEW
-│   │   │   └── Event.cs                    # 后续（Event 模块定义，Checkin 通过 ID 引用）
+│   │   │   └── Schedule.cs                    # 后续（Schedule 模块定义，Checkin 通过 ID 引用）
 │   │   └── Enums/
 │   │       ├── UserStatus.cs
 │   │       └── EventType.cs                # NEW（课后活动/日常作息/作业任务）
@@ -125,16 +125,16 @@ agenda/
 | 上下文 | 聚合根 | 模块目录 | 本模块关系 |
 |--------|--------|---------|-----------|
 | Auth（认证） | User | `api/Auth/` | 提供 userId（JWT 中解析） |
-| Event（日程） | Event | 后续模块 | 提供 eventId + eventType + startTime/endTime，本模块通过 ID 弱引用 |
+| Schedule（日程） | Schedule | 后续模块 | 提供 scheduleId + eventType + startTime/endTime，本模块通过 ID 弱引用 |
 | **Checkin（打卡）** | **Checkin** | `api/Checkin/` | **本模块新建** |
-| Family（家庭） | Family | 后续模块 | 数据隔离（familyId 来自 Event） |
+| Family（家庭） | Family | 后续模块 | 数据隔离（familyId 来自 Schedule） |
 
 **跨上下文交互规则**：
-- Checkin 通过 `eventId` + `date` 引用 Event，不直接持有 Event 实体引用
+- Checkin 通过 `scheduleId` + `date` 引用 Schedule，不直接持有 Schedule 实体引用
 - Checkin 通过 JWT 中解析的 `userId` 识别当前用户
-- 打卡时间窗口判定需查询 Event 的类型/时间信息——通过 `IEventQueryService` 接口获取（Event 模块提供，本模块定义接口契约）
-- 数据隔离：Checkin 查询时，通过 Event -> Family 链确保家庭隔离
-- **多孩子模型假设**：Checkin 模块假定 Event 模块采用"一个日程记录对应一个孩子"模型（`AssignedChildId` 单数），`UNIQUE(EventId, Date)` 约束依赖此假设。若 Event 模块改为多孩子共享单一日程记录，则 Checkin 的 UNIQUE 约束须调整为 `(EventId, ChildId, Date)`。需求 `module-event.md` §4.1 支持多选孩子，此假设需在 Event 模块设计中确认对齐。
+- 打卡时间窗口判定需查询 Schedule 的类型/时间信息——通过 `IScheduleQueryService` 接口获取（Schedule 模块提供，本模块定义接口契约）
+- 数据隔离：Checkin 查询时，通过 Schedule -> Family 链确保家庭隔离
+- **多孩子模型假设**：Checkin 模块假定 Schedule 模块采用"一个日程记录对应一个孩子"模型（`AssignedChildId` 单数），`UNIQUE(ScheduleId, Date)` 约束依赖此假设。若 Schedule 模块改为多孩子共享单一日程记录，则 Checkin 的 UNIQUE 约束须调整为 `(ScheduleId, ChildId, Date)`。需求 `module-event.md` §4.1 支持多选孩子，此假设需在 Schedule 模块设计中确认对齐。
 
 #### 数据库策略
 
@@ -145,15 +145,15 @@ agenda/
 
 ### 2. ADR 决策记录
 
-#### ADR-010: 打卡记录存储 -- 虚拟实例模式（EventId + Date 复合键）
+#### ADR-010: 打卡记录存储 -- 虚拟实例模式（ScheduleId + Date 复合键）
 
-- **Context**: 日程是重复的（按周重复），需要为每个具体日期的日程记录打卡状态。传统做法是预生成实例表（EventInstance），但这会增加维护成本和存储开销。
-- **Decision**: 首期采用**虚拟实例模式**——不建 EventInstance 表，打卡记录以 `(EventId, Date)` 为复合唯一键直接关联。打卡时前端传入 `eventId` + 当天日期 `date`，后端根据 Event 的时间信息计算时间窗口。实例状态由 Event 的取消记录（Cancellation 表，由 Event 模块定义）+ Checkin 记录 + 结算状态联合判定。
+- **Context**: 日程是重复的（按周重复），需要为每个具体日期的日程记录打卡状态。传统做法是预生成实例表（ScheduleInstance），但这会增加维护成本和存储开销。
+- **Decision**: 首期采用**虚拟实例模式**——不建 ScheduleInstance 表，打卡记录以 `(ScheduleId, Date)` 为复合唯一键直接关联。打卡时前端传入 `scheduleId` + 当天日期 `date`，后端根据 Schedule 的时间信息计算时间窗口。实例状态由 Schedule 的取消记录（Cancellation 表，由 Schedule 模块定义）+ Checkin 记录 + 结算状态联合判定。
 - **Consequences**:
   - Positive: 无实例预生成开销、表结构简单、查询直接走复合索引、无实例同步问题
-  - Negative: 打卡窗口判定需额外查询 Event 表获取时间信息（一次 JOIN，性能可接受）；未来如需回查"某天有哪些日程实例"，需联表计算（二期可考虑物化视图或预生成实例表）
+  - Negative: 打卡窗口判定需额外查询 Schedule 表获取时间信息（一次 JOIN，性能可接受）；未来如需回查"某天有哪些日程实例"，需联表计算（二期可考虑物化视图或预生成实例表）
 - **Alternatives Considered**:
-  - 预生成 EventInstance 表：每晚生成未来 7 天实例，数据完整性好但增加维护复杂度（编辑日程需同步更新未来实例）
+  - 预生成 ScheduleInstance 表：每晚生成未来 7 天实例，数据完整性好但增加维护复杂度（编辑日程需同步更新未来实例）
   - 物化视图：PostgreSQL 物化视图自动维护实例投影，但 EF Core 支持有限
 - **Status**: Accepted
 - **Date**: 2026-08-08
@@ -176,7 +176,7 @@ agenda/
 #### ADR-012: 打卡幂等性 -- 数据库唯一约束 + 业务层判断
 
 - **Context**: 多端同时打卡（家长+孩子同时点击）需保证幂等——首次请求成功，后续返回"已完成"而非报错。
-- **Decision**: 数据库层设置唯一约束 `UNIQUE (EventId, Date)` 防止重复写。业务层在写入前先查询 Checkin 是否存在：已存在 → 返回 `alreadyCheckedIn: true`（200 OK，非 409 冲突）；不存在 → INSERT。两者结合保证并发安全。
+- **Decision**: 数据库层设置唯一约束 `UNIQUE (ScheduleId, Date)` 防止重复写。业务层在写入前先查询 Checkin 是否存在：已存在 → 返回 `alreadyCheckedIn: true`（200 OK，非 409 冲突）；不存在 → INSERT。两者结合保证并发安全。
 - **Consequences**:
   - Positive: 数据库唯一约束是最可靠的最后防线；业务层提前判断避免无效写和异常日志噪音；幂等返回 200（非 409）让前端统一处理
   - Negative: 每次打卡多一次 SELECT（可用 INSERT ... ON CONFLICT 优化为单次 SQL）
@@ -189,10 +189,10 @@ agenda/
 #### ADR-013: 打卡时间窗口判定 -- 服务端统一计算
 
 - **Context**: 打卡窗口依赖日程类型、开始时间、结束时间、截止日期等参数，需确定判定逻辑的执行位置。
-- **Decision**: 时间窗口判定在服务端 `CheckinService.CanCheckinAsync(eventId, date, serverTime)` 中统一计算。前端仅做乐观预判（客户端时间预判窗口 + 倒计时），以减少无效请求，但最终判定以服务端为准。客户端时间偏差 > 5 分钟时，前端展示 serverTime 而非 clientTime。
+- **Decision**: 时间窗口判定在服务端 `CheckinService.CanCheckinAsync(scheduleId, date, serverTime)` 中统一计算。前端仅做乐观预判（客户端时间预判窗口 + 倒计时），以减少无效请求，但最终判定以服务端为准。客户端时间偏差 > 5 分钟时，前端展示 serverTime 而非 clientTime。
 - **Consequences**:
   - Positive: 判定逻辑集中、可测试、不受客户端时钟偏差影响；前端乐观 UI 优化体验（提前窗口灰色按钮 + 倒计时无需每次都调 API）
-  - Negative: 前端需单独请求获取窗口状态（`GET /api/v1/checkin/window/{eventId}/{date}`），增加一次网络调用
+  - Negative: 前端需单独请求获取窗口状态（`GET /api/v1/checkin/window/{scheduleId}/{date}`），增加一次网络调用
 - **Alternatives Considered**:
   - 前端计算窗口：必须依赖服务器时间，需额外 API 获取 serverTime，且多端逻辑重复
   - 仅打卡时判定（不提前展示状态）：用户体验差，看不到倒计时和灰显提示
@@ -210,15 +210,15 @@ agenda/
 |                            Checkin                                   |
 +----------------------------------------------------------------------+
 |  Id          : long          PK, auto-increment                      |
-|  EventId     : Guid          NOT NULL, INDEXED (FK -> Event 模块)     |
+|  ScheduleId     : Guid          NOT NULL, INDEXED (FK -> Schedule 模块)     |
 |  Date        : DateOnly       NOT NULL, INDEXED                      |
 |  UserId      : Guid          NOT NULL, INDEXED (FK -> User)          |
 |  CheckinAt   : DateTimeOffset NOT NULL (server time)                 |
 |  Source      : CheckinSource  NOT NULL (Parent / Child)               |
 |  CreatedAt   : DateTimeOffset NOT NULL                               |
 +----------------------------------------------------------------------+
-|  UNIQUE: (EventId, Date)  -- 每个日程每天最多一条打卡记录             |
-|  INDEX: (EventId, Date)   -- 按日程+日期查询打卡状态                  |
+|  UNIQUE: (ScheduleId, Date)  -- 每个日程每天最多一条打卡记录             |
+|  INDEX: (ScheduleId, Date)   -- 按日程+日期查询打卡状态                  |
 |  INDEX: (UserId)          -- 按用户查询打卡历史                      |
 |                                                                      |
 |  CheckinSource enum: { Parent, Child }                               |
@@ -228,14 +228,14 @@ agenda/
   - 打卡 = 创建记录
   - 撤销 = 删除记录（物理删除，而非软删除标记）
   - 撤销后若窗口仍开放，可重新打卡（新记录）
-  - 已结算的实例：Checkin 表无记录 + Event/Cancellation 状态 = 终态
+  - 已结算的实例：Checkin 表无记录 + Schedule/Cancellation 状态 = 终态
 ```
 
-**依赖实体（Event 模块，本模块通过 ID 引用）**
+**依赖实体（Schedule 模块，本模块通过 ID 引用）**
 
 ```
 +----------------------------------------------------------------------+
-|                    Event（日程，来自 Event 模块）                      |
+|                    Schedule（日程，来自 Schedule 模块）                      |
 +----------------------------------------------------------------------+
 |  Id          : Guid (PK)                                             |
 |  Name        : string                                                |
@@ -252,15 +252,15 @@ agenda/
 +----------------------------------------------------------------------+
 
 +----------------------------------------------------------------------+
-|              Cancellation（取消记录，来自 Event 模块）                  |
+|              Cancellation（取消记录，来自 Schedule 模块）                  |
 +----------------------------------------------------------------------+
 |  Id          : long (PK)                                             |
-|  EventId     : Guid (FK -> Event)                                   |
+|  ScheduleId     : Guid (FK -> Schedule)                                   |
 |  CancelDate  : DateOnly                                              |
 |  CancelledBy : Guid (FK -> User)                                    |
 |  CancelledAt : DateTimeOffset                                        |
 +----------------------------------------------------------------------+
-|  UNIQUE: (EventId, CancelDate)                                       |
+|  UNIQUE: (ScheduleId, CancelDate)                                       |
 +----------------------------------------------------------------------+
 ```
 
@@ -269,12 +269,12 @@ agenda/
 后端 `CheckinService` 通过三个数据源联合推导实例状态：
 
 ```
-给定 (eventId, date, serverTime):
+给定 (scheduleId, date, serverTime):
 
-1. 查 Checkin: WHERE EventId = @eventId AND Date = @date
+1. 查 Checkin: WHERE ScheduleId = @scheduleId AND Date = @date
    → 存在 → 实例状态 = "已完成"
 
-2. 查 Cancellation: WHERE EventId = @eventId AND CancelDate = @date
+2. 查 Cancellation: WHERE ScheduleId = @scheduleId AND CancelDate = @date
    → 存在 + 无 Checkin 记录 → 实例状态 = "已取消"
    （若同时存在 Checkin + Cancellation（先打卡后取消），步骤 1 先行命中返回"已完成"）
 
@@ -296,7 +296,7 @@ agenda/
 
 ```
 +----------+         +---------------+
-|   User   |         |     Event     |
+|   User   |         |     Schedule     |
 |          |         |               |
 |  Id (PK) |         |  Id (PK)      |
 +----------+         |  EventType    |
@@ -316,7 +316,7 @@ agenda/
 | Checkin  |         | Cancellation  |
 |          |         |               |
 | Id (PK)  |         | Id (PK)       |
-| EventId  |--FK     | EventId       |--FK
+| ScheduleId  |--FK     | ScheduleId       |--FK
 | Date     |         | CancelDate    |
 | UserId   |--FK     | CancelledBy   |--FK
 | CheckinAt|         | CancelledAt   |
@@ -329,18 +329,18 @@ agenda/
 | 关系 | 基数 | 推导来源 |
 |------|:----:|---------|
 | User -- Checkin | 1 : N | 一个用户可进行多次打卡（US 未限制） |
-| Event -- Checkin | 1 : N | 每个日程每天一条打卡记录（US-CHK-01），一个日程多个日期多条记录 |
-| Event -- Cancellation | 1 : N | 一个日程可被取消多次（不同日期），US-CHK-07 提到周三取消 |
-| Checkin (EventId, Date) | UNIQUE | BE-05 多端同时打卡防重 |
+| Schedule -- Checkin | 1 : N | 每个日程每天一条打卡记录（US-CHK-01），一个日程多个日期多条记录 |
+| Schedule -- Cancellation | 1 : N | 一个日程可被取消多次（不同日期），US-CHK-07 提到周三取消 |
+| Checkin (ScheduleId, Date) | UNIQUE | BE-05 多端同时打卡防重 |
 
 #### 级联规则
 
 | 操作 | 规则 |
 |------|------|
-| 删除 Event | 打卡记录保留（BE-11：历史打卡记录保留，已删除日程不参与后续统计）。通过 Event.IsDeleted 软删除实现，不级联物理删除 Checkin。 |
-| 取消 Event 实例 | 不影响已有 Checkin 记录。取消是创建 Cancellation 记录，不删除 Checkin。"先打卡后取消"的实例视作已完成（状态推导步骤 1 先行命中 Checkin）。 |
-| 编辑 Event 时间 | 仅影响未来实例（BE-10：历史实例统计不受影响）。Checkin 记录以打卡时的服务器时间为准（BE-22）。 |
-| 孩子从家庭移除 | 保留历史 Checkin 记录（BE-12：历史统计可查询）。通过 Event.FamilyId 路径阻断未来查询。 |
+| 删除 Schedule | 打卡记录保留（BE-11：历史打卡记录保留，已删除日程不参与后续统计）。通过 Schedule.IsDeleted 软删除实现，不级联物理删除 Checkin。 |
+| 取消 Schedule 实例 | 不影响已有 Checkin 记录。取消是创建 Cancellation 记录，不删除 Checkin。"先打卡后取消"的实例视作已完成（状态推导步骤 1 先行命中 Checkin）。 |
+| 编辑 Schedule 时间 | 仅影响未来实例（BE-10：历史实例统计不受影响）。Checkin 记录以打卡时的服务器时间为准（BE-22）。 |
+| 孩子从家庭移除 | 保留历史 Checkin 记录（BE-12：历史统计可查询）。通过 Schedule.FamilyId 路径阻断未来查询。 |
 
 ### 4. API 契约
 
@@ -350,19 +350,19 @@ agenda/
 
 | 方法 | 路径 | 认证 | 说明 |
 |------|------|:--:|------|
-| GET | `/api/v1/checkin/window/{eventId}/{date}` | 是 | 查询打卡窗口状态（canCheckin / canUndo / reason） |
+| GET | `/api/v1/checkin/window/{scheduleId}/{date}` | 是 | 查询打卡窗口状态（canCheckin / canUndo / reason） |
 | POST | `/api/v1/checkin` | 是 | 执行打卡（创建 Checkin 记录） |
-| DELETE | `/api/v1/checkin/{eventId}/{date}` | 是 | 撤销打卡（删除 Checkin 记录） |
+| DELETE | `/api/v1/checkin/{scheduleId}/{date}` | 是 | 撤销打卡（删除 Checkin 记录） |
 
 #### 请求/响应形状
 
 **查询打卡窗口状态：**
 ```
-GET /api/v1/checkin/window/{eventId}/{date}
+GET /api/v1/checkin/window/{scheduleId}/{date}
 
 Response:
 {
-  "eventId": "guid",
+  "scheduleId": "guid",
   "date": "2026-10-27",
   "canCheckin": true,
   "canUndo": false,
@@ -375,7 +375,7 @@ Response:
 
 -- or 提前窗口未开放 --
 {
-  "eventId": "guid",
+  "scheduleId": "guid",
   "date": "2026-10-27",
   "canCheckin": false,
   "canUndo": false,
@@ -388,7 +388,7 @@ Response:
 
 -- or 已完成 --
 {
-  "eventId": "guid",
+  "scheduleId": "guid",
   "date": "2026-10-27",
   "canCheckin": false,
   "canUndo": true,
@@ -401,7 +401,7 @@ Response:
 
 -- or 终态 "已结束" --
 {
-  "eventId": "guid",
+  "scheduleId": "guid",
   "date": "2026-10-27",
   "canCheckin": false,
   "canUndo": false,
@@ -414,7 +414,7 @@ Response:
 
 -- or 终态 "逾期未完成" --
 {
-  "eventId": "guid",
+  "scheduleId": "guid",
   "date": "2026-10-27",
   "canCheckin": false,
   "canUndo": false,
@@ -425,7 +425,7 @@ Response:
   "serverTime": "2026-10-28T00:01:00+08:00"
 }
 
-Errors: 401 (token invalid/expired), 404 (event not found), 403 (not event participant)
+Errors: 401 (token invalid/expired), 404 (schedule not found), 403 (not schedule participant)
 ```
 
 **执行打卡：**
@@ -434,14 +434,14 @@ POST /api/v1/checkin
 
 Request:
 {
-  "eventId": "guid",
+  "scheduleId": "guid",
   "date": "2026-10-27"
 }
 
 Response (成功):
 {
   "checkinId": 42,
-  "eventId": "guid",
+  "scheduleId": "guid",
   "date": "2026-10-27",
   "checkinAt": "2026-10-27T16:05:32+08:00",
   "source": "parent"
@@ -450,24 +450,24 @@ Response (成功):
 Response (幂等, 已打卡):
 {
   "checkinId": 42,
-  "eventId": "guid",
+  "scheduleId": "guid",
   "date": "2026-10-27",
   "alreadyCheckedIn": true,
   "checkinAt": "2026-10-27T16:05:32+08:00"
 }
 
 Errors: 400 (CHECKIN_WINDOW_CLOSED / TERMINAL_STATE),
-        401, 403, 404 (event not found),
-        422 (event is cancelled on this date)
+        401, 403, 404 (schedule not found),
+        422 (schedule is cancelled on this date)
 ```
 
 **撤销打卡：**
 ```
-DELETE /api/v1/checkin/{eventId}/{date}
+DELETE /api/v1/checkin/{scheduleId}/{date}
 
 Response (成功):
 {
-  "eventId": "guid",
+  "scheduleId": "guid",
   "date": "2026-10-27",
   "undone": true,
   "status": "incomplete"
@@ -497,7 +497,7 @@ Errors: 400 (TERMINAL_STATE / WINDOW_CLOSED / NOT_CHECKED_IN), 401, 403
 | HTTP Status | 错误码 | 处理方式 |
 |:--:|------|------|
 | 401 | `TOKEN_INVALID` / `TOKEN_EXPIRED` | 由 auth-module JWT 中间件统一拦截，前端 `services/api.js` 拦截器自动续期或跳登录页。后端 Checkin API 无需额外处理。 |
-| 403 | `NOT_EVENT_PARTICIPANT` / `NOT_FAMILY_MEMBER` | 由 `CheckinService` 查询 Event.FamilyId → 与当前用户所属家庭比对 → 不匹配则返回 403。403 错误不单独建时序图，由异常中间件统一处理。 |
+| 403 | `NOT_EVENT_PARTICIPANT` / `NOT_FAMILY_MEMBER` | 由 `CheckinService` 查询 Schedule.FamilyId → 与当前用户所属家庭比对 → 不匹配则返回 403。403 错误不单独建时序图，由异常中间件统一处理。 |
 | 422 | `EVENT_CANCELLED` | 日程在该日期已被取消，前端 Toast "该日程已取消"，打卡按钮不显示。 |
 
 #### 安全约束
@@ -517,8 +517,8 @@ Errors: 400 (TERMINAL_STATE / WINDOW_CLOSED / NOT_CHECKED_IN), 401, 403
 pages/event-detail/index.js
     │
     │ onShow() / onLoad():
-    │   1. 获取 eventId + date（从 URL 参数）
-    │   2. 调用 GET /api/v1/checkin/window/{eventId}/{date}
+    │   1. 获取 scheduleId + date（从 URL 参数）
+    │   2. 调用 GET /api/v1/checkin/window/{scheduleId}/{date}
     │   3. 根据返回的 { canCheckin, canUndo, status, remainingSeconds }
     │      更新按钮状态
     │
@@ -550,9 +550,9 @@ pages/event-detail/index.js
 app/services/checkin.js
 
 模块功能:
-  - getCheckinWindow(eventId, date)
-  - doCheckin(eventId, date)
-  - undoCheckin(eventId, date)
+  - getCheckinWindow(scheduleId, date)
+  - doCheckin(scheduleId, date)
+  - undoCheckin(scheduleId, date)
 
 错误处理: 401 由 services/api.js 统一拦截器处理续期
 ```
@@ -577,7 +577,7 @@ app/services/checkin.js
 
 ```
 页面 onShow
-  → GET /checkin/window/{eventId}/{date}
+  → GET /checkin/window/{scheduleId}/{date}
   → { canCheckin, canUndo, status, remainingSeconds }
   → 按钮状态机：可点击 / 灰色倒计时 / 撤销 / 不显示
 
@@ -597,7 +597,7 @@ app/services/checkin.js
  |------------------>|                                |                          |
  |                   |-- GET /checkin/window/{id}/{date}                         |
  |                   |------------------------------->|                          |
- |                   |                                |-- Query Event            |
+ |                   |                                |-- Query Schedule            |
  |                   |                                |-- Query Checkin (not found)
  |                   |                                |-- Query Cancellation (not found)
  |                   |                                |-- serverTime 判定        |
@@ -607,7 +607,7 @@ app/services/checkin.js
  |                   |                                |                          |
  |  点击打卡          |                                |                          |
  |------------------>|                                |                          |
- |                   |-- POST /checkin {eventId,date} |                          |
+ |                   |-- POST /checkin {scheduleId,date} |                          |
  |                   |------------------------------->|                          |
  |                   |                                |-- 校验 + INSERT Checkin |
  |                   |  <-- 200 {checkinId, ...}      |                          |
@@ -619,7 +619,7 @@ app/services/checkin.js
 ```
 小程序前端                        Backend API
  |                                |
- |-- POST /checkin {eventId,date} |
+ |-- POST /checkin {scheduleId,date} |
  |------------------------------->|
  |                                |-- 课后活动 endTime+2h < serverTime
  |  <-- 400 WINDOW_CLOSED        |
@@ -632,7 +632,7 @@ app/services/checkin.js
 ```
 家长手机                          后端 API                        孩子手机
  |                                |                                |
- |-- POST /checkin {eventId,date} |                                |
+ |-- POST /checkin {scheduleId,date} |                                |
  |------------------------------->|                                |
  |                                |-- SELECT → not found           |
  |                                |-- INSERT → 成功 (id=42)       |
@@ -702,9 +702,9 @@ Hangfire Scheduler                    SettlementJob                    DB
  │  "5 0 * * *"                        |                              |
  |=====================================>|                              |
  |                                      |                              |
- |                                      |-- Query Events (yesterday)  |
+ |                                      |-- Query Schedules (yesterday)  |
  |                                      |----------------------------->|
- |                                      |<--- event list              |
+ |                                      |<--- schedule list              |
  |                                      |                              |
  |                                      |-- FOR EACH child:           |
  |                                      |   Per-child transaction     |
@@ -781,11 +781,11 @@ public class SettlementJob
 
         _logger.LogInformation("Settlement started for {Date}", yesterday);
 
-        var events = await _dbContext.Events
+        var schedules = await _dbContext.Schedules
             .Where(e => !e.IsDeleted && e.FamilyId != null)
             .ToListAsync(ct);
 
-        foreach (var childGroup in events.GroupBy(e => e.AssignedChildId))
+        foreach (var childGroup in schedules.GroupBy(e => e.AssignedChildId))
         {
             using var tx = await _dbContext.Database
                 .BeginTransactionAsync(ct);
@@ -832,11 +832,11 @@ public class SettlementJob
 
 | # | 风险 | 影响 | 可能性 | 缓解措施 |
 |---|------|------|:--:|---------|
-| R1 | 打卡窗口计算依赖 Event 表 JOIN，高频查询可能产生性能瓶颈 | 中 | 低 | 虚拟实例模式避免了实例预生成开销；Checkin 窗口仅需一次 Event + Checkin + Cancellation 三表查询，索引覆盖（EventId+Date），单次 < 50ms |
+| R1 | 打卡窗口计算依赖 Schedule 表 JOIN，高频查询可能产生性能瓶颈 | 中 | 低 | 虚拟实例模式避免了实例预生成开销；Checkin 窗口仅需一次 Schedule + Checkin + Cancellation 三表查询，索引覆盖（ScheduleId+Date），单次 < 50ms |
 | R2 | 结算任务多实例并发执行导致数据不一致 | 高 | 低 | Hangfire Server `WorkerCount=1` 保证单 worker 执行；即使多实例，每个实例的 Hangfire Server 各跑独立 worker pool，Recurring Job 由 Hangfire 内置机制保证同一时刻只有一个实例执行（通过 DB 轮询锁） |
 | R3 | 服务器时钟偏差导致结算触发时机不准确 | 低 | 低 | Hangfire Cron 使用配置的时区（`China Standard Time`），服务器 NTP 时间同步 |
 | R4 | 撤销与结算竞态（23:59:50 撤销，00:05 结算） | 中 | 低 | CHECK-DO 模式：Checkin 记录物理删除 + 结算时 SELECT 当前状态 = 最终一致。无"中间态"问题。详见时序 6。 |
-| R5 | Event 模块未实现时 Checkin 模块无法独立测试 | 高 | 高 | `IEventQueryService` Mock 实现可返回硬编码 Event 数据 |
+| R5 | Schedule 模块未实现时 Checkin 模块无法独立测试 | 高 | 高 | `IScheduleQueryService` Mock 实现可返回硬编码 Schedule 数据 |
 | R6 | 课后活动"已结束"即时判定与结算任务冲突 | 低 | 低 | 课后活动由查询 API 即时判定，结算任务不做额外处理 |
 | R7 | 客户端倒计时不准确（页面切后台后 setInterval 暂停） | 中 | 中 | 小程序 `onShow` 时重新调用窗口查询 API 刷新；`onHide`/`onUnload` 中 `clearInterval` 清除定时器防止内存泄漏（遵循 dev-miniapp-standards） |
 | R8 | 打卡按钮交互逻辑复杂 | 低 | 低 | 封装为独立 `checkin-status.js` 工具模块 |
@@ -846,7 +846,7 @@ public class SettlementJob
 
 | 权衡 | 选择 | 代价 |
 |------|------|------|
-| 虚拟实例模式 vs 预生成实例表 | 虚拟实例（EventId+Date 复合键） | 终态判定需联表查询 |
+| 虚拟实例模式 vs 预生成实例表 | 虚拟实例（ScheduleId+Date 复合键） | 终态判定需联表查询 |
 | 首期结算任务最小化 vs 完整结算 | 最小化：终态查询实时计算，Hangfire Job 仅建骨架 | 二期需在骨架中填充连续更新逻辑 |
 | 撤销 = 物理删除 vs 软删除 | 物理删除 Checkin 记录 | 无法追溯撤销历史 |
 | Hangfire vs BackgroundService | Hangfire（内置重试 + Dashboard + 持久化存储） | 增加 NuGet 依赖 + 需配置 Dashboard 访问控制 |
@@ -859,11 +859,11 @@ public class SettlementJob
 
 | 模块/Story | 后端 Task | 前端 Task | 集成 Task |
 |------------|----------|----------|----------|
-| 打卡窗口判定 API | CheckinService、GET /checkin/window 端点、IEventQueryService 接口定义、Event 最小化骨架 | services/checkin.js、event-detail 按钮状态查询 | 联调窗口查询 |
+| 打卡窗口判定 API | CheckinService、GET /checkin/window 端点、IScheduleQueryService 接口定义、Schedule 最小化骨架 | services/checkin.js、event-detail 按钮状态查询 | 联调窗口查询 |
 | 打卡执行 API | POST /checkin 端点（幂等处理）、Checkin 实体 + 迁移 | event-detail 打卡按钮交互（四种状态） | 联调打卡全流程 |
 | 撤销打卡 API | DELETE /checkin 端点（终态检测） | event-detail 撤销按钮交互 | 联调撤销全流程 |
 | 结算任务 | SettlementJob（Hangfire 调度）、HangfireConfiguration（存储 + Dashboard + Cron 注册） | 无 | 验证定时触发 + Dashboard |
-| 跨模块接口 | IEventQueryService 接口定义在 Checkin/ 中 | 无 | Event 模块后续实现 |
+| 跨模块接口 | IScheduleQueryService 接口定义在 Checkin/ 中 | 无 | Schedule 模块后续实现 |
 
 ### 集成 Task 时机
 
@@ -876,7 +876,7 @@ public class SettlementJob
 
 - .NET 10 SDK、PostgreSQL 实例、微信小程序开发者工具
 - **关键依赖**：`api/Auth/` 模块的 JWT 中间件就绪
-- **关键依赖**：`api/Domain/Entities/Event.cs` 最小化骨架 + Cancellation.cs
+- **关键依赖**：`api/Domain/Entities/Schedule.cs` 最小化骨架 + Cancellation.cs
 - **定时任务依赖**：NuGet 包 Hangfire + Hangfire.Postgres
 - **Hangfire 存储**：PostgreSQL（Hangfire 自动建表，无需手动迁移）
 
@@ -884,9 +884,9 @@ public class SettlementJob
 
 | 方法 | 路径 | 用途 | 首期状态 |
 |------|------|------|:--:|
-| GET | `/api/v1/checkin/window/{eventId}/{date}` | 查询打卡窗口 | 实现 |
+| GET | `/api/v1/checkin/window/{scheduleId}/{date}` | 查询打卡窗口 | 实现 |
 | POST | `/api/v1/checkin` | 执行打卡 | 实现 |
-| DELETE | `/api/v1/checkin/{eventId}/{date}` | 撤销打卡 | 实现 |
+| DELETE | `/api/v1/checkin/{scheduleId}/{date}` | 撤销打卡 | 实现 |
 
 ---
 
@@ -894,7 +894,7 @@ public class SettlementJob
 
 | # | 问题 | 当前状态 | 建议 |
 |---|------|---------|------|
-| 1 | Event 模块开发时，IEventQueryService 由谁实现？ | Event 模块开发时需实现 | 首期用 Mock 实现 |
+| 1 | Schedule 模块开发时，IScheduleQueryService 由谁实现？ | Schedule 模块开发时需实现 | 首期用 Mock 实现 |
 | 2 | 首期结算任务是否写库？ | 决策为"不需要"，终态查询实时计算 | 若产品要求 DB 中需有明确终态标记，改为需写库 |
 | 3 | 打卡操作来源是否需要更细分？ | 需求已明确 Parent/Child | 已在 Checkin.Source 枚举中定义 |
 | 4 | 撤销打卡是否允许家长撤销孩子的打卡？ | 同一家庭成员即可操作 | 权限校验基于家庭隔离 |

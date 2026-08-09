@@ -55,7 +55,8 @@ dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quali
 - API 契约轮廓 + 前端架构 + 核心时序图（正常路径+异常分支）
 - 构建序列 + 风险与权衡
 
-### 8. 交接 dev-planning
+### 8. 生成实现任务
+调用 `dev-planning` skill（基于 design.md 拆解为 bite-sized tasks），产出 `openspec/changes/<name>/tasks.md`。交接 dev-dotnet + dev-miniapp：
 说明：模块→task 映射、集成 task 时机、前置依赖、风险提示
 
 ### 9. 自审
@@ -73,4 +74,4 @@ dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quali
 - **全栈视角**：前后端一起设计，API 契约是共同约定
 - **ER 从 spec 反推**：每个关系基数必须能从 spec scenario 验证
 - **时序覆盖异常分支**：不只画正常路径
-- **只设计不实现**：产出 design.md 后交接 dev-planning
+- **只设计不实现**：产出 design.md + tasks.md 后交接 dev-dotnet + dev-miniapp

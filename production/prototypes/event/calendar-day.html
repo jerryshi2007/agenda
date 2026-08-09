@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日历日视图 · 日程管理</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+
+    .cal-header { background: var(--color-bg-white); border-bottom: 1px solid var(--color-border-light); flex-shrink: 0; }
+
+    /* 日导航 */
+    .cal-day-nav {
+      display: flex; align-items: center; padding: 8px 16px; /* → 16rpx 32rpx */
+    }
+    .cal-day-nav-arrow {
+      width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+      font-size: 18px; color: var(--color-text-primary); cursor: pointer;
+      border-radius: var(--radius-round); flex-shrink: 0;
+    }
+    .cal-day-nav-arrow:active { background: var(--color-bg-page); }
+    .cal-day-date {
+      flex: 1; text-align: center; font-size: 16px; /* → 32rpx */
+      font-weight: 600; color: var(--color-text-primary); cursor: pointer;
+    }
+    .cal-day-weekday { font-size: 12px; /* → 24rpx */ color: var(--color-text-secondary); font-weight: normal; }
+    .cal-day-today {
+      font-size: 12px; color: var(--color-primary); border: 1px solid var(--color-primary);
+      border-radius: 12px; padding: 2px 10px; cursor: pointer; flex-shrink: 0;
+    }
+    .cal-day-today:active { background: var(--color-primary-light); }
+
+    .cal-view-toggle {
+      display: flex; margin: 0 16px 8px; border: 1px solid var(--color-border);
+      border-radius: 6px; overflow: hidden;
+    }
+    .cal-view-toggle-item {
+      flex: 1; text-align: center; padding: 6px 0; font-size: 13px;
+      cursor: pointer; color: var(--color-text-secondary);
+      background: var(--color-bg-white); border-right: 1px solid var(--color-border);
+    }
+    .cal-view-toggle-item:last-child { border-right: none; }
+    .cal-view-toggle-item.active { background: var(--color-primary); color: var(--color-text-white); }
+
+    .cal-filter {
+      display: flex; gap: 8px; padding: 0 16px 8px;
+    }
+    .cal-filter-item {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      height: 32px; font-size: 12px; color: var(--color-text-secondary);
+      background: var(--color-bg-page); border-radius: 4px; cursor: pointer; gap: 4px;
+    }
+    .cal-filter-item.active { color: var(--color-primary); background: var(--color-primary-light); }
+    .cal-filter-arrow { font-size: 10px; color: var(--color-text-placeholder); }
+
+    /* 日视图主体 — 时间线 */
+    /* → <scroll-view scroll-y enable-flex> */
+    .day-body {
+      flex: 1; overflow-y: auto; background: var(--color-bg-white);
+      padding: 0 16px; /* → 32rpx */
+    }
+
+    /* 时间线竖轴 */
+    /* 每小时 80px 高度, 06:00-22:00 = 1280px */
+    .timeline { position: relative; min-height: 1200px; /* → 2400rpx */ }
+
+    /* 时间标签 */
+    .timeline-hour {
+      position: absolute; left: 0; width: 100%;
+      display: flex; align-items: flex-start;
+      height: 80px; /* → 160rpx */
+    }
+
+    .timeline-hour-label {
+      width: 40px; /* → 80rpx */ flex-shrink: 0;
+      font-size: 11px; /* → 22rpx */ color: var(--color-text-placeholder);
+      line-height: 1; padding-top: 0;
+    }
+
+    .timeline-hour-line {
+      flex: 1; border-top: 1px solid var(--color-border-light);
+      margin-top: 0;
+    }
+
+    /* 日程卡片（在时间线上绝对定位） */
+    /* → wx:for="{{daySchedules}}" wx:key="id" */
+    .event-card {
+      position: absolute; left: 44px; /* → 88rpx (留出时间标签宽度) */
+      right: 0;
+      background: var(--color-bg-white);
+      border-radius: 8px; /* → 16rpx */
+      border: 1px solid var(--color-border);
+      border-left: 4px solid;
+      padding: 10px 12px; /* → 20rpx 24rpx */
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      z-index: 1;
+      transition: box-shadow var(--transition-fast);
+      overflow: hidden;
+    }
+
+    .event-card:active { background: var(--color-bg-page); }
+    .event-card:hover { box-shadow: var(--shadow-md); }
+
+    .event-card--activity { border-left-color: #10AEFF; }
+    .event-card--routine { border-left-color: #07C160; }
+    .event-card--homework { border-left-color: #FF9500; }
+    .event-card--cancelled { opacity: 0.5; }
+
+    .event-card-header {
+      display: flex; align-items: center; gap: 8px; /* → 16rpx */
+      margin-bottom: 4px; /* → 8rpx */
+    }
+
+    .event-card-time {
+      font-size: 13px; /* → 26rpx */ font-weight: 600;
+      color: var(--color-text-primary);
+    }
+
+    .event-card-status-tag {
+      font-size: 11px; /* → 22rpx */ padding: 1px 6px; border-radius: 4px;
+      margin-left: auto; flex-shrink: 0;
+    }
+
+    .event-card-status-tag--pending { background: #FFF3E0; color: #FF9500; }
+    .event-card-status-tag--done { background: #E8F8EF; color: #07C160; }
+    .event-card-status-tag--cancelled { background: var(--color-bg-page); color: var(--color-text-placeholder); }
+
+    .event-card-name {
+      font-size: 15px; /* → 30rpx */ font-weight: 500;
+      color: var(--color-text-primary);
+      margin-bottom: 6px; /* → 12rpx */
+    }
+
+    .event-card-name--cancelled { text-decoration: line-through; color: var(--color-text-placeholder); }
+
+    .event-card-meta {
+      display: flex; align-items: center; gap: 6px; /* → 12rpx */
+      flex-wrap: wrap; font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+    }
+
+    .event-card-type-tag {
+      font-size: 10px; /* → 20rpx */ padding: 1px 5px;
+      border-radius: 3px; /* → 6rpx */ flex-shrink: 0;
+    }
+    .event-card-type-tag--activity { background: #E3F2FD; color: #10AEFF; }
+    .event-card-type-tag--routine { background: #E8F8EF; color: #07C160; }
+    .event-card-type-tag--homework { background: #FFF3E0; color: #FF9500; }
+
+    .event-card-child {
+      display: flex; align-items: center; gap: 3px;
+    }
+    .event-card-child-avatar {
+      width: 18px; /* → 36rpx */ height: 18px; /* → 36rpx */
+      border-radius: 50%; font-size: 9px; color: var(--color-text-white);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+
+    .event-card-location {
+      display: flex; align-items: center; gap: 3px;
+    }
+
+    .event-card-note {
+      margin-top: 4px; /* → 8rpx */ font-size: 11px; /* → 22rpx */
+      color: var(--color-text-secondary);
+      font-style: italic;
+    }
+
+    /* 快捷打卡按钮 */
+    .event-card-checkin {
+      margin-top: 8px; /* → 16rpx */
+      display: flex; justify-content: flex-end;
+    }
+
+    .event-card-checkin-btn {
+      font-size: 12px; /* → 24rpx */ padding: 3px 12px; border-radius: 12px;
+      cursor: pointer; transition: all var(--transition-fast);
+      border: 1px solid;
+    }
+
+    .event-card-checkin-btn--pending {
+      color: #07C160; border-color: #07C160;
+      background: var(--color-bg-white);
+    }
+    .event-card-checkin-btn--pending:active { background: #E8F8EF; }
+
+    .event-card-checkin-btn--done {
+      color: var(--color-text-placeholder); border-color: var(--color-border);
+      background: var(--color-bg-page);
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('normal')">正常态</button>
+    <button onclick="showState('empty')">空态</button>
+    <button onclick="showState('loading')">Loading</button>
+    <button onclick="showState('error')">错误态</button>
+  </div>
+
+  <!-- ===== 状态 1: 正常态（孩子端默认视图）===== -->
+  <div id="state-normal" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <!-- 微信原生导航栏 -->
+      <!-- title: "日程" -->
+      <div class="nav-bar">
+        <span class="nav-bar-title">日程</span>
+      </div>
+
+      <div class="cal-header">
+        <!-- 日导航 -->
+        <div class="cal-day-nav">
+          <span class="cal-day-nav-arrow" data-id="calendar-day-prev" onclick="alert('【原型演示】前一天')">&#x2039;</span>
+          <!-- → <picker mode="date"> -->
+          <span class="cal-day-date" data-id="calendar-day-date" onclick="alert('【原型演示】弹出日期选择器')">
+            8月8日 <span class="cal-day-weekday">周六</span>
+          </span>
+          <span class="cal-day-nav-arrow" data-id="calendar-day-next" onclick="alert('【原型演示】后一天')">&#x203A;</span>
+          <span class="cal-day-today" data-id="calendar-day-today" onclick="alert('【原型演示】回到今天')">今天</span>
+        </div>
+
+        <!-- 视图切换 -->
+        <div class="cal-view-toggle">
+          <span class="cal-view-toggle-item" data-id="calendar-day-view-month" onclick="alert('【原型演示】切换月视图 calendar-month.html')">月</span>
+          <span class="cal-view-toggle-item" data-id="calendar-day-view-week" onclick="alert('【原型演示】切换周视图 calendar-week.html')">周</span>
+          <span class="cal-view-toggle-item active" data-id="calendar-day-view-day">日</span>
+        </div>
+
+        <!-- 筛选栏 -->
+        <div class="cal-filter">
+          <span class="cal-filter-item active" data-id="calendar-day-filter-child" onclick="alert('【原型演示】弹出孩子选择器')">全部孩子 <span class="cal-filter-arrow">&#x25BE;</span></span>
+          <span class="cal-filter-item" data-id="calendar-day-filter-type" onclick="alert('【原型演示】弹出类型选择器')">全部类型 <span class="cal-filter-arrow">&#x25BE;</span></span>
+        </div>
+      </div>
+
+      <!-- → <scroll-view scroll-y> -->
+      <div class="day-body">
+        <div class="timeline" style="height:1280px; /* → 2560rpx * 06:00-22:00, 80px/h */">
+          <!-- 时间标签行 06-22 -->
+          <div class="timeline-hour" style="top:0px;"><span class="timeline-hour-label">06:00</span><span class="timeline-hour-line"></span></div>
+          <div class="timeline-hour" style="top:80px;"><span class="timeline-hour-label">07:00</span><span class="timeline-hour-line"></span></div>
+          <div class="timeline-hour" style="top:160px;"><span class="timeline-hour-label">08:00</span><span class="timeline-hour-line"></span></div>
+          <div class="timeline-hour" style="top:240px;"><span class="timeline-hour-label">09:00</span><span class="timeline-hour-line"></span></div>
+          <div class="timeline-hour" style="top:320px;"><span class="timeline-hour-label">10:00</span><span class="timeline-hour-line"></span></div>
+          <div class="timeline-hour" style="top:400px;"><span class="timeline-hour-label">11:00</span><span class="timeline-hour-line"></span></div>
+          <div class="timeline-hour" style="top:480px;"><span class="timeline-hour-label">12:00</span><span class="timeline-hour-line"></span></div>
+          <div class="timeline-hour" style="top:560px;"><span class="timeline-hour-label">13:00</span><span class="timeline-hour-line"></span></div>
+          <div class="timeline-hour" style="top:640px;"><span class="timeline-hour-label">14:00</span><span class="timeline-hour-line"></span></div>
+          <div class="timeline-hour" style="top:720px;"><span class="timeline-hour-label">15:00</span><span class="timeline-hour-line"></span></div>
+          <div class="timeline-hour" style="top:800px;"><span class="timeline-hour-label">16:00</span><span class="timeline-hour-line"></span></div>
+          <div class="timeline-hour" style="top:880px;"><span class="timeline-hour-label">17:00</span><span class="timeline-hour-line"></span></div>
+          <div class="timeline-hour" style="top:960px;"><span class="timeline-hour-label">18:00</span><span class="timeline-hour-line"></span></div>
+          <div class="timeline-hour" style="top:1040px;"><span class="timeline-hour-label">19:00</span><span class="timeline-hour-line"></span></div>
+          <div class="timeline-hour" style="top:1120px;"><span class="timeline-hour-label">20:00</span><span class="timeline-hour-line"></span></div>
+          <div class="timeline-hour" style="top:1200px;"><span class="timeline-hour-label">21:00</span><span class="timeline-hour-line"></span></div>
+
+          <!-- 日程 1: 游泳课 10:00-11:30 (→ 320px-400px) 高度 80px -->
+          <div class="event-card event-card--activity" style="top:320px;height:90px;"
+               data-id="calendar-day-card-1" onclick="alert('【原型演示】点击卡片 → 跳转详情页 event/event-detail.html')">
+            <div class="event-card-header">
+              <span class="event-card-time">10:00 - 11:30</span>
+              <span class="event-card-status-tag event-card-status-tag--pending">未完成</span>
+            </div>
+            <div class="event-card-name">游泳课</div>
+            <div class="event-card-meta">
+              <span class="event-card-type-tag event-card-type-tag--activity">课后活动</span>
+              <span class="event-card-child">
+                <span class="event-card-child-avatar" style="background:#10AEFF;">明</span>小明
+              </span>
+              <span class="event-card-child">
+                <span class="event-card-child-avatar" style="background:#FF9500;">华</span>小华
+              </span>
+              <span style="color:var(--color-text-placeholder);">|</span>
+              <span class="event-card-location">市游泳馆 2楼</span>
+            </div>
+            <div class="event-card-note">记得带泳镜和泳帽</div>
+            <div class="event-card-checkin">
+              <!-- → 快捷打卡 (US-EVT-15) -->
+              <span class="event-card-checkin-btn event-card-checkin-btn--pending"
+                    data-id="calendar-day-card-1-checkin-btn"
+                    onclick="event.stopPropagation();alert('【原型演示】快捷打卡 → 状态变更为已完成')">&#x2713; 打卡确认</span>
+            </div>
+          </div>
+
+          <!-- 日程 2: 练琴 16:00-16:30 (→ 800px-820px) 高度 60px, 已完成 -->
+          <div class="event-card event-card--routine" style="top:800px;height:85px;"
+               data-id="calendar-day-card-2" onclick="alert('【原型演示】点击卡片 → 跳转详情页 event/event-detail.html')">
+            <div class="event-card-header">
+              <span class="event-card-time">16:00 - 16:30</span>
+              <span class="event-card-status-tag event-card-status-tag--done">已完成 &#x2713;</span>
+            </div>
+            <div class="event-card-name">练琴</div>
+            <div class="event-card-meta">
+              <span class="event-card-type-tag event-card-type-tag--routine">日常作息</span>
+              <span class="event-card-child">
+                <span class="event-card-child-avatar" style="background:#10AEFF;">明</span>小明
+              </span>
+            </div>
+            <div class="event-card-checkin">
+              <span class="event-card-checkin-btn event-card-checkin-btn--done"
+                    data-id="calendar-day-card-2-undo-btn"
+                    onclick="event.stopPropagation();alert('【原型演示】撤销打卡 → 状态变更为未完成')">撤销打卡</span>
+            </div>
+          </div>
+
+          <!-- 日程 3: 数学作业 截止 23:59, 已取消 -->
+          <div class="event-card event-card--homework event-card--cancelled" style="top:920px;height:70px;"
+               data-id="calendar-day-card-3" onclick="alert('【原型演示】点击卡片 → 跳转详情页 event/event-detail.html')">
+            <div class="event-card-header">
+              <span class="event-card-time">截止 23:59</span>
+              <span class="event-card-status-tag event-card-status-tag--cancelled">已取消</span>
+            </div>
+            <div class="event-card-name event-card-name--cancelled">数学练习册 P32-35</div>
+            <div class="event-card-meta">
+              <span class="event-card-type-tag event-card-type-tag--homework">作业任务</span>
+              <span class="event-card-child">
+                <span class="event-card-child-avatar" style="background:#FF9500;">华</span>小华
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 微信原生 TabBar -->
+      <div class="tab-bar">
+        <div class="tab-bar-item active">
+          <div class="tab-bar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
+          <span class="tab-bar-label">日历</span>
+        </div>
+        <div class="tab-bar-item"><div class="tab-bar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div><span class="tab-bar-label">我的</span></div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 孩子端默认日视图，时间线布局，按时间纵轴排列<br>
+        - 每张卡片完整信息：颜色条 + 时间 + 名称 + 孩子头像+名 + 状态图标+文字 + 类型标签 + 地点 + 备注<br>
+        - 快捷打卡：卡片上的"打卡确认"按钮（US-EVT-15，Should）<br>
+        - 颜色条：蓝=课后活动 绿=日常作息 橙=作业任务<br>
+        - 状态标签：未完成=橙底 已完成=绿底 已取消=灰底<br>
+        - 已取消卡片 opacity 降低 + 名称删除线<br>
+        - 点击卡片 → <code>event/event-detail.html</code><br>
+        - 时间线 → <code>&lt;scroll-view scroll-y&gt;</code> + 绝对定位卡片<br>
+        - 对应 BE-19: 超过 20 条日程支持纵向滚动
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: 空态 ===== -->
+  <div id="state-empty" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar"><span class="nav-bar-title">日程</span></div>
+      <div class="cal-header">
+        <div class="cal-day-nav">
+          <span class="cal-day-nav-arrow">&#x2039;</span>
+          <span class="cal-day-date">8月8日 <span class="cal-day-weekday">周六</span></span>
+          <span class="cal-day-nav-arrow">&#x203A;</span>
+          <span class="cal-day-today">今天</span>
+        </div>
+        <div class="cal-view-toggle">
+          <span class="cal-view-toggle-item">月</span><span class="cal-view-toggle-item">周</span>
+          <span class="cal-view-toggle-item active">日</span>
+        </div>
+      </div>
+      <div class="page-body page-body--center">
+        <div class="empty-state">
+          <div class="empty-state__icon">&#x1F389;</div>
+          <div class="empty-state__title">今天没有日程安排</div>
+          <div class="empty-state__desc">享受轻松的一天，或者为孩子创建新日程</div>
+          <button class="btn btn--primary mt-md" data-id="calendar-day-empty-create-btn"
+                  onclick="alert('【原型演示】跳转创建日程页 event/event-create.html')">创建日程</button>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-bar-item active"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F4C5;</div><span class="tab-bar-label">日历</span></div>
+        <div class="tab-bar-item"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F464;</div><span class="tab-bar-label">我的</span></div>
+      </div>
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 对应 US-EVT-18 异常路径：当天无日程时显示空状态<br>
+        - "今天没有日程安排" + "创建日程"快捷入口
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: Loading ===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar"><span class="nav-bar-title">日程</span></div>
+      <div class="cal-header">
+        <div class="cal-day-nav">
+          <span class="cal-day-nav-arrow">&#x2039;</span>
+          <span class="cal-day-date">8月8日 <span class="cal-day-weekday">周六</span></span>
+          <span class="cal-day-nav-arrow">&#x203A;</span>
+          <span class="cal-day-today">今天</span>
+        </div>
+        <div class="cal-view-toggle">
+          <span class="cal-view-toggle-item">月</span><span class="cal-view-toggle-item">周</span>
+          <span class="cal-view-toggle-item active">日</span>
+        </div>
+      </div>
+      <div class="page-body page-body--center">
+        <div class="loading-block">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">加载日程中...</div>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-bar-item active"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F4C5;</div><span class="tab-bar-label">日历</span></div>
+        <div class="tab-bar-item"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F464;</div><span class="tab-bar-label">我的</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: 错误态 ===== -->
+  <div id="state-error" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar"><span class="nav-bar-title">日程</span></div>
+      <div class="cal-header">
+        <div class="cal-day-nav">
+          <span class="cal-day-nav-arrow">&#x2039;</span>
+          <span class="cal-day-date">8月8日 <span class="cal-day-weekday">周六</span></span>
+          <span class="cal-day-nav-arrow">&#x203A;</span>
+          <span class="cal-day-today">今天</span>
+        </div>
+        <div class="cal-view-toggle">
+          <span class="cal-view-toggle-item">月</span><span class="cal-view-toggle-item">周</span>
+          <span class="cal-view-toggle-item active">日</span>
+        </div>
+      </div>
+      <div class="page-body page-body--center">
+        <div class="error-state">
+          <div class="error-state__icon">&#x26A0;&#xFE0F;</div>
+          <div class="error-state__title">加载失败</div>
+          <div class="error-state__desc">无法加载今日日程，请检查网络</div>
+          <button class="btn btn--primary btn--sm" onclick="alert('【原型演示】重试')">重试</button>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-bar-item active"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F4C5;</div><span class="tab-bar-label">日历</span></div>
+        <div class="tab-bar-item"><div class="tab-bar-icon" style="opacity:0.3;">&#x1F464;</div><span class="tab-bar-label">我的</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(s) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + s).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

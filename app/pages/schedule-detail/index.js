@@ -155,7 +155,7 @@ Page({
           canEdit: d.canEdit || false,
           canCancel: d.canCancel || false,
           canDelete: d.canDelete || false,
-          canRestore: d.isCancelled || d.isExcluded || false,
+          canRestore: (d.isCancelled || d.isExcluded) && (app.globalData.userRole !== 'Child'),
           loading: false,
           targetDateText: dateUtils.formatDateChinese(this.data.targetDate)
         });

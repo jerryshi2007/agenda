@@ -2,9 +2,9 @@
 
 ### Requirement: Daily Settlement Execution
 
-The system SHALL execute a daily settlement task at 00:05 each day. The task SHALL process all unchecked-in event instances from the previous day and transition their status to terminal states based on event type.
+The system SHALL execute a daily settlement task at 00:05 each day. The task SHALL process all unchecked-in schedule instances from the previous day and transition their status to terminal states based on schedule type.
 
-#### Scenario: Settlement processes all three event types
+#### Scenario: Settlement processes all three schedule types
 - **WHEN** the settlement task triggers at 00:05
 - **THEN** for each unchecked-in instance from the previous day:
   - After-school activity instances SHALL transition from "未完成" to "已结束" (if current time > end time + 2 hours)
@@ -12,11 +12,11 @@ The system SHALL execute a daily settlement task at 00:05 each day. The task SHA
   - Homework task instances (due date = previous day) SHALL transition from "未完成" to "逾期未完成"
 
 #### Scenario: Settlement does not affect checked-in instances
-- **WHEN** an event instance from the previous day is in "已完成" status
+- **WHEN** a schedule instance from the previous day is in "已完成" status
 - **THEN** the settlement task SHALL NOT modify its status
 
 #### Scenario: Settlement does not affect cancelled instances
-- **WHEN** an event instance from the previous day is in "已取消" status
+- **WHEN** a schedule instance from the previous day is in "已取消" status
 - **THEN** the settlement task SHALL NOT modify its status
 
 ### Requirement: Settlement Idempotency
@@ -57,18 +57,18 @@ The settlement task SHALL NOT interfere with active check-in operations on the c
 
 ### Requirement: Streak Update During Settlement
 
-The settlement task SHALL update continuous completion days (streak) for daily routine events after status transitions.
+The settlement task SHALL update continuous completion days (streak) for daily routine schedules after status transitions.
 
-#### Scenario: Single event streak increment
-- **WHEN** settlement processes a child's routine event "练琴" that was checked in yesterday
-- **THEN** the single-event streak for "练琴" SHALL increment by 1
+#### Scenario: Single schedule streak increment
+- **WHEN** settlement processes a child's routine schedule "练琴" that was checked in yesterday
+- **THEN** the single-schedule streak for "练琴" SHALL increment by 1
 
-#### Scenario: Single event streak reset
-- **WHEN** settlement processes a child's routine event "练琴" that was NOT checked in yesterday
-- **THEN** the single-event streak for "练琴" SHALL reset to 0
+#### Scenario: Single schedule streak reset
+- **WHEN** settlement processes a child's routine schedule "练琴" that was NOT checked in yesterday
+- **THEN** the single-schedule streak for "练琴" SHALL reset to 0
 
 #### Scenario: Cancelled instance does not break streak
-- **WHEN** settlement processes a routine event instance that was cancelled by parent (status = "已取消")
+- **WHEN** settlement processes a routine schedule instance that was cancelled by parent (status = "已取消")
 - **THEN** the streak SHALL NOT reset. It SHALL remain at its current value (no increment, no reset).
 
 #### Scenario: Overall streak increment

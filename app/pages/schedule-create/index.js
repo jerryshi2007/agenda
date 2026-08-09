@@ -3,6 +3,7 @@
 
 const scheduleService = require('../../services/schedule');
 const dateUtils = require('../../utils/date-utils');
+const STORAGE_KEYS = require('../../utils/storage-keys');
 const app = getApp();
 
 const TYPE_LABELS = {
@@ -55,7 +56,7 @@ Page({
     this.setData({ minDate: today });
 
     // 恢复草稿
-    const draft = wx.getStorageSync(require('../../utils/storage-keys').SCHEDULE_DRAFT);
+    const draft = wx.getStorageSync(STORAGE_KEYS.SCHEDULE_DRAFT);
     if (draft) {
       this.setData({
         scheduleType: draft.scheduleType || '',
@@ -318,7 +319,7 @@ Page({
 
     scheduleService.create(requestData).then(res => {
       // 清除草稿
-      wx.removeStorageSync(require('../../utils/storage-keys').SCHEDULE_DRAFT);
+      wx.removeStorageSync(STORAGE_KEYS.SCHEDULE_DRAFT);
       wx.showToast({ title: '创建成功', icon: 'success' });
       setTimeout(() => {
         wx.switchTab({ url: '/pages/index/index' });
@@ -363,7 +364,7 @@ Page({
    * 保存草稿
    */
   _saveDraft() {
-    wx.setStorageSync(require('../../utils/storage-keys').SCHEDULE_DRAFT, {
+    wx.setStorageSync(STORAGE_KEYS.SCHEDULE_DRAFT, {
       scheduleType: this.data.scheduleType,
       formData: this.data.formData,
       currentStep: this.data.currentStep

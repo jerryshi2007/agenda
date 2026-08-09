@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>邀请码展示页 · 家庭管理</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* ===== 页面特有样式 ===== */
+    .code-page {
+      padding: 24px 16px; /* → 48rpx 32rpx */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .code-card {
+      width: 100%;
+      background: var(--color-bg-white);
+      border-radius: 12px; /* → 24rpx */
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px; /* → 48rpx */
+    }
+
+    .code-card-header {
+      background: var(--color-primary);
+      padding: 24px 16px; /* → 48rpx 32rpx */
+      text-align: center;
+      color: white;
+    }
+
+    .code-card-label {
+      font-size: 14px; /* → 28rpx */
+      opacity: 0.85;
+      margin-bottom: 4px;
+    }
+
+    .code-card-code {
+      font-size: 48px; /* → 96rpx */
+      font-weight: 700;
+      letter-spacing: 8px;
+      margin: 8px 0;
+      font-family: "Courier New", monospace;
+    }
+
+    .code-card-code--revoked {
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+
+    .code-card-body {
+      padding: 16px; /* → 32rpx */
+    }
+
+    .code-info-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 0; /* → 20rpx */
+      font-size: 14px; /* → 28rpx */
+    }
+
+    .code-info-item__label {
+      color: var(--color-text-secondary);
+      width: 72px; /* → 144rpx */
+      flex-shrink: 0;
+    }
+
+    .code-info-item__value {
+      color: var(--color-text-primary);
+      flex: 1;
+      text-align: right;
+    }
+
+    .code-info-item__value--warn {
+      color: var(--color-danger);
+    }
+
+    .countdown {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 12px;
+      background: var(--color-bg-page);
+      border-radius: 8px; /* → 16rpx */
+      margin-top: 8px;
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-secondary);
+    }
+
+    .countdown-time {
+      font-weight: 600;
+      color: var(--color-primary);
+      font-size: 18px; /* → 36rpx */
+    }
+
+    .countdown-time.warn {
+      color: var(--color-danger);
+    }
+
+    .code-actions {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px; /* → 24rpx */
+    }
+
+    .code-actions .btn {
+      width: 100%;
+    }
+
+    .revoked-banner {
+      width: 100%;
+      padding: 12px;
+      background: #FDECEC;
+      border-radius: 8px; /* → 16rpx */
+      text-align: center;
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-danger);
+      margin-bottom: 16px; /* → 32rpx */
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== 状态切换器 ===== -->
+  <div class="state-switcher">
+    <div class="state-switcher__label">状态切换</div>
+    <button class="active" onclick="showState('normal')">正常态</button>
+    <button onclick="showState('loading')">Loading</button>
+    <button onclick="showState('revoked')">已撤销</button>
+    <button onclick="showState('expired')">已过期</button>
+    <button onclick="showState('error')">错误态</button>
+  </div>
+
+  <!-- ===== 状态 1: 正常态 ===== -->
+  <div id="state-normal" class="demo-state">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <!-- 微信原生导航栏 -->
+      <!-- title: "邀请码" -->
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回成员列表')">&#x2190; 返回</span>
+        <span class="nav-bar-title">邀请码</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="code-page">
+          <div class="code-card">
+            <div class="code-card-header">
+              <div class="code-card-label">邀请码</div>
+              <div class="code-card-code" data-id="invite-code-display">381529</div>
+              <div style="font-size: 12px; /* → 24rpx */ opacity: 0.8;">
+                将此邀请码发送给孩子，孩子输入后即可加入家庭
+              </div>
+            </div>
+            <div class="code-card-body">
+              <div class="code-info-item">
+                <span class="code-info-item__label">孩子</span>
+                <span class="code-info-item__value">小明</span>
+              </div>
+              <div class="code-info-item">
+                <span class="code-info-item__label">展示模式</span>
+                <span class="code-info-item__value">小学模式</span>
+              </div>
+              <div class="code-info-item">
+                <span class="code-info-item__label">有效期</span>
+                <span class="code-info-item__value">24 小时</span>
+              </div>
+
+              <!-- 倒计时 -->
+              <div class="countdown">
+                <span>&#x23F1;</span>
+                <span>剩余</span>
+                <span class="countdown-time">18:32:15</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="code-actions">
+            <!-- → <button data-id="invite-code-copy-btn" bindtap="onCopyCode"> -->
+            <!-- → wx.setClipboardData({ data: code }) -->
+            <button class="btn btn--primary btn--block btn--lg" data-id="invite-code-copy-btn"
+                    onclick="alert('【原型演示】复制邀请码到剪贴板 → Toast 提示"已复制"')">
+              复制邀请码
+            </button>
+            <!-- → <button data-id="invite-code-revoke-btn" bindtap="onRevoke"> -->
+            <button class="btn btn--danger btn--block" data-id="invite-code-revoke-btn"
+                    onclick="alert('【原型演示】撤销邀请码 → 二次确认弹窗')">
+              撤销邀请码
+            </button>
+            <button class="btn btn--default btn--block" data-id="invite-code-back-btn"
+                    onclick="alert('【原型演示】返回成员列表')">
+              返回成员列表
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 6 位邀请码大字展示，monospace 字体<br>
+        - 倒计时实时更新<br>
+        - "复制邀请码" → <code>wx.setClipboardData()</code><br>
+        - "撤销邀请码" → 二次确认弹窗 → 撤销后立即失效
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 2: Loading（生成中）===== -->
+  <div id="state-loading" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" style="color: var(--color-text-placeholder);">&#x2190; 返回</span>
+        <span class="nav-bar-title">邀请码</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="loading-block" style="padding-top: 80px;">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">正在生成邀请码...</div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 从邀请成员页跳转过来时的过渡 loading<br>
+        - 正常情况生成很快（&lt; 1s），此状态为异常慢的情况
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 3: 已撤销 ===== -->
+  <div id="state-revoked" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">邀请码</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="code-page">
+          <div class="revoked-banner">
+            &#x26A0;&#xFE0F; 此邀请码已被撤销，无法使用
+          </div>
+
+          <div class="code-card" style="opacity: 0.5;">
+            <div class="code-card-header" style="background: var(--color-text-placeholder);">
+              <div class="code-card-label">邀请码（已撤销）</div>
+              <div class="code-card-code code-card-code--revoked">381529</div>
+            </div>
+            <div class="code-card-body">
+              <div class="code-info-item">
+                <span class="code-info-item__label">孩子</span>
+                <span class="code-info-item__value">小明</span>
+              </div>
+              <div class="code-info-item">
+                <span class="code-info-item__label">状态</span>
+                <span class="code-info-item__value code-info-item__value--warn">已撤销</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="code-actions">
+            <button class="btn btn--default btn--block btn--lg" data-id="invite-code-back-btn"
+                    onclick="alert('【原型演示】返回成员列表')">
+              返回成员列表
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 邀请码撤销后卡片置灰<br>
+        - 邀请码被划掉<br>
+        - 红色横幅提示已撤销
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 4: 已过期 ===== -->
+  <div id="state-expired" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">邀请码</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="code-page">
+          <div class="code-card" style="opacity: 0.5;">
+            <div class="code-card-header" style="background: var(--color-text-placeholder);">
+              <div class="code-card-label">邀请码（已过期）</div>
+              <div class="code-card-code code-card-code--revoked">381529</div>
+            </div>
+            <div class="code-card-body">
+              <div class="code-info-item">
+                <span class="code-info-item__label">孩子</span>
+                <span class="code-info-item__value">小明</span>
+              </div>
+              <div class="code-info-item">
+                <span class="code-info-item__label">状态</span>
+                <span class="code-info-item__value code-info-item__value--warn">已过期</span>
+              </div>
+              <div class="countdown">
+                <span>&#x23F1;</span>
+                <span>已过期</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="code-actions">
+            <button class="btn btn--primary btn--block btn--lg" data-id="invite-code-regenerate-btn"
+                    onclick="alert('【原型演示】跳转邀请成员页重新生成')">
+              重新生成
+            </button>
+            <button class="btn btn--default btn--block" data-id="invite-code-back-btn"
+                    onclick="alert('【原型演示】返回成员列表')">
+              返回成员列表
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 超出 24 小时有效期后展示此状态<br>
+        - 提供"重新生成"按钮，跳回邀请成员页
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 状态 5: 错误态 ===== -->
+  <div id="state-error" class="demo-state hidden">
+    <div class="phone-frame">
+      <div class="status-bar"></div>
+      <div class="nav-bar">
+        <span class="nav-bar-back" onclick="alert('【原型演示】返回')">&#x2190; 返回</span>
+        <span class="nav-bar-title">邀请码</span>
+      </div>
+      <div class="page-body" style="padding: 0; background: var(--color-bg-page);">
+        <div class="error-state" style="padding-top: 80px;">
+          <div class="error-state__icon">&#x26A0;&#xFE0F;</div>
+          <div class="error-state__title">加载失败</div>
+          <div class="error-state__desc">无法获取邀请码信息，请检查网络</div>
+          <button class="btn btn--primary btn--sm" data-id="invite-code-retry-btn"
+                  onclick="alert('【原型演示】重试')">重试</button>
+        </div>
+      </div>
+
+      <div class="prototype-note" style="margin:0; border-radius:0;">
+        <strong>交互标注：</strong><br>
+        - 网络异常导致无法加载邀请码详情<br>
+        - 显示错误提示 + 重试
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showState(s) {
+      document.querySelectorAll('.demo-state').forEach(el => el.classList.add('hidden'));
+      document.getElementById('state-' + s).classList.remove('hidden');
+      document.querySelectorAll('.state-switcher button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

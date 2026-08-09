@@ -3,7 +3,14 @@
 
 const STORAGE_KEYS = require('../utils/storage-keys');
 
-const BASE_URL = 'http://localhost:5000'; // 开发环境：Docker API 地址
+// 小程序环境自动切换 —— 开发环境连接本地 Docker，生产环境使用正式域名
+// 微信开发者工具中 __wxConfig.envVersion 值为 'develop' | 'trial' | 'release'
+const ENV_VERSION = (typeof __wxConfig !== 'undefined' && __wxConfig.envVersion) || 'develop';
+const BASE_URL = ENV_VERSION === 'release'
+  ? 'https://api.agenda.example.com'  // TODO: 替换为正式域名
+  : ENV_VERSION === 'trial'
+    ? 'https://staging-api.agenda.example.com'  // TODO: 替换为测试域名
+    : 'http://localhost:5000';  // 开发环境：Docker API 地址
 const TIMEOUT = 10000;
 
 let isRefreshingToken = false;

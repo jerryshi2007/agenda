@@ -173,8 +173,8 @@ Page({
       .catch(err => {
         this.setData({ saving: false });
 
-        if (err.statusCode === 409 && err.data && err.data.error === 'CONCURRENT_EDIT_CONFLICT') {
-          // 乐观锁冲突
+        if (err.statusCode === 409 || (err.data && err.data.error === 'CONCURRENT_EDIT_CONFLICT')) {
+          // 乐观锁冲突 — reload to get fresh rowVersion
           wx.showModal({
             title: '编辑冲突',
             content: '该日程已被其他用户修改，请刷新后重新编辑',
@@ -187,7 +187,7 @@ Page({
         } else if (err.data && err.data.error === 'CHILD_NOT_IN_FAMILY') {
           wx.showToast({ title: '关联孩子已不在家庭中', icon: 'none' });
         } else {
-          wx.showToast({ title: err.message || '保存失败，请重试', icon: 'none' });
+          wx.showToast({ title: err.message || '保存失败，请刷新重试', icon: 'none' });
         }
       });
   },
