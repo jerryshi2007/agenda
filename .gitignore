@@ -34,3 +34,15 @@ project.private.config.json
 
 # Cloud functions (per-function node_modules)
 **/cloudfunctions/*/node_modules/
+
+# ---- .NET ----
+**/bin/
+**/obj/
+*.user
+*.suo
+.vs/
+TestResults/
+coverage/
+
+# ---- Docker ----
+docker-data/
