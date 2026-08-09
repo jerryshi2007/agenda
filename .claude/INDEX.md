@@ -9,6 +9,7 @@
 | design-ui-standards | design-web, dev-vue3-tdd, dev-arch, dev-arch-review；agent: dev-architect, dev-architect-reviewer, dev-vue3 |
 | ui-miniapp-standards | ui-miniapp-web, dev-miniapp-tdd（→ agent: dev-miniapp） |
 | dev-code-quality | dev-planning, dev-code-review, dev-refactoring, dev-dotnet-tdd, dev-vue3-tdd, dev-miniapp-tdd, dev-arch, dev-arch-review, openspec-apply-change；agent: dev-architect, dev-architect-reviewer, dev-dotnet, dev-vue3, dev-miniapp, dev-reviewer |
+| dev-contracts | dev-arch, dev-arch-review；agent: dev-architect, dev-architect-reviewer, dev-dotnet, dev-miniapp, test-writer |
 | dev-security | dev-debugging, dev-dotnet-tdd, dev-vue3-tdd, dev-miniapp-tdd, dev-code-review, dev-arch, dev-arch-review, openspec-apply-change；agent: dev-architect, dev-architect-reviewer, dev-dotnet, dev-miniapp, dev-reviewer |
 | dev-dotnet-standards | dev-dotnet-tdd, dev-arch, dev-arch-review, dev-planning；agent: dev-architect, dev-architect-reviewer, dev-dotnet |
 | dev-vue3-standards | dev-vue3-tdd, test-e2e-playwright, dev-arch, dev-arch-review；agent: dev-architect, dev-architect-reviewer, dev-vue3 |

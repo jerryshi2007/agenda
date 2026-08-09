@@ -1,7 +1,7 @@
 ---
 name: dev-arch
 description: 全栈架构设计——覆盖 .NET 后端分层/API 契约 + Vue 3 前端组件树/路由/状态管理，产出 design.md + ADR。
-rules: [dev-dotnet-standards, dev-vue3-standards, design-ui-standards, dev-code-quality, dev-security, openspec-workflow]
+rules: [dev-dotnet-standards, dev-vue3-standards, design-ui-standards, dev-code-quality, dev-security, openspec-workflow, dev-contracts]
 ---
 
 # dev-arch · 全栈架构设计
@@ -12,8 +12,8 @@ rules: [dev-dotnet-standards, dev-vue3-standards, design-ui-standards, dev-code-
 
 ## 流程
 
-### 1. Read 规则（6 条）
-dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quality / dev-security / openspec-workflow
+### 1. Read 规则（7 条）
+dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quality / dev-security / openspec-workflow / dev-contracts
 
 ### 2. 理解需求
 读 proposal.md + delta specs → 提取功能/非功能需求 + 跨切面关注点
@@ -32,6 +32,7 @@ dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quali
 **后端（.NET）：**
 - 分层与模块边界、ER 图（实体+字段要点+关系基数+级联规则+唯一性约束）
 - API 契约轮廓（端点+DTO 形状+错误码+分页）、认证授权方案
+  - **提取共享常量**：将 API 契约中的枚举值、错误码、DTO 结构提取为 `openspec/contracts/<domain>/` 下的机器可读 JSON（enums.json、errors.json、dto.json），格式遵循 `dev-contracts` rule
 - 数据访问策略（EF Core 实体关系、仓储边界、迁移策略）
 - 跨上下文交互规则（ID 引用 vs Service 接口调用）
 

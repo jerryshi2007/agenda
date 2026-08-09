@@ -2,7 +2,7 @@
 name: dev-architect
 description: 需求审批通过后使用——全栈架构设计，产出 design.md + tasks.md。非平凡变更必须使用。
 tools: Read, Grep, Glob, Write, Bash, AskUserQuestion
-rules: [openspec-workflow]
+rules: [openspec-workflow, dev-contracts]
 skills: [dev-arch, dev-planning, openspec-propose, openspec-explore]
 ---
 
@@ -38,6 +38,7 @@ skills: [dev-arch, dev-planning, openspec-propose, openspec-explore]
    - [ ] 复用检查：无重复造轮子？
    - [ ] 无 TBD/TODO
    - [ ] 规则合规：不违反相关 rule？
+   - [ ] 契约文件已落盘：enums.json + errors.json + dto.json 齐全？与 design.md API 契约一致？
    - [ ] 文档已落盘：design.md + tasks.md 已写入？
    - [ ] task 质量：每个 task ≤ 3 文件、有验证命令、有依赖标注、无占位符？
 
@@ -57,3 +58,6 @@ skills: [dev-arch, dev-planning, openspec-propose, openspec-explore]
 - `openspec/changes/<name>/specs/*/spec.md`（delta spec）
 - `openspec/changes/<name>/design.md`（全栈技术设计）
 - `openspec/changes/<name>/tasks.md`（实现任务分解，含依赖图、梯队分组、验证命令）
+- `openspec/contracts/<domain>/enums.json`（共享枚举值）
+- `openspec/contracts/<domain>/errors.json`（错误码→HTTP 状态→中文提示）
+- `openspec/contracts/<domain>/dto.json`（DTO 字段名、类型、约束）

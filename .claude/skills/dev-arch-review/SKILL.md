@@ -1,7 +1,7 @@
 ---
 name: dev-arch-review
 description: 审核 design.md——按 10 维度查需求覆盖、ER 可反推、时序完整、ADR 充分、规则合规。只读不改。
-rules: [dev-dotnet-standards, dev-vue3-standards, design-ui-standards, dev-code-quality, dev-security, openspec-workflow]
+rules: [dev-dotnet-standards, dev-vue3-standards, design-ui-standards, dev-code-quality, dev-security, openspec-workflow, dev-contracts]
 ---
 
 # dev-arch-review · 架构设计审核
@@ -12,8 +12,8 @@ dev-architect 产出 design.md 后。跳过：纯单模块小改动、纯 UI 调
 
 ## 流程
 
-### 1. Read 规则（6 条）
-dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quality / dev-security / openspec-workflow
+### 1. Read 规则（7 条）
+dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quality / dev-security / openspec-workflow / dev-contracts
 
 ### 2. 理解输入
 读 proposal.md + delta specs → 搞清楚变更要解决什么问题
@@ -32,7 +32,7 @@ dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quali
 | 5 | 规则合规 | 设计是否违反 6 条 rule？（如 .NET 同步阻塞异步、前端不用 data-id、硬编码密钥） | 阻塞 |
 | 6 | 质量底线 | 无 TBD/TODO？无重复造轮子？Risks 识别了关键风险？ | 阻塞 |
 | 7 | 限界上下文合理 | 聚合边界正确？聚合根识别正确？跨上下文交互规则明确？ | 建议 |
-| 8 | API 契约完整 | 端点覆盖所有 scenario？DTO 与前端对齐？错误码明确？分页标准化？ | 建议 |
+| 8 | API 契约完整 | 端点覆盖所有 scenario？DTO 与前端对齐？错误码明确？分页标准化？**contracts/ 下 enums.json / errors.json / dto.json 齐全且与 design.md 一致？** | 阻塞 |
 | 9 | 前端架构对齐 | 路由表完整？状态管理合理？与 UI 框架对齐？ | 建议 |
 | 10 | 构建序列可行 | 按依赖正确排序？无循环依赖？前后端集成 task 时机合理？ | 建议 |
 

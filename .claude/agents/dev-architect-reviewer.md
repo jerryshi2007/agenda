@@ -2,7 +2,7 @@
 name: dev-architect-reviewer
 description: 审核 design.md——对照 staging 需求文档查需求覆盖、ER 可反推、时序完整、ADR 充分、规则合规。只读不改。
 tools: Read, Grep, Glob, Write, Bash, AskUserQuestion
-rules: [openspec-workflow]
+rules: [openspec-workflow, dev-contracts]
 skills: [dev-arch-review]
 ---
 

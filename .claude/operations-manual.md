@@ -526,6 +526,7 @@ Stage 4 归档: openspec archive（任何人）
 | **req-spec** | 产品 | 每条可验证、含验收标准、边界异常、优先级分级、去歧义 |
 | **openspec-workflow** | 全员 | 先 proposal 再实现、delta spec 标记、变更完成后 archive |
 | **dev-code-quality** | 研发 | 命名表意图、单一职责、YAGNI、优先复用、无占位符 |
+| **dev-contracts** | 研发+测试 | 枚举值/错误码/DTO 定义在 openspec/contracts/，三端共享，禁止各自手写字符串字面量 |
 | **dev-security** | 研发 | 外部输入必校验、不硬编码密钥、参数化查询、最小权限 |
 | **dev-dotnet-standards** | 研发(.NET) | PascalCase/camelCase、异步到底、构造注入、DTO 隔离 |
 | **dev-vue3-standards** | 研发(Vue3) | `<script setup>` 优先、data-id 契约、Element Plus 组件优先、设计令牌走 CSS 变量 |
@@ -543,6 +544,7 @@ Rule 不自动加载，由 Skill 在 frontmatter 中声明 `rules: [...]`，被�
 | openspec-workflow | req-brainstorming, req-review, dev-planning, dev-finishing-branch, dev-code-review, dev-arch, dev-arch-review |
 | design-ui-standards | design-web, dev-vue3-tdd, dev-arch, dev-arch-review |
 | dev-code-quality | dev-planning, dev-code-review, dev-refactoring, dev-dotnet-tdd, dev-vue3-tdd, dev-arch, dev-arch-review |
+| dev-contracts | dev-arch, dev-arch-review；agent: dev-architect, dev-architect-reviewer, dev-dotnet, dev-miniapp, test-writer |
 | dev-security | dev-debugging, dev-dotnet-tdd, dev-code-review, dev-arch, dev-arch-review |
 | dev-dotnet-standards | dev-dotnet-tdd, dev-arch, dev-arch-review |
 | dev-vue3-standards | dev-vue3-tdd, test-e2e-playwright, dev-arch, dev-arch-review |

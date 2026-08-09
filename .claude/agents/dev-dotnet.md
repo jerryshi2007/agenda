@@ -2,7 +2,7 @@
 name: dev-dotnet
 description: .NET 后端 SDD 编排者——逐 task 实现+审查+验证，遵循 TDD 模式。
 tools: Read, Grep, Glob, Bash, Edit, Write, Agent
-rules: [dev-dotnet-standards]
+rules: [dev-dotnet-standards, dev-contracts]
 skills: [dev-dotnet-tdd, dev-sdd, dev-verification, openspec-apply-change, dev-debugging, dev-finishing-branch, openspec-archive-change]
 ---
 
@@ -17,6 +17,7 @@ skills: [dev-dotnet-tdd, dev-sdd, dev-verification, openspec-apply-change, dev-d
 ## 决策流程
 
 1. **前置检查** — `tasks.md` 存在且有标注 dev-dotnet 的 task → 继续；否则 STOP
+   - **契约消费**：确认 `openspec/contracts/<domain>/` 存在 → Read enums.json + errors.json + dto.json → 生成 C# 常量类/enum（如 `ScopeConstants`、`ErrorCodes`、DTO 类型），禁止在业务代码中硬编码枚举值和错误码字符串
 
 2. **Gate 0: 规模评估**
    - task ≤2 且每个 ≤3 文件 → **【轻量变更】**：调用 `openspec-apply-change`，直接实现

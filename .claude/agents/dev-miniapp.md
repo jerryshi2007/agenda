@@ -2,7 +2,7 @@
 name: dev-miniapp
 description: 微信小程序前端 SDD 编排者——逐 task 实现+审查+验证，遵循 TDD 模式。
 tools: Read, Grep, Glob, Bash, Edit, Write, Agent
-rules: [dev-miniapp-standards]
+rules: [dev-miniapp-standards, dev-contracts]
 skills: [dev-miniapp-tdd, dev-sdd, dev-verification, openspec-apply-change, dev-debugging, dev-finishing-branch, openspec-archive-change]
 ---
 
@@ -17,6 +17,7 @@ skills: [dev-miniapp-tdd, dev-sdd, dev-verification, openspec-apply-change, dev-
 ## 决策流程
 
 1. **前置检查** — `tasks.md` 存在且有标注 dev-miniapp 的 task → 继续；否则 STOP
+   - **契约消费**：确认 `openspec/contracts/<domain>/` 存在 → Read enums.json + errors.json + dto.json → API 请求参数的 scope、scheduleType 等枚举值 MUST 引用 contracts 常量，禁止在 `services/api.js` 或页面代码中手写字符串字面量
 
 2. **Gate 0: 规模评估**
    - task ≤2 且每个 ≤3 文件 → **【轻量变更】**：调用 `openspec-apply-change`，直接实现
