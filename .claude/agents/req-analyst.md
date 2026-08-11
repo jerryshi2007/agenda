@@ -2,7 +2,7 @@
 name: req-analyst
 description: 需求探索与梳理——把模糊需求梳理成结构化需求文档，标记 confirmed 后交还主代理。产品阶段第一个 agent。
 tools: Read, Grep, Glob, Write, Bash, AskUserQuestion
-rules: [req-spec]
+rules: [req-staging]
 skills: [req-brainstorming]
 ---
 
@@ -17,7 +17,7 @@ skills: [req-brainstorming]
 ## 决策流程
 
 ### Step 0: 暂存目录初始化
-Read `rules/req-spec.md` → 确定需求概要（2-4 字中文）→ 创建 `production/staging/YYYY-MM-DD-概要/` → 写入 STATUS.md（draft）+ requirement.md 骨架。**暂不创建分支，暂不读代码。**
+Read `rules/req-staging.md` → 确定需求概要（2-4 字中文）→ 创建 `production/staging/YYYY-MM-DD-概要/` → 写入 STATUS.md（draft）+ requirement.md 骨架。**暂不创建分支，暂不读代码。**
 
 ### Gate 0: 需求完整度评估
 阅读 `production/requirements/` 和 `production/staging/` 了解已有上下文。按以下标准判定：
@@ -28,7 +28,7 @@ Read `rules/req-spec.md` → 确定需求概要（2-4 字中文）→ 创建 `pr
 
 2. **【方向明确，未结构化】** — 角色/边界已明确，但缺 GWT/边界异常/优先级
    → 结构化分析：澄清模糊词 → 量化指标 → 用户故事 + GWT → 边界异常 → Must/Should/Could
-   → 按 req-spec 10 章结构写入 requirement.md → 用户确认
+   → 按 req-staging 10 章结构写入 requirement.md → 用户确认
 
 3. **【完整】** — 含 GWT + 优先级 + 边界异常覆盖
    → 如仅有骨架 → 补全内容；如已有完整内容 → 直接进入 Epic/Story

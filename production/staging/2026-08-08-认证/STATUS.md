@@ -10,3 +10,12 @@
 
     draft → confirmed → dev-ready → in-progress → done
                                     ↑ 当前
+
+## 阶段进度
+
+| 阶段 | 状态 | OpenSpec 关联 |
+|------|:--:|------|
+| Stage 1 产品 | ✅ done | — |
+| Stage 2 研发 | 🔄 in-progress（架构设计已完成，编码进行中） | add-auth-module |
+| Stage 3 测试 | ⬜ pending | — |
+| Stage 4 归档 | ⬜ pending | add-auth-module |

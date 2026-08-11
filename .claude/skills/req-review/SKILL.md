@@ -1,7 +1,7 @@
 ---
 name: req-review
 description: 审核 staging 需求文档——按 9 维度查冲突、缺口与一致性，给审批建议。
-rules: [req-spec]
+rules: [req-staging]
 ---
 
 # req-review · 需求审核
@@ -12,7 +12,7 @@ rules: [req-spec]
 
 ## 流程
 
-### 1. Read `rules/req-spec.md`
+### 1. Read `rules/req-staging.md`
 
 ### 2. 理解变更意图
 读 requirement.md + epic-story.md → 搞清楚：解决什么问题？涉及哪些角色和模块？

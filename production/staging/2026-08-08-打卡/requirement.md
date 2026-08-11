@@ -1,6 +1,6 @@
 # 打卡与统计模块 (module-checkin) · 需求文档（暂存）
 
-<!-- STATUS: dev-ready -->
+<!-- STAGING-STATUS: in-progress -->
 <!-- CONFIRMED: 2026-08-08 -->
 
 > 版本：v1.1 | 日期：2026-08-08 | 状态：dev-ready

@@ -4,7 +4,7 @@
 
 | Rule | 引用它的 skill / agent |
 |------|------------------------|
-| req-spec | req-brainstorming, req-review, openspec-propose；agent: req-analyst, req-reviewer |
+| req-staging | req-brainstorming, req-review, openspec-propose；agent: req-analyst, req-reviewer |
 | openspec-workflow | openspec-propose, dev-planning, dev-finishing-branch, dev-code-review, dev-arch, dev-arch-review, openspec-archive-change；agent: dev-architect, dev-architect-reviewer |
 | design-ui-standards | design-web, dev-vue3-tdd, dev-arch, dev-arch-review；agent: dev-architect, dev-architect-reviewer, dev-vue3 |
 | ui-miniapp-standards | ui-miniapp-web, dev-miniapp-tdd（→ agent: dev-miniapp） |

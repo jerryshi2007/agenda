@@ -118,7 +118,7 @@ Stage 4 归档: openspec archive（任何人）
 | 结构化分析 | 收敛梳理，澄清模糊词 → 描述业务流程 → 拆分用户故事 + GWT → 识别边界异常 → 优先级标注 | 方向明确，但缺验收标准/GWT |
 
 **关联 Rule**：
-- `req-spec` — 需求文档规范（每条可验证、含验收标准、边界异常、优先级分级、去歧义）
+- `req-staging` — 需求文档规范（每条可验证、含验收标准、边界异常、优先级分级、去歧义）
 - `openspec-workflow` — 变更管理规范（先 proposal 再实现、delta spec 标记、RFC 2119 关键词）
 
 **产出示例**：
@@ -523,7 +523,7 @@ Stage 4 归档: openspec archive（任何人）
 | Rule | 适用范围 | 约束要点 |
 |------|---------|---------|
 | **git-commit** | 所有人 | 动词开头、一行摘要+空行+详情、一事一提交、不直推 main |
-| **req-spec** | 产品 | 每条可验证、含验收标准、边界异常、优先级分级、去歧义 |
+| **req-staging** | 产品 | 每条可验证、含验收标准、边界异常、优先级分级、去歧义 |
 | **openspec-workflow** | 全员 | 先 proposal 再实现、delta spec 标记、变更完成后 archive |
 | **dev-code-quality** | 研发 | 命名表意图、单一职责、YAGNI、优先复用、无占位符 |
 | **dev-contracts** | 研发+测试 | 枚举值/错误码/DTO 定义在 openspec/contracts/，三端共享，禁止各自手写字符串字面量 |
@@ -540,7 +540,7 @@ Rule 不自动加载，由 Skill 在 frontmatter 中声明 `rules: [...]`，被�
 
 | Rule | 引用它的 Skill |
 |------|---------------|
-| req-spec | req-brainstorming, req-review |
+| req-staging | req-brainstorming, req-review |
 | openspec-workflow | req-brainstorming, req-review, dev-planning, dev-finishing-branch, dev-code-review, dev-arch, dev-arch-review |
 | design-ui-standards | design-web, dev-vue3-tdd, dev-arch, dev-arch-review |
 | dev-code-quality | dev-planning, dev-code-review, dev-refactoring, dev-dotnet-tdd, dev-vue3-tdd, dev-arch, dev-arch-review |
@@ -637,7 +637,7 @@ Gate 0 判定标准：
 - 每条需求有 GWT 场景（正常路径 + 至少 1 异常路径）
 - 有优先级标注（Must/Should/Could）
 - 边界与异常场景已识别
-- req-spec rule 全部约束满足
+- req-staging rule 全部约束满足
 
 ### Q4：data-id 是什么？为什么这么重要？
 
