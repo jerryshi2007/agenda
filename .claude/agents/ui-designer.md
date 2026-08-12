@@ -2,6 +2,7 @@
 name: ui-designer
 description: 出 HTML 原型时调度。低保真 HTML 原型验证交互，确认后交由 dev-vue3 实现为生产组件。
 tools: Read, Grep, Glob, Edit, Write, Bash, AskUserQuestion
+rules: [design-ui-standards]
 skills: [design-web]
 ---
 

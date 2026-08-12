@@ -1,7 +1,7 @@
 ---
 name: dev-planning
 description: 技术设计 design.md 完成后使用——将需求分解为 bite-sized tasks，产出 tasks.md 到 openspec/changes/<name>/。非平凡实现任务动手前使用。
-rules: [dev-code-quality, openspec-workflow, dev-miniapp-standards]
+rules: [dev-code-quality, openspec-workflow, dev-miniapp-standards, dev-dotnet-standards]
 ---
 
 # dev-planning · 研发计划

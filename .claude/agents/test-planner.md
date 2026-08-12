@@ -2,6 +2,7 @@
 name: test-planner
 description: 需求明确后调度——设计测试策略并输出结构化用例矩阵，不写测试代码。
 tools: Read, Grep, Glob, Write
+rules: [test-standards]
 skills: [test-case-design]
 ---
 

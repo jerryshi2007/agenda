@@ -28,10 +28,42 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 工具组合速查
 
-完整 track × 层映射见 `INDEX.md`。
+> Rule 归属统一由 [`INDEX.md`](.claude/INDEX.md) 管理（rule → skill/agent 反向表）。本表只列 Agent + Skill 的正向调度关系。
 
-| Track | Agent | Rule | Skill (TDD) |
-|-------|-------|------|-------------|
-| .NET 后端 | dev-dotnet | dev-dotnet-standards | dev-dotnet-tdd |
-| Vue 3 前端 | dev-vue3 | dev-vue3-standards | dev-vue3-tdd |
-| 小程序前端 | dev-miniapp | dev-miniapp-standards | dev-miniapp-tdd |
+### 产品 track
+
+| 阶段 | Agent | Skill |
+|------|-------|-------|
+| 需求分析 | req-analyst | req-brainstorming |
+| 需求审核 | req-reviewer | req-review |
+| 原型设计 | ui-designer | design-web |
+
+### 研发 track
+
+| 子 track | Agent | Skill |
+|----------|-------|-------|
+| 架构设计 | dev-architect | dev-arch, dev-planning, openspec-propose |
+| 架构审核 | dev-architect-reviewer | dev-arch-review |
+| .NET 后端 | dev-dotnet | dev-dotnet-tdd, dev-sdd, dev-verification |
+| Vue 3 前端 | dev-vue3 | dev-vue3-tdd, dev-sdd, dev-verification |
+| 小程序前端 | dev-miniapp | dev-miniapp-tdd, dev-sdd, dev-verification |
+| 代码审查 | dev-reviewer | dev-code-review |
+
+### 测试 track
+
+| 阶段 | Agent | Skill |
+|------|-------|-------|
+| 测试策划 | test-planner | test-case-design |
+| 脚本编写 | test-writer | test-e2e-playwright |
+| 测试审查 | test-reviewer | test-case-design |
+| 测试执行 | test-runner | test-execution, dev-verification |
+
+### 横切
+
+| 关注点 | Skill |
+|--------|-------|
+| 调试 | dev-debugging |
+| 重构 | dev-refactoring |
+| 收尾 | dev-finishing-branch |
+| 归档 | openspec-archive-change |
+| Git 提交 | —（见 `rules/git-commit.md`） |
