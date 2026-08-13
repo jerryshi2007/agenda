@@ -14,9 +14,9 @@ skills: [test-case-design]
 
 ## 技术栈感知
 
-- 审查 Vue 3 测试 → 先 Read `dev-vue3-standards.md`，检查 data-id 定位
+- 审查小程序前端测试 → 先 Read `dev-miniapp-standards.md`，检查 data-id 定位
 - 审查 .NET 测试 → 先 Read `dev-dotnet-standards.md`
-- 审查 E2E 测试 → 先 Read `dev-vue3-standards.md`，额外检查 Page Object/data-id 一致性/fixture 可复跑/spec-test-plan 对应
+- 审查 E2E 测试 → 先 Read `dev-miniapp-standards.md`，额外检查 data-id 一致性/fixture 可复跑/spec-test-plan 对应
 
 ## 决策流程
 

@@ -6,7 +6,7 @@
 
 | Rule | Skill（直接声明） | Agent（直接 + 间接） |
 |------|-------------------|---------------------|
-| req-staging | req-brainstorming, req-review, openspec-propose | req-analyst, req-reviewer |
+| req-staging | req-brainstorming, req-review, openspec-propose, test-case-design, test-e2e-playwright | req-analyst, req-reviewer, test-planner |
 | openspec-workflow | openspec-propose, dev-planning, dev-finishing-branch, dev-code-review, dev-arch, dev-arch-review, openspec-archive-change, dev-sdd | dev-architect, dev-architect-reviewer |
 | design-ui-standards | design-web, dev-vue3-tdd, dev-arch, dev-arch-review | ui-designer |
 | ui-miniapp-standards | ui-miniapp-web, dev-miniapp-tdd | — |
@@ -14,8 +14,8 @@
 | dev-contracts | dev-arch, dev-arch-review | dev-architect, dev-architect-reviewer, dev-dotnet, dev-miniapp, test-writer |
 | dev-security | dev-debugging, dev-dotnet-tdd, dev-vue3-tdd, dev-miniapp-tdd, dev-code-review, dev-arch, dev-arch-review, openspec-apply-change, dev-sdd | — |
 | dev-dotnet-standards | dev-dotnet-tdd, dev-arch, dev-arch-review, dev-planning | dev-dotnet |
-| dev-vue3-standards | dev-vue3-tdd, test-e2e-playwright, dev-arch, dev-arch-review | dev-vue3 |
-| dev-miniapp-standards | dev-miniapp-tdd, dev-planning | dev-miniapp |
+| dev-vue3-standards | dev-vue3-tdd, dev-arch, dev-arch-review | dev-vue3 |
+| dev-miniapp-standards | dev-miniapp-tdd, dev-planning, test-e2e-playwright | dev-miniapp |
 | dev-refactor | dev-refactoring | — |
 | test-standards | test-case-design, test-e2e-playwright, dev-dotnet-tdd, dev-vue3-tdd, dev-miniapp-tdd | test-planner, test-reviewer, test-runner |
 | git-commit | — | （横切，CLAUDE.md 引用，主代理提交时遵循） |

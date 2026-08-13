@@ -2,7 +2,7 @@
 name: test-planner
 description: 需求明确后调度——设计测试策略并输出结构化用例矩阵，不写测试代码。
 tools: Read, Grep, Glob, Write
-rules: [test-standards]
+rules: [test-standards, req-staging]
 skills: [test-case-design]
 ---
 
@@ -14,11 +14,11 @@ skills: [test-case-design]
 
 ## 决策流程
 
-1. **前置检查** — proposal.md + delta specs 或 HTML 原型至少一项存在 → 继续；否则 STOP
+1. **前置检查** — `production/staging/<name>/requirement.md` 存在（测试需求主输入）→ 继续；否则 STOP
 
-2. **Read 输入材料** — proposal.md + delta specs + HTML 原型（提取用户交互流程）
+2. **Read 输入材料** — staging `requirement.md`（验收标准/边界异常/优先级）+ `epic-story.md` 作为等价类/边界值/优先级的主输入；再读 proposal.md + delta specs + HTML 原型补充技术细节与交互流程
 
-3. **探查已有代码** — Grep/Glob `app/src/views/` 和 `app/src/components/` → 了解 data-id 使用情况
+3. **探查已有代码** — Grep/Glob `app/pages/` 和 `app/components/` → 了解 data-id 使用情况
 
 4. **设计** — 调用 `test-case-design` skill（skill 负责等价类划分→边界值→错误路径→去冗余→测试矩阵）
 

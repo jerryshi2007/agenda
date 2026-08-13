@@ -14,7 +14,7 @@ description: 执行 E2E 测试脚本并生成结构化报告时使用——Playw
 ## 前置条件
 - E2E 测试脚本已存在于 `testing/e2e/specs/` 下（由 `test-writer` 产出）
 - Playwright 已配置（`testing/e2e/playwright.config.ts`）
-- 被测应用已启动（`pnpm dev` 或对应启动命令）
+- 被测应用已启动（后端 `dotnet run --project api/Agenda.Api.csproj`）
 
 ## 执行命令
 
@@ -53,7 +53,7 @@ test('[E2E-01] 正常登录成功后跳转首页 @smoke @p0', async ({ page }) =
 
 **执行时间**：2026-07-08 14:30:00
 **总耗时**：2 分 34 秒
-**被测地址**：http://localhost:5173
+**被测地址**：http://localhost:5000
 
 ### 总览
 
@@ -122,7 +122,7 @@ test('[E2E-01] 正常登录成功后跳转首页 @smoke @p0', async ({ page }) =
 ## 流程
 
 1. **确认环境就绪**
-   - 被测应用已启动（`pnpm dev` 或 `dotnet run` 运行中）
+   - 被测应用已启动（`dotnet run --project api/Agenda.Api.csproj` 运行中）
    - 种子上一次运行已完成（如有 seed 脚本）
    - 浏览器已安装（`npx playwright install --with-deps`）
 2. **执行测试**

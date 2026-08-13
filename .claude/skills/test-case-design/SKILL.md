@@ -1,7 +1,7 @@
 ---
 name: test-case-design
 description: 设计测试用例或规划覆盖时使用——等价类划分、边界值、错误路径、测试矩阵、去冗余。
-rules: [test-standards]
+rules: [test-standards, req-staging]
 ---
 
 # test-case-design · 测试用例设计
@@ -12,7 +12,7 @@ rules: [test-standards]
 - 也用于反向审查现有测试的覆盖缺口（被 test-reviewer agent 复用）
 
 ## 流程
-1. **先 Read `rules/test-standards.md` 并严格遵守其约束。**
+1. **先 Read `rules/test-standards.md` 和 `rules/req-staging.md` 并严格遵守其约束，Read `production/staging/<name>/requirement.md`（验收标准/边界与异常/优先级）+ `epic-story.md` 作为等价类、边界值、错误路径、优先级的划分依据。**
 2. **等价类划分**——把输入/状态分成"等价类"，每类选代表用例（合法类 + 非法类）。避免穷举。
 3. **边界值**——针对每个边界取值（min-1/min/min+1、max-1/max/max+1、空、0、负）。边界是 bug 高发区。
 4. **错误路径**——异常、超时、权限不足、资源不可用、并发冲突。
