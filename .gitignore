@@ -46,3 +46,7 @@ coverage/
 
 # ---- Docker ----
 docker-data/
+
+# ---- E2E Test Artifacts ----
+testing/e2e/reports/
+testing/e2e/test-results/
