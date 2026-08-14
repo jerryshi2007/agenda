@@ -16,6 +16,7 @@ const {
   homeworkTask,
   today,
   dateOffset,
+  nextDayOfWeek,
   AUTH,
   TEST_USERS,
 } = require('../helpers/data-factory');
@@ -298,12 +299,11 @@ test.describe('2.A Schedule Create — P1 Core Paths', () => {
   test('[TC-CREATE-029] Network error handling — retry scaffold @P1', async ({ request }) => {
     // This tests that the API returns proper error format, not actual network interruption.
     // Real network interruption is tested manually or via mock in frontend tests.
-    // We test by sending to a non-existent endpoint to verify error handling shape.
-    const res = await request.post('/api/v1/schedules/nonexistent', {
-      headers: { Authorization: AUTH.PARENT_A },
-      data: {},
-    });
+    // We verify the 404 error shape by fetching a well-formed but non-existent schedule id.
+    const res = await getSchedule(request, AUTH.PARENT_A, '00000000-0000-0000-0000-000000000000');
     expect(res.status()).toBe(404);
+    const body = await res.json();
+    expect(body.error).toBe('SCHEDULE_NOT_FOUND');
   });
 
   test('[TC-CREATE-033] Preview summary — step 4 confirmation info correct @P1', async ({ request }) => {
@@ -350,7 +350,7 @@ test.describe('2.A Schedule Create — P2 Boundary & Edge Cases', () => {
     // Conflict check confirms conflict exists
     const checkPayload = {
       childId: TEST_USERS.CHILD_1,
-      date: today(),
+      date: nextDayOfWeek(1), // Monday, matching the seeded schedule's dayOfWeek
       startTime: '09:00:00',
       endTime: '10:00:00',
     };
