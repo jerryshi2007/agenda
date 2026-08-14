@@ -16,9 +16,10 @@
 | 阶段 | 状态 | OpenSpec 关联 |
 |------|:--:|------|
 | Stage 1 产品 | ✅ done | — |
-| Stage 2 研发 | ✅ done（代码审查修复完成） | add-event-module |
-| Stage 3 测试 | 🔄 in-progress（test-planner 启动） | — |
-| Stage 4 归档 | ⬜ pending | add-event-module |
+| Stage 2 设计 | ✅ done | add-event-module |
+| Stage 3 研发 | ✅ done（代码审查修复完成） | add-event-module |
+| Stage 4 测试 | 🔄 in-progress（test-planner 启动） | — |
+| Stage 5 归档 | ⬜ pending | add-event-module |
 
 ## 关联文档
 

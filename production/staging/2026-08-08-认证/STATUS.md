@@ -16,6 +16,7 @@
 | 阶段 | 状态 | OpenSpec 关联 |
 |------|:--:|------|
 | Stage 1 产品 | ✅ done | — |
-| Stage 2 研发 | 🔄 in-progress（架构设计已完成，编码进行中） | add-auth-module |
-| Stage 3 测试 | ⬜ pending | — |
-| Stage 4 归档 | ⬜ pending | add-auth-module |
+| Stage 2 设计 | ✅ done | add-auth-module |
+| Stage 3 研发 | 🔄 in-progress（架构设计已完成，编码进行中） | add-auth-module |
+| Stage 4 测试 | ⬜ pending | — |
+| Stage 5 归档 | ⬜ pending | add-auth-module |

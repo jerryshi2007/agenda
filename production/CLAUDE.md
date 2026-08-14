@@ -21,18 +21,18 @@
 
 > 状态取值：`⬜` pending / `🔄` in-progress / `✅` done / `⛔` blocked。此表与各 staging 目录 STATUS.md 同步更新。
 
-| 模块 | Stage 1 产品 | Stage 2 研发 | Stage 3 测试 | Stage 4 归档 | OpenSpec |
-|------|:--:|:--:|:--:|:--:|------|
-| 日程管理 | ✅ | ✅ | 🔄 | ⬜ | add-event-module (archived) |
-| 认证 | ✅ | 🔄 | ⬜ | ⬜ | add-auth-module |
-| 打卡 | ✅ | ⬜ | ⬜ | ⬜ | add-checkin-module |
-| 家庭 | ⬜ | ⬜ | ⬜ | ⬜ | — |
-| 模板 | ⬜ | ⬜ | ⬜ | ⬜ | — |
-| 展示模式 | ⬜ | ⬜ | ⬜ | ⬜ | — |
+| 模块 | Stage 1 产品 | Stage 2 设计 | Stage 3 研发 | Stage 4 测试 | Stage 5 归档 | OpenSpec |
+|------|:--:|:--:|:--:|:--:|:--:|------|
+| 日程管理 | ✅ | ✅ | ✅ | 🔄 | ⬜ | add-event-module (archived) |
+| 认证 | ✅ | ✅ | 🔄 | ⬜ | ⬜ | add-auth-module |
+| 打卡 | ✅ | 🔄 | ⬜ | ⬜ | ⬜ | add-checkin-module |
+| 家庭 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
+| 模板 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
+| 展示模式 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
 
-- **日程管理**：Stage 3 测试进行中，OpenSpec 已归档
-- **认证**：Stage 2 研发中（架构已完成，编码进行中），OpenSpec `add-auth-module`
-- **打卡**：Stage 1 完成，dev-ready 等待架构启动，OpenSpec `add-checkin-module`（design.md 已产出待审核）
+- **日程管理**：Stage 4 测试进行中，OpenSpec 已归档
+- **认证**：Stage 3 研发中（架构已完成，编码进行中），OpenSpec `add-auth-module`
+- **打卡**：Stage 2 设计中（design.md 已产出待 arch-review），OpenSpec `add-checkin-module`
 - **家庭 / 模板 / 展示模式**：requirements/ 文档已完成，尚未进入 staging 流程
 
 ## 需求文档规范

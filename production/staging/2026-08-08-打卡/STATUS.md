@@ -16,9 +16,10 @@
 | 阶段 | 状态 | OpenSpec 关联 |
 |------|:--:|------|
 | Stage 1 产品 | ✅ done | — |
-| Stage 2 研发 | 🔄 in-progress（design.md 已产出，待 design-review） | add-checkin-module |
-| Stage 3 测试 | ⬜ pending | — |
-| Stage 4 归档 | ⬜ pending | add-checkin-module |
+| Stage 2 设计 | 🔄 in-progress（design.md 已产出，待 arch-review） | add-checkin-module |
+| Stage 3 研发 | ⬜ pending | add-checkin-module |
+| Stage 4 测试 | ⬜ pending | — |
+| Stage 5 归档 | ⬜ pending | add-checkin-module |
 
 ## 关联文档
 
