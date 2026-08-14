@@ -4,12 +4,12 @@
 
 ## 当前进度
 
-| 模块 | Stage 1 | Stage 2 | Stage 3 | Stage 4 | OpenSpec |
-|------|:--:|:--:|:--:|:--:|------|
-| 日程管理 | ✅ | ✅ | 🔄 | ⬜ | add-event-module (archived) |
-| 认证 | ✅ | 🔄 | ⬜ | ⬜ | add-auth-module |
-| 打卡 | ✅ | ⬜ | ⬜ | ⬜ | add-checkin-module |
-| 家庭/模板/展示模式 | ⬜ | ⬜ | ⬜ | ⬜ | — |
+| 模块 | Stage 1 产品 | Stage 2 设计 | Stage 3 研发 | Stage 4 测试 | Stage 5 归档 | OpenSpec |
+|------|:--:|:--:|:--:|:--:|:--:|------|
+| 日程管理 | ✅ | ✅ | ✅ | 🔄 | ⬜ | add-event-module (archived) |
+| 认证 | ✅ | ✅ | 🔄 | ⬜ | ⬜ | add-auth-module |
+| 打卡 | ✅ | 🔄 | ⬜ | ⬜ | ⬜ | add-checkin-module |
+| 家庭/模板/展示模式 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
 
 - `app/` 已有日程管理前端代码（4 页面 + 11 组件 + 3 Service + 2 Util），认证模块（mine/privacy-prompt 页面）
 - `api/` 已有 .NET 10 后端（Schedule + Auth + Family + Domain + Infrastructure 分层），含 EF Core Migration
@@ -64,13 +64,14 @@ openspec archive <name>                                     # 归档变更
 
 ## 工作流
 
-agent 驱动的四阶段 SDLC 流水线，通过 OpenSpec 文件（git 共享）交接：
+agent 驱动的五阶段 SDLC 流水线，通过 OpenSpec 文件（git 共享）交接：
 
 ```
 Stage 1 产品: req-analyst → req-reviewer → 人审批 → commit
-Stage 2 研发: dev-architect → dev-architect-reviewer → 人审批 → dev-dotnet + dev-miniapp → commit
-Stage 3 测试: test-planner → test-writer → test-reviewer → test-runner → 人审批
-Stage 4 归档: openspec archive
+Stage 2 设计: arch-architect → arch-architect-reviewer → 人审批 → commit
+Stage 3 研发: dev-dotnet + dev-miniapp → dev-reviewer → commit
+Stage 4 测试: test-planner → test-writer → test-reviewer → test-runner → 人审批
+Stage 5 归档: openspec archive
 ```
 
 **Gate 原则**：三层人审批不可跳过（需求审核 + 架构审核 + E2E 测试后），任一 gate 未通过禁止进入下一阶段。git commit 是阶段间硬性交接点。

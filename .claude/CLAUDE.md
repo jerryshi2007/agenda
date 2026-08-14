@@ -16,7 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 主代理是流水线的编排者，负责按 SDLC 阶段顺序调度各 agent，不直接执行具体阶段任务。职责包括：
 
-- **阶段调度**：按 Stage 1→2→3→4 顺序，根据任务类型匹配并 dispatch 对应 agent
+- **阶段调度**：按 Stage 1→2→3→4→5 顺序，根据任务类型匹配并 dispatch 对应 agent
 - **Gate 管理**：各阶段审批 gate 分别对应 staging STATUS.md 和 OpenSpec 的状态节点，任一 gate 未通过，禁止进入下一阶段
 - **git 提交**：按 `git-commit` rule 创建提交，agent 产出的文档和代码由主代理统一提交
 - **状态追踪**：在 staging STATUS.md 和 OpenSpec 间维护一致性
@@ -38,12 +38,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 需求审核 | req-reviewer | req-review |
 | 原型设计 | ui-designer | design-web |
 
+### 设计 track
+
+| 子 track | Agent | Skill |
+|----------|-------|-------|
+| 架构设计 | arch-architect | arch-design, arch-planning, openspec-propose |
+| 架构审核 | arch-architect-reviewer | arch-review |
+
 ### 研发 track
 
 | 子 track | Agent | Skill |
 |----------|-------|-------|
-| 架构设计 | dev-architect | dev-arch, dev-planning, openspec-propose |
-| 架构审核 | dev-architect-reviewer | dev-arch-review |
 | .NET 后端 | dev-dotnet | dev-dotnet-tdd, dev-sdd, dev-verification |
 | Vue 3 前端 | dev-vue3 | dev-vue3-tdd, dev-sdd, dev-verification |
 | 小程序前端 | dev-miniapp | dev-miniapp-tdd, dev-sdd, dev-verification |

@@ -4,7 +4,7 @@ description: staging 需求文档规范——SDLC 全过程管理。产出或评
 
 # req-staging · staging 全过程管理规范
 
-本 rule 定义 staging 目录的**全过程管理**（需求→研发→测试→归档），是 SDLC 外层容器。开发阶段的技术设计由 OpenSpec 管理（见 `openspec-workflow` rule），两者通过握手点衔接。
+本 rule 定义 staging 目录的**全过程管理**（需求→设计→研发→测试→归档），是 SDLC 外层容器。开发阶段的技术设计由 OpenSpec 管理（见 `openspec-workflow` rule），两者通过握手点衔接。
 
 ## 需求内容标准
 
@@ -25,7 +25,7 @@ description: staging 需求文档规范——SDLC 全过程管理。产出或评
 
 ## 暂存目录规范
 
-需求文档先在 `production/staging/` 下以草稿演进，作为需求→研发→测试全过程的外层容器。开发完成、分支合并后，才将 staging 文档合并到 `production/requirements/`。
+需求文档先在 `production/staging/` 下以草稿演进，作为需求→设计→研发→测试→归档全过程的外层容器。开发完成、分支合并后，才将 staging 文档合并到 `production/requirements/`。
 
 ```
 production/staging/
@@ -56,12 +56,12 @@ draft → confirmed → dev-ready → in-progress → done
 | `draft` | 初始草稿 | 暂存目录创建时 |
 | `confirmed` | 需求已确认 | 用户审阅确认 requirement.md + epic-story.md，分支已创建 |
 | `dev-ready` | 下游可开工 | req-reviewer 审批通过 |
-| `in-progress` | 研发/测试进行中 | dev-architect 开始架构设计。内部由 Stage 进度表细分 |
+| `in-progress` | 研发/测试进行中 | arch-architect 开始架构设计。内部由 Stage 进度表细分 |
 | `done` | 全流程完成 | 分支合并，staging 文档合并入 `requirements/` |
 
 ### Stage 进度表
 
-STATUS.md MUST 包含 Stage 进度表，追踪 SDLC 四阶段的细粒度进度。该表在状态从 `dev-ready` 转为 `in-progress` 时创建。
+STATUS.md MUST 包含 Stage 进度表，追踪 SDLC 五阶段的细粒度进度。该表在状态从 `dev-ready` 转为 `in-progress` 时创建。
 
 ```markdown
 ## 阶段进度
@@ -69,14 +69,15 @@ STATUS.md MUST 包含 Stage 进度表，追踪 SDLC 四阶段的细粒度进度�
 | 阶段 | 状态 | OpenSpec 关联 |
 |------|:--:|------|
 | Stage 1 产品 | ✅ done | — |
-| Stage 2 研发 | 🔄 in-progress | add-auth-module |
-| Stage 3 测试 | ⬜ pending | — |
-| Stage 4 归档 | ⬜ pending | add-auth-module |
+| Stage 2 设计 | ✅ done | add-auth-module |
+| Stage 3 研发 | 🔄 in-progress | add-auth-module |
+| Stage 4 测试 | ⬜ pending | — |
+| Stage 5 归档 | ⬜ pending | add-auth-module |
 ```
 
 **状态取值**：`⬜ pending`（未开始）/ `🔄 in-progress`（进行中）/ `✅ done`（已完成）/ `⛔ blocked`（阻塞）。
 
-**OpenSpec 关联列**：Stage 2 和 Stage 4 与 OpenSpec 交互，填入对应的 OpenSpec 变更名（如 `add-auth-module`）。Stage 1 和 Stage 3 不涉及 OpenSpec，填 `—`。Stage 4 完成后，OpenSpec 变更已归档至 `openspec/changes/archive/`。
+**OpenSpec 关联列**：Stage 2 设计、Stage 3 研发、Stage 5 归档与 OpenSpec 交互，填入对应的 OpenSpec 变更名（如 `add-auth-module`）。Stage 1 产品和 Stage 4 测试不涉及 OpenSpec，填 `—`。Stage 5 完成后，OpenSpec 变更已归档至 `openspec/changes/archive/`。
 
 ### STATUS.md 格式
 
@@ -99,16 +100,17 @@ STATUS.md MUST 包含 Stage 进度表，追踪 SDLC 四阶段的细粒度进度�
 | 阶段 | 状态 | OpenSpec 关联 |
 |------|:--:|------|
 | Stage 1 产品 | 🔄 in-progress | — |
-| Stage 2 研发 | ⬜ pending | — |
-| Stage 3 测试 | ⬜ pending | — |
-| Stage 4 归档 | ⬜ pending | — |
+| Stage 2 设计 | ⬜ pending | — |
+| Stage 3 研发 | ⬜ pending | — |
+| Stage 4 测试 | ⬜ pending | — |
+| Stage 5 归档 | ⬜ pending | — |
 ```
 
 - `状态` 取值为状态机中定义的五种状态之一
 - `创建日期` 为暂存目录创建日期
 - `最后更新` 为 STATUS.md 最近一次修改日期
 - 状态流转图用 `↑ 当前` 标注当前所处状态
-- 阶段进度表中 `OpenSpec 关联` 仅在 Stage 2 和 Stage 4 填入实际变更名
+- 阶段进度表中 `OpenSpec 关联` 仅在 Stage 2 设计、Stage 3 研发、Stage 5 归档填入实际变更名
 
 ### 全局模块状态表
 
@@ -117,11 +119,11 @@ STATUS.md MUST 包含 Stage 进度表，追踪 SDLC 四阶段的细粒度进度�
 ```markdown
 ## 模块实现进度
 
-| 模块 | Stage 1 | Stage 2 | Stage 3 | Stage 4 | OpenSpec |
-|------|:--:|:--:|:--:|:--:|------|
-| 日程管理 | ✅ | ✅ | 🔄 | ⬜ | add-event-module |
-| 认证 | ✅ | ✅ | ⬜ | ⬜ | add-auth-module |
-| 打卡 | ✅ | ⬜ | ⬜ | ⬜ | add-checkin-module |
+| 模块 | Stage 1 产品 | Stage 2 设计 | Stage 3 研发 | Stage 4 测试 | Stage 5 归档 | OpenSpec |
+|------|:--:|:--:|:--:|:--:|:--:|------|
+| 日程管理 | ✅ | ✅ | ✅ | 🔄 | ⬜ | add-event-module |
+| 认证 | ✅ | ✅ | 🔄 | ⬜ | ⬜ | add-auth-module |
+| 打卡 | ✅ | 🔄 | ⬜ | ⬜ | ⬜ | add-checkin-module |
 ```
 
 该表在每次 STATUS.md 更新后同步更新，保证 staging STATUS.md 与全局视图一致。
@@ -136,7 +138,7 @@ STATUS.md MUST 包含 Stage 进度表，追踪 SDLC 四阶段的细粒度进度�
 4. **日程类型详细设计**（如适用）— 类型对比、字段定义、示例
 5. **展示模式**（如适用）— 不同模式的视觉与交互差异
 6. **页面结构** — 各端页面列表和功能说明
-7. **业务概念模型**（如适用）— 业务实体及其关系的概念描述，聚焦业务概念（如"案件包含多个审理阶段"），不定义数据库字段、表结构、SQL DDL。技术设计阶段的数据库设计由 dev-architect 产出
+7. **业务概念模型**（如适用）— 业务实体及其关系的概念描述，聚焦业务概念（如"案件包含多个审理阶段"），不定义数据库字段、表结构、SQL DDL。技术设计阶段的数据库设计由 arch-architect 产出
 8. **非功能需求** — 性能、兼容性、安全性、可用性
 9. **分期规划** — 分阶段落地计划
 10. **附录** — 关键决策记录
@@ -159,11 +161,11 @@ STATUS.md MUST 包含 Stage 进度表，追踪 SDLC 四阶段的细粒度进度�
 
 后续状态变更时 MUST 同步更新此标记（`in-progress` → `done`），保持标记与 STATUS.md 一致。
 
-`dev-ready` 是下游 agent 的启动信号——dev-architect 通过读取 staging 目录中的此标记判断需求是否可执行。
+`dev-ready` 是下游 agent 的启动信号——arch-architect 通过读取 staging 目录中的此标记判断需求是否可执行。
 
 ## 与 OpenSpec 的握手
 
-staging 是 SDLC 外层容器，OpenSpec 管理 Stage 2 的技术设计和 Stage 4 的归档。两者在以下节点握手：
+staging 是 SDLC 外层容器，OpenSpec 管理 Stage 2 设计、Stage 3 研发的技术实现和 Stage 5 归档。两者在以下节点握手：
 
 ### 握手点 1：dev-ready → 创建 OpenSpec 变更
 
@@ -171,26 +173,26 @@ staging 是 SDLC 外层容器，OpenSpec 管理 Stage 2 的技术设计和 Stage
 - **动作**：主代理创建 `openspec/changes/<name>/`，写入 proposal.md（技术视角的 Why/What/How 概要，引用 staging requirement.md 中的需求动机）
 - **约束**：proposal.md MUST 在 "Why" 段引用 staging 目录路径和 requirement.md
 
-### 握手点 2：OpenSpec 设计完成 → Stage 2 标记完成
+### 握手点 2：OpenSpec 设计完成 → Stage 2 设计标记完成
 
-- **触发**：dev-architect + dev-architect-reviewer 完成，design.md + tasks.md 已产出
-- **动作**：主代理将 STATUS.md 中 Stage 2 状态更新为 `✅ done`
+- **触发**：arch-architect + arch-architect-reviewer 完成，design.md + tasks.md 已产出
+- **动作**：主代理将 STATUS.md 中 Stage 2 设计状态更新为 `✅ done`
 
-### 握手点 3：OpenSpec 归档完成 → Stage 4 标记完成 → done
+### 握手点 3：OpenSpec 归档完成 → Stage 5 归档标记完成 → done
 
 - **触发**：`openspec archive` 执行完成，变更移至 `openspec/changes/archive/`
-- **动作**：主代理将 STATUS.md 中 Stage 4 状态更新为 `✅ done`，整体状态更新为 `done`
+- **动作**：主代理将 STATUS.md 中 Stage 5 归档状态更新为 `✅ done`，整体状态更新为 `done`
 
 ### 职责边界总结
 
 | 维度 | staging | OpenSpec |
 |------|---------|----------|
-| **管什么** | SDLC 全生命周期：需求→研发→测试→归档 | 开发阶段：技术设计→任务拆解→代码→归档 |
+| **管什么** | SDLC 全生命周期：需求→设计→研发→测试→归档 | 开发阶段：技术设计→任务拆解→代码→归档 |
 | **入口条件** | 有新需求/变更 | staging 到达 `dev-ready` |
 | **出口条件** | 分支合并，STATUS.md → done | `openspec archive` 完成 |
-| **状态粒度** | Stage 级（4 个阶段） | 文件级（proposal/design/tasks/code/archive） |
+| **状态粒度** | Stage 级（5 个阶段） | 文件级（proposal/design/tasks/code/archive） |
 | **核心文件** | requirement.md, epic-story.md, STATUS.md | proposal.md, design.md, tasks.md, specs/ |
-| **受众** | 产品 + 研发 + 测试 + 归档全角色 | 研发角色（架构师+开发者） |
+| **受众** | 产品 + 设计 + 研发 + 测试 + 归档全角色 | 研发角色（架构师+开发者） |
 
 ## 示例
 
