@@ -2,14 +2,14 @@
 
 | 字段 | 值 |
 |------|-----|
-| 状态 | in-progress |
+| 状态 | done |
 | 创建日期 | 2026-08-08 |
 | 最后更新 | 2026-08-14 |
 
 ## 状态流转
 
     draft → confirmed → dev-ready → in-progress → done
-                                    ↑ 当前
+                                                  ↑ 当前
 
 ## 阶段进度
 
@@ -18,8 +18,8 @@
 | Stage 1 产品 | ✅ done | — |
 | Stage 2 设计 | ✅ done | add-event-module |
 | Stage 3 研发 | ✅ done（代码审查修复完成） | add-event-module |
-| Stage 4 测试 | 🔄 in-progress（测试执行完成 139/140 通过，待人审批） | — |
-| Stage 5 归档 | ⬜ pending | add-event-module |
+| Stage 4 测试 | ✅ done | — |
+| Stage 5 归档 | ✅ done | add-event-module |
 
 ## 关联文档
 

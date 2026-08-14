@@ -6,14 +6,14 @@
 
 | 模块 | Stage 1 产品 | Stage 2 设计 | Stage 3 研发 | Stage 4 测试 | Stage 5 归档 | OpenSpec |
 |------|:--:|:--:|:--:|:--:|:--:|------|
-| 日程管理 | ✅ | ✅ | ✅ | 🔄 | ⬜ | add-event-module (archived) |
+| 日程管理 | ✅ | ✅ | ✅ | ✅ | ✅ | add-event-module (archived) |
 | 认证 | ✅ | ✅ | 🔄 | ⬜ | ⬜ | add-auth-module |
 | 打卡 | ✅ | 🔄 | ⬜ | ⬜ | ⬜ | add-checkin-module |
 | 家庭/模板/展示模式 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
 
 - `app/` 已有日程管理前端代码（4 页面 + 11 组件 + 3 Service + 2 Util），认证模块（mine/privacy-prompt 页面）
 - `api/` 已有 .NET 10 后端（Schedule + Auth + Family + Domain + Infrastructure 分层），含 EF Core Migration
-- `testing/e2e/` 已有 Playwright 测试套件（日程管理 140 用例，97.1% 通过率）
+- `testing/e2e/` 已有 Playwright 测试套件（日程管理 139/140 通过，1 项打卡模块预置 skip）
 
 详细进度见 [`production/CLAUDE.md`](production/CLAUDE.md) 全局模块进度表。
 

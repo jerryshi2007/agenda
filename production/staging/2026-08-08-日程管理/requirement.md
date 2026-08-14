@@ -1,4 +1,4 @@
-<!-- STAGING-STATUS: in-progress -->
+<!-- STAGING-STATUS: done -->
 <!-- CONFIRMED: 2026-08-08 -->
 
 # 日程管理模块 · 需求文档（暂存）
