@@ -50,7 +50,7 @@ public class ScheduleService : IScheduleService
                     DueDate = scheduleType == ScheduleType.HomeworkTask ? request.DueDate : null,
                     SuggestedStartTime = scheduleType == ScheduleType.HomeworkTask ? request.SuggestedStartTime : null,
                     SuggestedEndTime = scheduleType == ScheduleType.HomeworkTask ? request.SuggestedEndTime : null,
-                    RowVersion = Array.Empty<byte>(),
+                    RowVersion = Guid.NewGuid().ToByteArray(),
                     IsDeleted = false,
                     CreatedAt = now,
                     UpdatedAt = now
@@ -271,6 +271,18 @@ public class ScheduleService : IScheduleService
         {
             schedule.IsDeleted = true;
             schedule.UpdatedAt = DateTimeOffset.UtcNow;
+
+            // Also soft-delete derivative schedules (created by "ThisOnly" edits) so they
+            // don't leak into conflict detection and break subsequent tests.
+            var derivatives = await _db.Schedules
+                .Where(d => d.SourceScheduleId == scheduleId && !d.IsDeleted)
+                .ToListAsync(ct);
+            foreach (var d in derivatives)
+            {
+                d.IsDeleted = true;
+                d.UpdatedAt = DateTimeOffset.UtcNow;
+            }
+
             await _db.SaveChangesAsync(ct);
             return new DeleteScheduleResponse
             {
@@ -565,7 +577,7 @@ public class ScheduleService : IScheduleService
             SuggestedEndTime = request.SuggestedEndTime ?? original.SuggestedEndTime,
             SourceScheduleId = original.Id,
             OverrideDate = request.Date, // IM-7: mark which date this derivative applies to
-            RowVersion = Array.Empty<byte>(),
+            RowVersion = Guid.NewGuid().ToByteArray(),
             IsDeleted = false,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
@@ -612,6 +624,7 @@ public class ScheduleService : IScheduleService
         if (request.SuggestedStartTime.HasValue) schedule.SuggestedStartTime = request.SuggestedStartTime.Value;
         if (request.SuggestedEndTime.HasValue) schedule.SuggestedEndTime = request.SuggestedEndTime.Value;
         schedule.UpdatedAt = DateTimeOffset.UtcNow;
+        schedule.RowVersion = Guid.NewGuid().ToByteArray();
     }
 
     private async Task UpdateTimeSlotsAsync(Domain.Entities.Schedule schedule, UpdateScheduleRequest request, CancellationToken ct)

@@ -17,7 +17,7 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Domain.Entities.Sc
         builder.Property(e => e.GroupKey).IsRequired();
         builder.Property(e => e.Notes).HasMaxLength(500);
         builder.Property(e => e.Location).HasMaxLength(100);
-        builder.Property(e => e.RowVersion).IsRowVersion();
+        builder.Property(e => e.RowVersion).IsConcurrencyToken();
         builder.Property(e => e.IsDeleted).IsRequired().HasDefaultValue(false);
         builder.Property(e => e.CreatedAt).IsRequired();
         builder.Property(e => e.UpdatedAt).IsRequired();
