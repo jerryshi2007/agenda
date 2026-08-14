@@ -45,10 +45,9 @@ public class ScheduleController : ControllerBase
                     var conflictResult = await _conflictService.CheckConflictAsync(new ScheduleConflictCheckRequest
                     {
                         ChildId = request.ChildIds[0],
-                        // NOTE: Known limitation — uses today's date for DayOfWeek extraction,
-                        // which means conflicts may not be detected for non-today weekdays.
-                        // Fix tracked as TC-CREATE-006; requires test data isolation refactoring first.
-                        Date = DateOnly.FromDateTime(DateTime.Today),
+                        // Derive a concrete date from the time slot's weekday so the
+                        // conflict service matches the correct DayOfWeek.
+                        Date = GetNextDateForDayOfWeek(ts.DayOfWeek),
                         StartTime = ts.StartTime,
                         EndTime = ts.EndTime
                     }, ct);
