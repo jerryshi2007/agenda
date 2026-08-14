@@ -1,14 +1,14 @@
 ---
-name: dev-planning
+name: arch-planning
 description: 技术设计 design.md 完成后使用——将需求分解为 bite-sized tasks，产出 tasks.md 到 openspec/changes/<name>/。非平凡实现任务动手前使用。
 rules: [dev-code-quality, openspec-workflow, dev-miniapp-standards, dev-dotnet-standards]
 ---
 
-# dev-planning · 研发计划
+# arch-planning · 架构计划
 
 ## 在流程中的位置
 
-`dev-arch`（架构设计 → `openspec/changes/<name>/design.md`）→ **dev-planning**（任务分解 → `openspec/changes/<name>/tasks.md`）→ `dev-sdd`（执行） 或 `openspec-apply-change`（执行）
+`arch-design`（架构设计 → `openspec/changes/<name>/design.md`）→ **arch-planning**（任务分解 → `openspec/changes/<name>/tasks.md`）→ `dev-sdd`（执行） 或 `openspec-apply-change`（执行）
 
 ## 何时使用
 

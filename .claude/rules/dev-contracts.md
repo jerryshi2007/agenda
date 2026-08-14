@@ -5,12 +5,12 @@
 ### 单一真相源
 
 - **API 契约的枚举值、错误码、DTO 结构 MUST 定义在 `openspec/contracts/<domain>/` 下**，作为三端（后端、前端、测试）的共享真相源。禁止在后端 C# 代码、前端 JS 代码、测试 JS 代码中各自手写同一字符串字面量。
-- **契约文件与 design.md 同时产出**——dev-architect 在设计 API 契约轮廓时，MUST 将可机读部分提取为 JSON 文件。design.md 描述"为什么这样设计"，contracts JSON 描述"具体值是什么"。
+- **契约文件与 design.md 同时产出**——arch-architect 在设计 API 契约轮廓时，MUST 将可机读部分提取为 JSON 文件。design.md 描述"为什么这样设计"，contracts JSON 描述"具体值是什么"。
 
 ### 产出时机与角色
 
-- **Stage 2（架构设计）产出**，由 dev-architect agent（通过 dev-arch skill）创建。
-- **dev-architect-reviewer 审核**，检查 contracts 与 design.md prose 描述一致、覆盖所有 API 端点。
+- **Stage 2（架构设计）产出**，由 arch-architect agent（通过 arch-design skill）创建。
+- **arch-architect-reviewer 审核**，检查 contracts 与 design.md prose 描述一致、覆盖所有 API 端点。
 - **下游消费**：dev-dotnet、dev-miniapp、test-writer 各自的前置检查中 MUST 确认 contracts 文件存在。
 
 ### 文件结构
@@ -70,7 +70,7 @@ openspec/contracts/<domain>/
 
 ### 与已有 rule 的关系
 
-- 契约文件是 API 设计的机器可读子集，与 design.md 中 API 契约轮廓（参见 `dev-arch` skill）一一对应。
+- 契约文件是 API 设计的机器可读子集，与 design.md 中 API 契约轮廓（参见 `arch-design` skill）一一对应。
 - 契约文件走 OpenSpec 变更管理流程（参见 `openspec-workflow` rule）——变更目录中有对应 contracts delta，archive 时合并。
 - 各技术栈的 standards rule（`dev-dotnet-standards`、`dev-miniapp-standards`）中不再重复定义契约消费约束，统一由此 rule 定义。
 

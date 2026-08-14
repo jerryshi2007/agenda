@@ -1,14 +1,14 @@
 ---
-name: dev-arch-review
+name: arch-review
 description: 审核 design.md——按 10 维度查需求覆盖、ER 可反推、时序完整、ADR 充分、规则合规。只读不改。
 rules: [dev-dotnet-standards, dev-vue3-standards, design-ui-standards, dev-code-quality, dev-security, openspec-workflow, dev-contracts]
 ---
 
-# dev-arch-review · 架构设计审核
+# arch-review · 架构设计审核
 
 ## 何时使用
 
-dev-architect 产出 design.md 后。跳过：纯单模块小改动、纯 UI 调整、纯 bug 修复。
+arch-architect 产出 design.md 后。跳过：纯单模块小改动、纯 UI 调整、纯 bug 修复。
 
 ## 流程
 
