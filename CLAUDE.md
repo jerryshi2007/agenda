@@ -71,7 +71,7 @@ Stage 1 产品: req-analyst → req-reviewer → 人审批 → commit
 Stage 2 设计: arch-architect → arch-architect-reviewer → 人审批 → commit
 Stage 3 研发: dev-dotnet + dev-miniapp → dev-reviewer → commit
 Stage 4 测试: test-planner → test-writer → test-reviewer → test-runner → 人审批
-Stage 5 归档: openspec archive
+Stage 5 归档: archiver（两步：先 openspec archive 代码 → 再 staging → production/archive/ 需求）
 ```
 
 **Gate 原则**：三层人审批不可跳过（需求审核 + 架构审核 + E2E 测试后），任一 gate 未通过禁止进入下一阶段。git commit 是阶段间硬性交接点。
@@ -116,7 +116,7 @@ STATUS.md         # 状态机 + Stage 进度表 + OpenSpec 关联
 review.md         # req-reviewer 审核报告
 ```
 
-状态机：`draft → confirmed → dev-ready → in-progress → done`。`dev-ready` 是下游启动信号。
+状态机：`draft → confirmed → dev-ready → in-progress → done`。`dev-ready` 是下游启动信号。完成后归档到 `production/archive/`。
 
 ## 提交规范
 

@@ -24,7 +24,7 @@ Stage 1 产品      Stage 2 设计        Stage 3 研发      Stage 4 测试    
 - **RFC 2119 关键词**——需求用 MUST/SHALL（绝对要求）、SHOULD（推荐）、MAY（可选）标明约束强度。
 - **Given-When-Then 场景**——每个 Requirement 至少配一个 Scenario，用 Given-When-Then 描述正常路径和至少一个异常路径。
 - **变更完成后 archive**——实现完成并验证通过后，必须执行 `openspec archive`，将 delta 合并入 `openspec/specs/`，变更移至 `archive/`。
-- **归档回写 staging**——archive 完成后，主代理 MUST 将对应 staging 目录 STATUS.md 中 Stage 5 归档更新为 `✅ done`，整体状态更新为 `done`。
+- **归档回写 staging**——archive 完成后，主代理 MUST 调度 `archiver` agent 完成归档收口：回写对应 staging 目录 STATUS.md 中 Stage 5 归档为 `✅ done`、整体状态为 `done`，并将 staging 目录移入 `production/archive/`。
 - **`openspec/specs/` 是需求真相源**——所有需求以 `openspec/specs/<domain>/spec.md` 为准，人类和 agent 均以此为依据。
 
 ## 示例
@@ -55,6 +55,6 @@ Stage 1 产品      Stage 2 设计        Stage 3 研发      Stage 4 测试    
 
 - **握手点 1**：staging `dev-ready` → 创建 OpenSpec 变更
 - **握手点 2**：OpenSpec 设计完成（design.md + tasks.md 产出）→ staging Stage 2 设计 ✅ done
-- **握手点 3**：OpenSpec archive 完成 → staging Stage 5 归档 ✅ done → 整体 `done`
+- **握手点 3**：OpenSpec archive 完成 → `archiver` 回写 staging Stage 5 归档 ✅ done + staging 目录移入 `production/archive/` → 整体 `done`
 
 Delta spec 格式（ADDED/MODIFIED/REMOVED）以本 rule 为权威定义。

@@ -25,7 +25,7 @@ description: staging 需求文档规范——SDLC 全过程管理。产出或评
 
 ## 暂存目录规范
 
-需求文档先在 `production/staging/` 下以草稿演进，作为需求→设计→研发→测试→归档全过程的外层容器。开发完成、分支合并后，才将 staging 文档合并到 `production/requirements/`。
+需求文档先在 `production/staging/` 下以草稿演进，作为需求→设计→研发→测试→归档全过程的外层容器。开发完成、分支合并后，将 staging 文档合并到 `production/requirements/`，并将 staging 目录归档到 `production/archive/`。
 
 ```
 production/staging/
@@ -57,7 +57,7 @@ draft → confirmed → dev-ready → in-progress → done
 | `confirmed` | 需求已确认 | 用户审阅确认 requirement.md + epic-story.md，分支已创建 |
 | `dev-ready` | 下游可开工 | req-reviewer 审批通过 |
 | `in-progress` | 研发/测试进行中 | arch-architect 开始架构设计。内部由 Stage 进度表细分 |
-| `done` | 全流程完成 | 分支合并，staging 文档合并入 `requirements/` |
+| `done` | 全流程完成 | 分支合并，staging 文档合并入 `requirements/`，staging 目录移入 `production/archive/` |
 
 ### Stage 进度表
 
@@ -148,7 +148,7 @@ STATUS.md MUST 包含 Stage 进度表，追踪 SDLC 五阶段的细粒度进度�
 - 首次创建：需求结构化分析完成后，写入 staging 目录
 - 需求变更：Read 现有 staging 文件 → 增量修改对应章节 → 追加决策记录
 - 每次更新后需用户审阅确认
-- 开发完成后、分支合并时，将 staging 文档合并到 `production/requirements/`
+- 开发完成后、分支合并时，将 staging 文档合并到 `production/requirements/`，并将 staging 目录移入 `production/archive/`
 
 ## dev-ready 标记
 
@@ -181,7 +181,7 @@ staging 是 SDLC 外层容器，OpenSpec 管理 Stage 2 设计、Stage 3 研发�
 ### 握手点 3：OpenSpec 归档完成 → Stage 5 归档标记完成 → done
 
 - **触发**：`openspec archive` 执行完成，变更移至 `openspec/changes/archive/`
-- **动作**：主代理将 STATUS.md 中 Stage 5 归档状态更新为 `✅ done`，整体状态更新为 `done`
+- **动作**：主代理调度 `archiver` agent 完成归档收口——回写 STATUS.md 中 Stage 5 归档为 `✅ done`、整体状态为 `done`，合并 requirements/，将 staging 目录移入 `production/archive/`
 
 ### 职责边界总结
 
@@ -189,7 +189,7 @@ staging 是 SDLC 外层容器，OpenSpec 管理 Stage 2 设计、Stage 3 研发�
 |------|---------|----------|
 | **管什么** | SDLC 全生命周期：需求→设计→研发→测试→归档 | 开发阶段：技术设计→任务拆解→代码→归档 |
 | **入口条件** | 有新需求/变更 | staging 到达 `dev-ready` |
-| **出口条件** | 分支合并，STATUS.md → done | `openspec archive` 完成 |
+| **出口条件** | 分支合并，STATUS.md → done，staging 目录移入 `production/archive/` | `openspec archive` 完成 |
 | **状态粒度** | Stage 级（5 个阶段） | 文件级（proposal/design/tasks/code/archive） |
 | **核心文件** | requirement.md, epic-story.md, STATUS.md | proposal.md, design.md, tasks.md, specs/ |
 | **受众** | 产品 + 设计 + 研发 + 测试 + 归档全角色 | 研发角色（架构师+开发者） |

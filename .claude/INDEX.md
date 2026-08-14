@@ -6,8 +6,8 @@
 
 | Rule | Skill（直接声明） | Agent（直接 + 间接） |
 |------|-------------------|---------------------|
-| req-staging | req-brainstorming, req-review, openspec-propose, test-case-design, test-e2e-playwright | req-analyst, req-reviewer, test-planner |
-| openspec-workflow | openspec-propose, arch-planning, dev-finishing-branch, dev-code-review, arch-design, arch-review, openspec-archive-change, dev-sdd | arch-architect, arch-architect-reviewer |
+| req-staging | req-brainstorming, req-review, openspec-propose, test-case-design, test-e2e-playwright, staging-archive | req-analyst, req-reviewer, test-planner, archiver |
+| openspec-workflow | openspec-propose, arch-planning, dev-finishing-branch, dev-code-review, arch-design, arch-review, openspec-archive-change, dev-sdd | arch-architect, arch-architect-reviewer, archiver |
 | design-ui-standards | design-web, dev-vue3-tdd, arch-design, arch-review | ui-designer |
 | ui-miniapp-standards | ui-miniapp-web, dev-miniapp-tdd | — |
 | dev-code-quality | arch-planning, dev-code-review, dev-refactoring, dev-dotnet-tdd, dev-vue3-tdd, dev-miniapp-tdd, arch-design, arch-review, openspec-apply-change, dev-sdd | — |

@@ -46,7 +46,7 @@
 | **架构师** | arch-architect, arch-architect-reviewer | 架构设计、任务分解、设计审核 |
 | **研发工程师** | dev-dotnet, dev-vue3, dev-miniapp, dev-reviewer | 编码实现、代码审查 |
 | **测试工程师** | test-planner, test-writer, test-reviewer, test-runner | 测试策略、E2E 脚本、测试审查、执行报告 |
-| **任何人** | （主代理直接执行） | 归档 |
+| **归档执行员** | archiver | 两步归档：OpenSpec 代码 + staging 需求目录 |
 
 ### 1.3 调度方式
 
@@ -65,7 +65,7 @@ Stage 1 产品: req-analyst → req-reviewer + ui-designer（并行）→ 人审
 Stage 2 设计: git pull → arch-architect → arch-architect-reviewer → 人审批 → git commit
 Stage 3 研发: git pull → dev-dotnet + dev-miniapp (并行) → dev-reviewer → git commit
 Stage 4 测试: git pull → test-planner → test-writer → test-reviewer → test-runner → 人审批
-Stage 5 归档: openspec archive（任何人）
+Stage 5 归档: archiver（先 openspec archive 代码 → 再 staging → production/archive/ 需求）
 ```
 
 **关键原则**：
@@ -517,7 +517,7 @@ Stage 5 归档: openspec archive（任何人）
 1. dev-verification  → 运行完整验证（测试 + 构建 + 类型检查 + Lint）
 2. dev-code-review   → 全分支代码审查
 3. dev-finishing-branch → 确认 artifacts 完整性、清理遗留文件、合并/PR
-4. /opsx:archive     → OpenSpec 归档（delta specs 合并入 openspec/specs/）
+4. archiver          → 两步归档：openspec archive（代码）+ staging → production/archive/（需求）
 ```
 
 **跳步 = 未完成**。openspec status 会报告 artifacts 缺失。
@@ -532,6 +532,7 @@ Stage 5 归档: openspec archive（任何人）
 归档后：
 - Delta specs 合并入 `openspec/specs/<domain>/spec.md`
 - 变更目录移至 `openspec/changes/archive/YYYY-MM-DD-<name>/`
+- staging 目录移至 `production/archive/YYYY-MM-DD-概要/`
 
 ---
 
@@ -559,7 +560,7 @@ Rule 不自动加载，由 Skill 在 frontmatter 中声明 `rules: [...]`，被�
 
 | Rule | 引用它的 Skill |
 |------|---------------|
-| req-staging | req-brainstorming, req-review |
+| req-staging | req-brainstorming, req-review, staging-archive |
 | openspec-workflow | req-brainstorming, req-review, arch-planning, dev-finishing-branch, dev-code-review, arch-design, arch-review |
 | design-ui-standards | design-web, dev-vue3-tdd, arch-design, arch-review |
 | dev-code-quality | arch-planning, dev-code-review, dev-refactoring, dev-dotnet-tdd, dev-vue3-tdd, arch-design, arch-review |
@@ -592,7 +593,7 @@ Rule 不自动加载，由 Skill 在 frontmatter 中声明 `rules: [...]`，被�
 | 写 E2E 脚本 | "帮我写 XXX 的 E2E 测试" | test-writer |
 | 审查测试 | "审查一下测试质量" | test-reviewer |
 | 跑 E2E | "执行 E2E 测试" | test-runner |
-| 归档 | "/opsx:archive XXX" | 主代理直接执行 |
+| 归档 | "归档 XXX 模块" | archiver（两步：代码 → 需求） |
 
 ### 9.2 常用命令速查
 

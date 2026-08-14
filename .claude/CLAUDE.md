@@ -70,5 +70,5 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 调试 | dev-debugging |
 | 重构 | dev-refactoring |
 | 收尾 | dev-finishing-branch |
-| 归档 | openspec-archive-change |
+| 归档 | openspec-archive-change, staging-archive（由 archiver agent 编排） |
 | Git 提交 | —（见 `rules/git-commit.md`） |
