@@ -11,12 +11,13 @@
 - [一、框架概述](#一框架概述)
 - [二、流水线总览](#二流水线总览)
 - [三、产品阶段（Stage 1）](#三产品阶段stage-1)
-- [四、研发阶段（Stage 2）](#四研发阶段stage-2)
-- [五、测试阶段（Stage 3）](#五测试阶段stage-3)
-- [六、归档阶段（Stage 4）](#六归档阶段stage-4)
-- [七、横切规则](#七横切规则)
-- [八、速查表](#八速查表)
-- [九、常见问题](#九常见问题)
+- [四、设计阶段（Stage 2）](#四设计阶段stage-2)
+- [五、研发阶段（Stage 3）](#五研发阶段stage-3)
+- [六、测试阶段（Stage 4）](#六测试阶段stage-4)
+- [七、归档阶段（Stage 5）](#七归档阶段stage-5)
+- [八、横切规则](#八横切规则)
+- [九、速查表](#九速查表)
+- [十、常见问题](#十常见问题)
 
 ---
 
@@ -42,9 +43,10 @@
 | 角色 | 使用的 Agent | 职责 |
 |------|-------------|------|
 | **产品经理** | req-analyst, req-reviewer, ui-designer | 需求探索、梳理、审核、原型设计 |
-| **研发工程师** | dev-architect, dev-architect-reviewer, dev-dotnet, dev-vue3, dev-miniapp, dev-reviewer | 架构设计、任务分解、编码实现、代码审查 |
+| **架构师** | arch-architect, arch-architect-reviewer | 架构设计、任务分解、设计审核 |
+| **研发工程师** | dev-dotnet, dev-vue3, dev-miniapp, dev-reviewer | 编码实现、代码审查 |
 | **测试工程师** | test-planner, test-writer, test-reviewer, test-runner | 测试策略、E2E 脚本、测试审查、执行报告 |
-| **任何人** | （主代理直接执行） | 归档 |
+| **归档执行员** | archiver | 两步归档：OpenSpec 代码 + staging 需求目录 |
 
 ### 1.3 调度方式
 
@@ -60,9 +62,10 @@
 
 ```text
 Stage 1 产品: req-analyst → req-reviewer + ui-designer（并行）→ 人审批 → git commit
-Stage 2 研发: git pull → dev-architect → dev-architect-reviewer → 人审批 → dev-dotnet + dev-miniapp (并行) → git commit
-Stage 3 测试: git pull → test-planner → test-writer → test-reviewer → test-runner → 人审批
-Stage 4 归档: openspec archive（任何人）
+Stage 2 设计: git pull → arch-architect → arch-architect-reviewer → 人审批 → git commit
+Stage 3 研发: git pull → dev-dotnet + dev-miniapp (并行) → dev-reviewer → git commit
+Stage 4 测试: git pull → test-planner → test-writer → test-reviewer → test-runner → 人审批
+Stage 5 归档: archiver（先 openspec archive 代码 → 再 staging → production/archive/ 需求）
 ```
 
 **关键原则**：
@@ -118,7 +121,7 @@ Stage 4 归档: openspec archive（任何人）
 | 结构化分析 | 收敛梳理，澄清模糊词 → 描述业务流程 → 拆分用户故事 + GWT → 识别边界异常 → 优先级标注 | 方向明确，但缺验收标准/GWT |
 
 **关联 Rule**：
-- `req-spec` — 需求文档规范（每条可验证、含验收标准、边界异常、优先级分级、去歧义）
+- `req-staging` — 需求文档规范（每条可验证、含验收标准、边界异常、优先级分级、去歧义）
 - `openspec-workflow` — 变更管理规范（先 proposal 再实现、delta spec 标记、RFC 2119 关键词）
 
 **产出示例**：
@@ -214,20 +217,16 @@ Stage 4 归档: openspec archive（任何人）
 
 ---
 
-## 四、研发阶段（Stage 2）
+## 四、设计阶段（Stage 2）
 
 ### 4.1 Agent 速查
 
 | Agent | 触发时机 | 输入 | 产出 |
 |-------|---------|------|------|
-| **dev-architect** | 产品审批通过后，编码前 | proposal + delta specs | design.md + tasks.md |
-| **dev-architect-reviewer** | design.md 完成后 | design.md + tasks.md | design-review.md（三判决） |
-| **dev-dotnet** | tasks.md 完成后（并行） | .NET task | .NET 代码 + 测试 |
-| **dev-vue3** | tasks.md 完成后（并行） | Vue 3 task | Vue 3 代码 + 测试 |
-| **dev-miniapp** | tasks.md 完成后（并行） | 小程序 task | 小程序代码 + 测试 |
-| **dev-reviewer** | 代码改动后（SDD 内或独立调度） | git diff | 审查报告（双判决） |
+| **arch-architect** | 产品审批通过后，编码前 | proposal + delta specs | design.md + tasks.md |
+| **arch-architect-reviewer** | design.md 完成后 | design.md + tasks.md | design-review.md（三判决） |
 
-### 4.2 dev-architect · 研发架构师
+### 4.2 arch-architect · 架构师
 
 **职责**：基于需求文档完成全栈技术设计，产出 design.md。非平凡变更必须使用。
 
@@ -244,7 +243,7 @@ Stage 4 归档: openspec archive（任何人）
 【前置检查】确认 proposal + delta specs 存在
   ↓
 1. 探查 api/ + app/ 已有代码
-2. 调用 dev-arch skill（强制）
+2. 调用 arch-design skill（强制）
    ├── 5a. 确定划分原则（DDD 限界上下文）
    │   ⚠️ 必须用 AskUserQuestion 与用户确认：
    │       项目/命名空间/数据库策略
@@ -253,7 +252,7 @@ Stage 4 归档: openspec archive（任何人）
    └── 5d. 写入 design.md
 3. 自审 9 项检查 → 全部通过
   ↓
-交还主代理 → 下一步：dev-architect-reviewer
+交还主代理 → 下一步：arch-architect-reviewer
 ```
 
 **design.md 结构**（OpenSpec 标准 4 节骨架）：
@@ -274,7 +273,7 @@ Stage 4 归档: openspec archive（任何人）
   已知风险与缓解 / 未覆盖项
 ```
 
-### 4.3 dev-architect-reviewer · 架构审核员
+### 4.3 arch-architect-reviewer · 架构审核员
 
 **职责**：审核 design.md，只读不改。按 10 维度审核，给出三判决。
 
@@ -295,9 +294,9 @@ Stage 4 归档: openspec archive（任何人）
 
 **三判决**：设计质量 / 规则合规 / 审批建议
 
-### 4.4 dev-architect 的 task 分解职责
+### 4.4 arch-architect 的 task 分解职责
 
-**dev-architect** 在设计完成后，调用 `dev-planning` skill 将 design.md 分解为 bite-sized tasks，产出 tasks.md。
+**arch-architect** 在设计完成后，调用 `arch-planning` skill 将 design.md 分解为 bite-sized tasks，产出 tasks.md。
 
 **Task 硬约束**：
 
@@ -323,7 +322,31 @@ Stage 4 归档: openspec archive（任何人）
 ...
 ```
 
-### 4.5 dev-dotnet · .NET 研发负责人
+### 4.5 设计阶段操作流程
+
+```
+1. 架构师 git pull 获取产品阶段产出
+2. "帮我做这个需求的架构设计" → 主代理分派 arch-architect → 产出 design.md
+3. "审核一下这个设计" → 主代理分派 arch-architect-reviewer → 产出 design-review.md
+4. 架构师审批设计
+5. "分解一下任务" → 主代理分派 arch-architect → 产出 tasks.md（arch-architect 内部调用 arch-planning skill）
+6. git commit（交接给研发阶段）
+```
+
+---
+
+## 五、研发阶段（Stage 3）
+
+### 5.1 Agent 速查
+
+| Agent | 触发时机 | 输入 | 产出 |
+|-------|---------|------|------|
+| **dev-dotnet** | tasks.md 完成后（并行） | .NET task | .NET 代码 + 测试 |
+| **dev-vue3** | tasks.md 完成后（并行） | Vue 3 task | Vue 3 代码 + 测试 |
+| **dev-miniapp** | tasks.md 完成后（并行） | 小程序 task | 小程序代码 + 测试 |
+| **dev-reviewer** | 代码改动后（SDD 内或独立调度） | git diff | 审查报告（双判决） |
+
+### 5.2 dev-dotnet · .NET 研发负责人
 
 **职责**：.NET 技术栈 SDD 编排者。自主执行 SDD + verification。
 
@@ -353,7 +376,7 @@ Stage 4 归档: openspec archive（任何人）
 | `dev-verification` | 验证纪律（dotnet test/build/format） |
 | `dev-debugging` | 调试（bug/测试失败时，不猜改） |
 
-### 4.6 dev-vue3 · Vue 3 研发负责人
+### 5.3 dev-vue3 · Vue 3 研发负责人
 
 **职责**：Vue 3 技术栈 SDD 编排者。与 dev-dotnet 并行被调度。
 
@@ -372,7 +395,7 @@ Stage 4 归档: openspec archive（任何人）
 | `dev-verification` | 验证纪律（pnpm test/build/lint/typecheck） |
 | `dev-debugging` | 调试（bug/测试失败时，不猜改） |
 
-### 4.7 dev-reviewer · 代码审查员
+### 5.4 dev-reviewer · 代码审查员
 
 **职责**：审查代码改动，只读不改。给出双判决。
 
@@ -392,24 +415,20 @@ Stage 4 归档: openspec archive（任何人）
 | 代码质量 | Approved / NeedsWork | 命名、结构、错误处理、复用 |
 | 严重度 | 阻断 must-fix / 建议 should-fix / 可选 nit | 每条发现附严重度 |
 
-### 4.8 研发阶段操作流程
+### 5.5 研发阶段操作流程
 
 ```
-1. 研发人员 git pull 获取产品阶段产出
-2. "帮我做这个需求的架构设计" → 主代理分派 dev-architect → 产出 design.md
-3. "审核一下这个设计" → 主代理分派 dev-architect-reviewer → 产出 design-review.md
-4. 研发人员审批设计
-5. "分解一下任务" → 主代理分派 dev-architect → 产出 tasks.md（dev-architect 内部调用 dev-planning skill）
-6. "开始实现" → 主代理并行分派 dev-dotnet + dev-vue3
-7. 编码完成后自动走收尾链：dev-verification → dev-code-review → dev-finishing-branch
-8. git commit（交接给测试阶段）
+1. 研发人员 git pull 获取设计阶段产出
+2. "开始实现" → 主代理并行分派 dev-dotnet + dev-miniapp
+3. 编码完成后自动走收尾链：dev-verification → dev-code-review → dev-finishing-branch
+4. git commit（交接给测试阶段）
 ```
 
 ---
 
-## 五、测试阶段（Stage 3）
+## 六、测试阶段（Stage 4）
 
-### 5.1 Agent 速查
+### 6.1 Agent 速查
 
 | Agent | 触发时机 | 输入 | 产出 |
 |-------|---------|------|------|
@@ -418,7 +437,7 @@ Stage 4 归档: openspec archive（任何人）
 | **test-reviewer** | E2E 脚本完成后 | 测试文件 | 测试质量报告 |
 | **test-runner** | 测试审查通过后 | E2E 脚本 | 结构化测试报告 |
 
-### 5.2 test-planner · 测试策划师
+### 6.2 test-planner · 测试策划师
 
 **职责**：设计 E2E 测试策略，输出结构化用例矩阵。**只出文档，不写代码，不执行测试。**
 
@@ -432,7 +451,7 @@ Stage 4 归档: openspec archive（任何人）
 
 **核心方法**：等价类划分 → 边界值 → 错误路径 → 去冗余 → 测试矩阵
 
-### 5.3 test-writer · E2E 测试脚本编写员
+### 6.3 test-writer · E2E 测试脚本编写员
 
 **职责**：按 test-plan.md 用例矩阵写 Playwright E2E 脚本。
 
@@ -446,7 +465,7 @@ Stage 4 归档: openspec archive（任何人）
 - `testing/e2e/specs/*.spec.ts` — 测试脚本
 - `testing/e2e/fixtures/*.fixture.ts` — 测试数据/登录态夹具
 
-### 5.4 test-reviewer · 测试审查员
+### 6.4 test-reviewer · 测试审查员
 
 **职责**：审查测试质量与覆盖缺口，只读不改。
 
@@ -457,7 +476,7 @@ Stage 4 归档: openspec archive（任何人）
 - 假覆盖：有测试但无实质断言
 - E2E 专项：Page Object 合理性 / data-id 一致性 / fixture 可复跑性 / spec-test-plan 对应
 
-### 5.5 test-runner · E2E 测试执行员
+### 6.5 test-runner · E2E 测试执行员
 
 **职责**：执行 E2E 测试，生成结构化测试报告。
 
@@ -475,7 +494,7 @@ Stage 4 归档: openspec archive（任何人）
 - 失败明细（编号/场景/浏览器/原因分类/截图路径/建议）
 - 浏览器兼容性矩阵（每个用例 × 每个浏览器 ✅/❌）
 
-### 5.6 测试阶段操作流程
+### 6.6 测试阶段操作流程
 
 ```
 1. 测试人员 git pull 获取研发阶段产出
@@ -488,9 +507,9 @@ Stage 4 归档: openspec archive（任何人）
 
 ---
 
-## 六、归档阶段（Stage 4）
+## 七、归档阶段（Stage 5）
 
-### 6.1 收尾链
+### 7.1 收尾链
 
 编码完成后必须走完收尾链，不可跳步：
 
@@ -498,12 +517,12 @@ Stage 4 归档: openspec archive（任何人）
 1. dev-verification  → 运行完整验证（测试 + 构建 + 类型检查 + Lint）
 2. dev-code-review   → 全分支代码审查
 3. dev-finishing-branch → 确认 artifacts 完整性、清理遗留文件、合并/PR
-4. /opsx:archive     → OpenSpec 归档（delta specs 合并入 openspec/specs/）
+4. archiver          → 两步归档：openspec archive（代码）+ staging → production/archive/（需求）
 ```
 
 **跳步 = 未完成**。openspec status 会报告 artifacts 缺失。
 
-### 6.2 归档命令
+### 7.2 归档命令
 
 ```bash
 # 归档指定变更
@@ -513,17 +532,18 @@ Stage 4 归档: openspec archive（任何人）
 归档后：
 - Delta specs 合并入 `openspec/specs/<domain>/spec.md`
 - 变更目录移至 `openspec/changes/archive/YYYY-MM-DD-<name>/`
+- staging 目录移至 `production/archive/YYYY-MM-DD-概要/`
 
 ---
 
-## 七、横切规则
+## 八、横切规则
 
-### 7.1 Rule 清单
+### 8.1 Rule 清单
 
 | Rule | 适用范围 | 约束要点 |
 |------|---------|---------|
 | **git-commit** | 所有人 | 动词开头、一行摘要+空行+详情、一事一提交、不直推 main |
-| **req-spec** | 产品 | 每条可验证、含验收标准、边界异常、优先级分级、去歧义 |
+| **req-staging** | 产品 | 每条可验证、含验收标准、边界异常、优先级分级、去歧义 |
 | **openspec-workflow** | 全员 | 先 proposal 再实现、delta spec 标记、变更完成后 archive |
 | **dev-code-quality** | 研发 | 命名表意图、单一职责、YAGNI、优先复用、无占位符 |
 | **dev-contracts** | 研发+测试 | 枚举值/错误码/DTO 定义在 openspec/contracts/，三端共享，禁止各自手写字符串字面量 |
@@ -534,37 +554,37 @@ Stage 4 归档: openspec archive（任何人）
 | **dev-refactor** | 研发 | 不改外部行为、小步可验证、不夹带功能、先有测试再重构 |
 | **test-standards** | 测试 | 与源码同结构放置、命名表意图、一测一断言、测行为不测实现、稳定标识符定位 |
 
-### 7.2 Rule 触发关系
+### 8.2 Rule 触发关系
 
 Rule 不自动加载，由 Skill 在 frontmatter 中声明 `rules: [...]`，被激活时显式 Read。Agent 不直接声明 Rule，Rule 通过 Skill 间接获得。
 
 | Rule | 引用它的 Skill |
 |------|---------------|
-| req-spec | req-brainstorming, req-review |
-| openspec-workflow | req-brainstorming, req-review, dev-planning, dev-finishing-branch, dev-code-review, dev-arch, dev-arch-review |
-| design-ui-standards | design-web, dev-vue3-tdd, dev-arch, dev-arch-review |
-| dev-code-quality | dev-planning, dev-code-review, dev-refactoring, dev-dotnet-tdd, dev-vue3-tdd, dev-arch, dev-arch-review |
-| dev-contracts | dev-arch, dev-arch-review；agent: dev-architect, dev-architect-reviewer, dev-dotnet, dev-miniapp, test-writer |
-| dev-security | dev-debugging, dev-dotnet-tdd, dev-code-review, dev-arch, dev-arch-review |
-| dev-dotnet-standards | dev-dotnet-tdd, dev-arch, dev-arch-review |
-| dev-vue3-standards | dev-vue3-tdd, test-e2e-playwright, dev-arch, dev-arch-review |
+| req-staging | req-brainstorming, req-review, staging-archive |
+| openspec-workflow | req-brainstorming, req-review, arch-planning, dev-finishing-branch, dev-code-review, arch-design, arch-review |
+| design-ui-standards | design-web, dev-vue3-tdd, arch-design, arch-review |
+| dev-code-quality | arch-planning, dev-code-review, dev-refactoring, dev-dotnet-tdd, dev-vue3-tdd, arch-design, arch-review |
+| dev-contracts | arch-design, arch-review；agent: arch-architect, arch-architect-reviewer, dev-dotnet, dev-miniapp, test-writer |
+| dev-security | dev-debugging, dev-dotnet-tdd, dev-code-review, arch-design, arch-review |
+| dev-dotnet-standards | dev-dotnet-tdd, arch-design, arch-review |
+| dev-vue3-standards | dev-vue3-tdd, test-e2e-playwright, arch-design, arch-review |
 | dev-refactor | dev-refactoring |
 | test-standards | test-case-design, test-e2e-playwright, dev-dotnet-tdd, dev-vue3-tdd |
 | git-commit | （横切，CLAUDE.md 引用，主代理提交时遵循） |
 
 ---
 
-## 八、速查表
+## 九、速查表
 
-### 8.1 按阶段速查
+### 9.1 按阶段速查
 
 | 我要做什么 | 对 Claude Code 说什么 | 会分派哪个 Agent |
 |-----------|----------------------|-----------------|
 | 梳理需求 | "帮我分析一下这个需求：XXX" | req-analyst |
 | 审核需求 | "审核一下这个需求文档" | req-reviewer |
-| 架构设计 | "帮我做 XXX 的架构设计" | dev-architect |
-| 审核架构 | "审核一下这个技术设计" | dev-architect-reviewer |
-| 分解任务 | "把 XXX 拆成任务" | dev-architect（内部调用 dev-planning skill） |
+| 架构设计 | "帮我做 XXX 的架构设计" | arch-architect |
+| 审核架构 | "审核一下这个技术设计" | arch-architect-reviewer |
+| 分解任务 | "把 XXX 拆成任务" | arch-architect（内部调用 arch-planning skill） |
 | 写后端代码 | "帮我实现 XXX 的后端" | dev-dotnet |
 | 写前端代码 | "帮我实现 XXX 的前端" | dev-vue3 |
 | 代码审查 | "帮我审查一下这个改动" | dev-reviewer |
@@ -573,9 +593,9 @@ Rule 不自动加载，由 Skill 在 frontmatter 中声明 `rules: [...]`，被�
 | 写 E2E 脚本 | "帮我写 XXX 的 E2E 测试" | test-writer |
 | 审查测试 | "审查一下测试质量" | test-reviewer |
 | 跑 E2E | "执行 E2E 测试" | test-runner |
-| 归档 | "/opsx:archive XXX" | 主代理直接执行 |
+| 归档 | "归档 XXX 模块" | archiver（两步：代码 → 需求） |
 
-### 8.2 常用命令速查
+### 9.2 常用命令速查
 
 ```bash
 # 后端
@@ -607,7 +627,7 @@ openspec status --change "<name>"                # 查看变更状态
 openspec archive <name>                          # 归档变更
 ```
 
-### 8.3 验证矩阵
+### 9.3 验证矩阵
 
 | 技术栈 | 测试 | 构建 | 类型检查 | Lint/格式化 |
 |--------|------|------|----------|------------|
@@ -616,7 +636,7 @@ openspec archive <name>                          # 归档变更
 
 ---
 
-## 九、常见问题
+## 十、常见问题
 
 ### Q1：我想跳过某个阶段，直接写代码，可以吗？
 
@@ -637,7 +657,7 @@ Gate 0 判定标准：
 - 每条需求有 GWT 场景（正常路径 + 至少 1 异常路径）
 - 有优先级标注（Must/Should/Could）
 - 边界与异常场景已识别
-- req-spec rule 全部约束满足
+- req-staging rule 全部约束满足
 
 ### Q4：data-id 是什么？为什么这么重要？
 

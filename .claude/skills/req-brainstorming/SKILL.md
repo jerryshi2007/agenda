@@ -1,7 +1,7 @@
 ---
 name: req-brainstorming
 description: 收到新功能或重大修改需求时使用——先探索上下文、逐一澄清、设计方案、用户审批，批准后才进入实现。禁止跳过设计直接写代码。
-rules: [req-spec]
+rules: [req-staging]
 ---
 
 # req-brainstorming · 设计先行

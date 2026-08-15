@@ -3,6 +3,7 @@ name: dev-reviewer
 description: 审查改动/diff/PR 时调度，只读不修改。按维度扫描、验证发现、按严重度排序、给可执行建议。
 tools: Read, Grep, Glob
 rules: []
+# dev-reviewer 按审查对象动态 Read 对应 rules（.NET → dev-dotnet-standards，Vue 3 → dev-vue3-standards + design-ui-standards，小程序 → dev-miniapp-standards + ui-miniapp-standards），不静态声明单一 rules 列表
 skills: [dev-code-review]
 ---
 

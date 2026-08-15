@@ -1,10 +1,10 @@
 ---
-name: dev-arch
+name: arch-design
 description: 全栈架构设计——覆盖 .NET 后端分层/API 契约 + Vue 3 前端组件树/路由/状态管理，产出 design.md + ADR。
 rules: [dev-dotnet-standards, dev-vue3-standards, design-ui-standards, dev-code-quality, dev-security, openspec-workflow, dev-contracts]
 ---
 
-# dev-arch · 全栈架构设计
+# arch-design · 全栈架构设计
 
 ## 何时使用
 
@@ -57,7 +57,7 @@ dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quali
 - 构建序列 + 风险与权衡
 
 ### 8. 生成实现任务
-调用 `dev-planning` skill（基于 design.md 拆解为 bite-sized tasks），产出 `openspec/changes/<name>/tasks.md`。交接 dev-dotnet + dev-miniapp：
+调用 `arch-planning` skill（基于 design.md 拆解为 bite-sized tasks），产出 `openspec/changes/<name>/tasks.md`。交接 dev-dotnet + dev-miniapp：
 说明：模块→task 映射、集成 task 时机、前置依赖、风险提示
 
 ### 9. 自审

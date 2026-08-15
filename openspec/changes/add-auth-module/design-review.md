@@ -1,6 +1,6 @@
 # Design Review (复审): 认证与账户模块
 
-> Change: `add-auth-module` | Reviewed by: dev-architect-reviewer | Date: 2026-08-08 (复审)
+> Change: `add-auth-module` | Reviewed by: arch-architect-reviewer | Date: 2026-08-08 (复审)
 >
 > 复审目标：验证 2026-08-08 初版审核中 7 个阻塞项的修复情况
 
@@ -8,7 +8,7 @@
 
 ## 复审结论
 
-**全部通过。** 7 个阻塞项均已正确修复，未引入新问题。设计可移交 dev-planning。
+**全部通过。** 7 个阻塞项均已正确修复，未引入新问题。设计可移交 arch-planning。
 
 ---
 
@@ -125,7 +125,7 @@
 |---------|:--:|------|
 | 设计质量 | ✅ 合格 | 9 个 ADR 覆盖全部关键决策，10 个时序图覆盖正常+异常+并发路径，数据模型清晰，前端路由/组件/data-id/安全区域完备 |
 | 规则合规 | ✅ 合规 | 通过全部 6 条 rules 扫描（dev-dotnet-standards, dev-miniapp-standards, dev-security, dev-code-quality, openspec-workflow, design-ui-standards） |
-| 审批建议 | ✅ 建议批准 | 7 个阻塞项已全部修复且验证通过，无新问题引入。设计文档达到可移交 dev-planning 状态。 |
+| 审批建议 | ✅ 建议批准 | 7 个阻塞项已全部修复且验证通过，无新问题引入。设计文档达到可移交 arch-planning 状态。 |
 
 ---
 
@@ -134,4 +134,4 @@
 - staging STATUS.md 已更新为 `in-progress`
 - 设计文档版本：`openspec/changes/add-auth-module/design.md`（修复版，2026-08-08）
 - 审核范围：初版审核的 7 个阻塞项 + 修复引入的新问题检查
-- 原有 7 个建议项（S1-S7）和 2 个疑问项（Q1-Q2）作为非阻塞项，可在 dev-planning 阶段酌情处理
+- 原有 7 个建议项（S1-S7）和 2 个疑问项（Q1-Q2）作为非阻塞项，可在 arch-planning 阶段酌情处理

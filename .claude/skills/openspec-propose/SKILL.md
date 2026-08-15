@@ -3,7 +3,7 @@ name: openspec-propose
 description: Propose a new change with all artifacts generated in one step. Use when the user wants to quickly describe what they want to build and get a complete proposal with design, specs, and tasks ready for implementation.
 license: MIT
 compatibility: Requires openspec CLI.
-rules: [req-spec, openspec-workflow]
+rules: [req-staging, openspec-workflow]
 metadata:
   author: openspec
   version: "1.0"
@@ -14,10 +14,16 @@ Propose a new change - create the change and generate all artifacts in one step.
 
 如果 req-analyst agent 已产出需求文档，在此基础上创建 change 目录脚手架；如果未产出，则本 skill 同时负责内容和脚手架。
 
+**⚠️ 骨架边界**：本 skill 产出的是**骨架 artifacts**，不是最终设计文档：
+- `proposal.md` — 完整（Why/What/How 概要）
+- `design.md` — **骨架**（仅 4 节标题 + 一句话概要），供 `arch-architect` 调用 `arch-design` skill 展开为完整架构设计
+- `tasks.md` — **骨架**（仅 task 标题 + 一句话简述），供 `arch-architect` 调用 `arch-planning` skill 展开为详细 tasks（含文件清单、验证命令、依赖标注）
+- 骨架 ≠ 最终产物。`arch-architect` 是 design.md + tasks.md 的完整展开者，本 skill 只搭脚手架。
+
 I'll create a change with artifacts:
 - proposal.md (what & why)
-- design.md (how — 骨架，供 dev-architect 展开)
-- tasks.md (implementation steps — **骨架 tasks.md**，仅含 task 标题和一句话简述，供 dev-architect 调用 dev-planning skill 展开为详细 tasks.md。不写实现步骤和验证命令)
+- design.md (how — 骨架，供 arch-architect 展开)
+- tasks.md (implementation steps — **骨架 tasks.md**，仅含 task 标题和一句话简述，供 arch-architect 调用 arch-planning skill 展开为详细 tasks.md。不写实现步骤和验证命令)
 
 When ready to implement, run /opsx:apply
 

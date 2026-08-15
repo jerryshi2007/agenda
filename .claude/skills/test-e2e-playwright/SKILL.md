@@ -1,7 +1,7 @@
 ---
 name: test-e2e-playwright
 description: 按测试用例矩阵写 Playwright E2E 脚本时使用——项目结构、data-id 定位、Page Object 模式、fixture/seed、多浏览器。
-rules: [test-standards, dev-vue3-standards]
+rules: [test-standards, dev-miniapp-standards, req-staging]
 ---
 
 # test-e2e-playwright · Playwright E2E 脚本编写
@@ -13,8 +13,9 @@ rules: [test-standards, dev-vue3-standards]
 
 ## 前置条件
 - 已有 `test-plan.md`（`test-planner` 产出），含测试矩阵、data-id 清单、测试数据需求
+- Read `production/staging/<name>/requirement.md` + `epic-story.md`（验收标准/边界异常/优先级）
 - Read 项目根目录的 `CLAUDE.md`，了解 `app/` 下前端目录约定
-- Read `rules/dev-vue3-standards.md` 了解 `data-id` 命名规范
+- Read `rules/dev-miniapp-standards.md` 了解 `data-id` 命名规范
 
 ## 目录结构
 
@@ -79,7 +80,7 @@ export class LoginPage {
 
 ## data-id 定位策略
 
-**定位规范定义见 `rules/dev-vue3-standards.md` data-id 节（权威来源）。** 以下为 Playwright 特有补充：
+**定位规范定义见 `rules/dev-miniapp-standards.md` data-id 节（权威来源）。** 以下为 Playwright 特有补充：
 
 - **Playwright 定位方式**：使用 `page.locator('[data-id="..."]')` 定位元素，禁止 CSS 类名、DOM 索引、原生 `id`、文本内容。
 - **单元测试与 E2E 共用**：同一个 `data-id` 值在 Vitest 和 Playwright 中复用，保证两套测试定位一致性。
@@ -214,11 +215,11 @@ export default defineConfig({
 })
 ```
 
-**说明**：以上为模板配置，实际创建时根据项目 `CLAUDE.md` 和 `vite.config.ts` 调整 `baseURL`、`testDir` 等参数。
+**说明**：以上为模板配置，实际创建时根据项目 `CLAUDE.md` 和 `playwright.config.js` 调整 `baseURL`、`testDir` 等参数。
 
 ## 流程
 
-1. **Read 输入文件**——读取 `openspec/changes/<name>/test-plan.md`，获取测试矩阵、data-id 前缀清单、测试数据需求
+1. **Read 输入文件**——读取 `production/staging/<name>/requirement.md` + `epic-story.md`（验收标准/边界/优先级）+ `openspec/changes/<name>/test-plan.md`，获取测试矩阵、data-id 前缀清单、测试数据需求
 2. **探查前端结构**——用 Grep/Glob 确认组件中已有的 `data-id` 值，与 test-plan 中的前缀清单对齐；若发现缺失的 data-id，标记在 test-plan 中并通知 dev 补上
 3. **搭建 E2E 目录**——按本 skill 定义的目录结构创建 `testing/e2e/`、`playwright.config.ts`、`fixtures/`、`pages/`、`specs/`、`utils/`
 4. **先写 Page Object**——为 test-plan 中每个页面创建 Page Object（`pages/<page>.page.ts`），封装其 `data-id` locator 和业务 action

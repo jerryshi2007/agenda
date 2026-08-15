@@ -2,6 +2,7 @@
 name: test-reviewer
 description: 审查测试质量时调度，只读——查 brittle/flaky/测实现而非测行为/假覆盖。覆盖单元测试 + E2E 测试。
 tools: Read, Grep, Glob, Write
+rules: [test-standards]
 skills: [test-case-design]
 ---
 
@@ -13,9 +14,9 @@ skills: [test-case-design]
 
 ## 技术栈感知
 
-- 审查 Vue 3 测试 → 先 Read `dev-vue3-standards.md`，检查 data-id 定位
+- 审查小程序前端测试 → 先 Read `dev-miniapp-standards.md`，检查 data-id 定位
 - 审查 .NET 测试 → 先 Read `dev-dotnet-standards.md`
-- 审查 E2E 测试 → 先 Read `dev-vue3-standards.md`，额外检查 Page Object/data-id 一致性/fixture 可复跑/spec-test-plan 对应
+- 审查 E2E 测试 → 先 Read `dev-miniapp-standards.md`，额外检查 data-id 一致性/fixture 可复跑/spec-test-plan 对应
 
 ## 决策流程
 

@@ -2,7 +2,7 @@
 name: req-reviewer
 description: 审核 staging 需求文档——按多维度查冲突、缺口与一致性，给审批建议。只读不改。
 tools: Read, Grep, Glob, Write, Bash, AskUserQuestion
-rules: [req-spec]
+rules: [req-staging]
 skills: [req-review]
 ---
 

@@ -17,13 +17,33 @@
 
 待创建模块：无。
 
+## 模块实现进度
+
+> 状态取值：`⬜` pending / `🔄` in-progress / `✅` done / `⛔` blocked。此表与各 staging 目录 STATUS.md 同步更新。
+
+| 模块 | Stage 1 产品 | Stage 2 设计 | Stage 3 研发 | Stage 4 测试 | Stage 5 归档 | OpenSpec |
+|------|:--:|:--:|:--:|:--:|:--:|------|
+| 日程管理 | ✅ | ✅ | ✅ | ✅ | ✅ | add-event-module (archived) |
+| 认证 | ✅ | ✅ | 🔄 | ⬜ | ⬜ | add-auth-module |
+| 打卡 | ✅ | 🔄 | ⬜ | ⬜ | ⬜ | add-checkin-module |
+| 家庭 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
+| 模板 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
+| 展示模式 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
+
+- **日程管理**：全流程完成（五阶段 done），OpenSpec 已归档
+- **认证**：Stage 3 研发中（架构已完成，编码进行中），OpenSpec `add-auth-module`
+- **打卡**：Stage 2 设计中（design.md 已产出待 arch-review），OpenSpec `add-checkin-module`
+- **家庭 / 模板 / 展示模式**：requirements/ 文档已完成，尚未进入 staging 流程
+- **归档**：模块完成后由 `archiver` agent 两步归档——OpenSpec 变更 → `openspec/changes/archive/`，staging 目录 → `production/archive/`
+
 ## 需求文档规范
 
-编写/修改需求遵守 [`../.claude/rules/req-spec.md`](../.claude/rules/req-spec.md)：
+编写/修改需求遵守 [`../.claude/rules/req-staging.md`](../.claude/rules/req-staging.md)：
 
 - 每条需求可验证、必含验收标准、边界与异常明确、优先级分级、去歧义
 - **不做数据库字段设计**（属技术设计阶段）
 - 需求真相源为 `openspec/specs/`，变更走 OpenSpec 流程（[`../.claude/rules/openspec-workflow.md`](../.claude/rules/openspec-workflow.md)）
+- staging 管 SDLC 全生命周期，OpenSpec 管开发阶段，两者通过握手点衔接
 
 ## 原型（prototype/）
 

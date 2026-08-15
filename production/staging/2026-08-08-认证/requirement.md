@@ -1,4 +1,4 @@
-<!-- STATUS: dev-ready -->
+<!-- STAGING-STATUS: in-progress -->
 <!-- CONFIRMED: 2026-08-08 -->
 
 # 认证与账户模块 · 需求文档（结构化补充）
@@ -291,7 +291,7 @@
 | [index.md](../../requirements/index.md) | 产品总纲：角色定义、权限矩阵、分期规划 |
 | [module-auth.md (v1.0)](../../requirements/module-auth.md) | 认证模块详细设计原文，本文档的结构化补充基础 |
 | [module-family.md](../../requirements/module-family.md) | 家庭模块设计，用于确认"我的"页面与家庭模块的接口边界 |
-| [req-spec 规范](../../../.claude/rules/req-spec.md) | 需求文档编写规范：10 章结构、GWT 格式、优先级标注 |
+| [req-staging 规范](../../../.claude/rules/req-staging.md) | 需求文档编写规范：10 章结构、GWT 格式、优先级标注 |
 
 ### 附录 C：用户故事与原有文档交叉引用
 
