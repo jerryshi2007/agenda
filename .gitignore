@@ -1,52 +1,62 @@
-# OS
+# ---- OS ----
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# IDE
+# ---- IDE / Editor ----
 .vscode/
 .idea/
 *.swp
 *.swo
+*.iml
 
-# Dependencies
+# ---- Dependencies ----
 node_modules/
 
-# Environment
+# ---- Environment ----
 .env
 .env.local
 .env.*.local
 
-# Build output
-dist/
-build/
-
-# Logs
+# ---- Logs ----
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Workbuddy session data
-production/.workbuddy/
+# ---- Build output ----
+dist/
+build/
+dist-ssr/
+*.tsbuildinfo
+.eslintcache
 
-# WeChat Mini Program
-miniprogram_npm/
-project.private.config.json
-
-# Cloud functions (per-function node_modules)
-**/cloudfunctions/*/node_modules/
-
-# ---- .NET ----
-**/bin/
-**/obj/
+# ---- .NET (api/) ----
+**/[Bb]in/
+**/[Oo]bj/
 *.user
 *.suo
+*.rsuser
 .vs/
 TestResults/
 coverage/
+*.pubxml
+*.publishsettings
+
+# ---- 微信小程序 (app/) ----
+miniprogram_npm/
+project.private.config.json
+# 云函数各自 node_modules 已被上方全局 node_modules/ 覆盖
+
+# ---- Playwright E2E (testing/e2e/) ----
+playwright-report/
+blob-report/
+testing/e2e/reports
+testing/e2e/test-results
 
 # ---- Docker ----
 docker-data/
 
-# ---- E2E Test Artifacts ----
-testing/e2e/reports/
-testing/e2e/test-results/
+# ---- WorkBuddy ----
+production/.workbuddy/
