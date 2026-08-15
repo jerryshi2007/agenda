@@ -1,11 +1,12 @@
 ---
 name: test-execution
-description: 执行 E2E 测试脚本并生成结构化报告时使用——Playwright CLI、多浏览器矩阵、失败分类、重试策略。
+description: 执行 E2E 测试脚本并生成结构化报告时使用（仅 Web 应用）——Playwright CLI、多浏览器矩阵、失败分类、重试策略。
 ---
 
 # test-execution · E2E 测试执行与报告
 
 ## 何时使用
+- E2E 仅覆盖 Web 应用；小程序由 dev-miniapp-tdd（Jest + miniprogram-simulate）覆盖
 - 需要执行 E2E 测试套件并生成结构化报告时
 - 需要按标签/浏览器/优先级筛选执行时
 - CI 流程中需要汇总多浏览器测试结果时

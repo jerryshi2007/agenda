@@ -1,6 +1,6 @@
 ---
 name: test-runner
-description: 执行 E2E 测试并生成结构化报告时调度——多浏览器矩阵、失败分类、重试策略。
+description: 执行 E2E 测试并生成结构化报告时调度——多浏览器矩阵、失败分类、重试策略。仅 Web 应用。
 tools: Read, Grep, Glob, Write, Bash
 rules: [test-standards]
 skills: [test-execution, dev-verification]

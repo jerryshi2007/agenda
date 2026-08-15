@@ -9,13 +9,13 @@
 | req-staging | req-brainstorming, req-review, openspec-propose, test-case-design, test-e2e-playwright, staging-archive | req-analyst, req-reviewer, test-planner, archiver |
 | openspec-workflow | openspec-propose, arch-planning, dev-finishing-branch, dev-code-review, arch-design, arch-review, openspec-archive-change, dev-sdd | arch-architect, arch-architect-reviewer, archiver |
 | design-ui-standards | design-web, dev-vue3-tdd, arch-design, arch-review | ui-designer |
-| ui-miniapp-standards | ui-miniapp-web, dev-miniapp-tdd | — |
+| ui-miniapp-standards | design-miniapp, dev-miniapp-tdd | ui-designer |
 | dev-code-quality | arch-planning, dev-code-review, dev-refactoring, dev-dotnet-tdd, dev-vue3-tdd, dev-miniapp-tdd, arch-design, arch-review, openspec-apply-change, dev-sdd | — |
-| dev-contracts | arch-design, arch-review | arch-architect, arch-architect-reviewer, dev-dotnet, dev-miniapp, test-writer |
+| dev-contracts | arch-design, arch-review | arch-architect, arch-architect-reviewer, dev-dotnet, dev-miniapp, dev-vue3, test-writer |
 | dev-security | dev-debugging, dev-dotnet-tdd, dev-vue3-tdd, dev-miniapp-tdd, dev-code-review, arch-design, arch-review, openspec-apply-change, dev-sdd | — |
 | dev-dotnet-standards | dev-dotnet-tdd, arch-design, arch-review, arch-planning | dev-dotnet |
-| dev-vue3-standards | dev-vue3-tdd, arch-design, arch-review | dev-vue3 |
-| dev-miniapp-standards | dev-miniapp-tdd, arch-planning, test-e2e-playwright | dev-miniapp |
+| dev-vue3-standards | dev-vue3-tdd, arch-design, arch-review, test-e2e-playwright | dev-vue3 |
+| dev-miniapp-standards | dev-miniapp-tdd, arch-planning | dev-miniapp |
 | dev-refactor | dev-refactoring | — |
 | test-standards | test-case-design, test-e2e-playwright, dev-dotnet-tdd, dev-vue3-tdd, dev-miniapp-tdd | test-planner, test-reviewer, test-runner |
 | git-commit | — | （横切，CLAUDE.md 引用，主代理提交时遵循） |

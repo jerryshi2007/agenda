@@ -36,7 +36,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 |------|-------|-------|
 | 需求分析 | req-analyst | req-brainstorming |
 | 需求审核 | req-reviewer | req-review |
-| 原型设计 | ui-designer | design-web |
+| 原型设计 | ui-designer | design-web（Web）/ design-miniapp（小程序） |
 
 ### 设计 track
 
@@ -50,7 +50,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 子 track | Agent | Skill |
 |----------|-------|-------|
 | .NET 后端 | dev-dotnet | dev-dotnet-tdd, dev-sdd, dev-verification |
-| Vue 3 前端 | dev-vue3 | dev-vue3-tdd, dev-sdd, dev-verification |
+| Vue 3 Web 应用前端 | dev-vue3 | dev-vue3-tdd, dev-sdd, dev-verification |
 | 小程序前端 | dev-miniapp | dev-miniapp-tdd, dev-sdd, dev-verification |
 | 代码审查 | dev-reviewer | dev-code-review |
 
@@ -62,6 +62,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 脚本编写 | test-writer | test-e2e-playwright |
 | 测试审查 | test-reviewer | test-case-design |
 | 测试执行 | test-runner | test-execution, dev-verification |
+
+> E2E（Playwright）仅覆盖 Web 应用；小程序由 dev-miniapp-tdd（Jest + miniprogram-simulate）覆盖。
 
 ### 横切
 

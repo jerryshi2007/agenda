@@ -1,6 +1,6 @@
 ---
 name: design-web
-description: 出原型时使用——低保真 HTML 原型验证交互
+description: 出 Web 应用原型时使用——低保真 HTML 原型验证交互（Element Plus / Ant Design 风格）
 rules: [design-ui-standards]
 ---
 
