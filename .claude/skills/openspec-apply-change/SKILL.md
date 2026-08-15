@@ -49,7 +49,7 @@ Implement tasks from an OpenSpec change.
 
    **Handle states:**
    - If `state: "blocked"` (missing artifacts): show message, suggest using openspec-propose
-   - If `state: "all_done"`: congratulate, then引导收尾链：dev-verification → dev-code-review → dev-finishing-branch → /opsx:archive
+   - If `state: "all_done"`: congratulate, then引导收尾链：dev-verification → dev-code-review → dev-finishing-branch（不归档，归档由 Stage 5 archiver 负责）
    - Otherwise: proceed to implementation
 
 4. **Read context files**
@@ -87,7 +87,7 @@ Implement tasks from an OpenSpec change.
    Display:
    - Tasks completed this session
    - Overall progress: "N/M tasks complete"
-   - If all done: suggest archive
+   - If all done: suggest 交还主代理调度 archiver 归档
    - If paused: explain why and wait for guidance
 
 **Output During Implementation**
@@ -123,9 +123,9 @@ All tasks complete! 接下来进入收尾链（遵循 `dev-sdd` skill 的收尾�
 1. **dev-verification** — 运行完整验证命令（如果本轮尚未运行）确认测试/构建/类型检查全绿
 2. **dev-code-review** — 执行全分支代码审查（如果本轮尚未执行）
 3. **dev-finishing-branch** — 确认 artifacts 完整性、清理遗留文件、合并/PR
-4. **/opsx:archive** — 最终归档变更
+4. **交还主代理 → 调度 archiver** — 最终归档由 Stage 5 的 archiver 执行（openspec-archive-change → staging-archive）
 
-不要跳过这些环节直接 archive——跳过会导致 openspec status 报告 artifacts 缺失或遗留文件残留。
+不要跳过这些环节直接归档——跳过会导致 openspec status 报告 artifacts 缺失或遗留文件残留。
 ```
 
 **Output On Pause (Issue Encountered)**

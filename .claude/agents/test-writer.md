@@ -1,6 +1,6 @@
 ---
 name: test-writer
-description: 按测试用例矩阵写 Playwright E2E 脚本时调度。
+description: 按测试用例矩阵写 Playwright E2E 脚本（仅 Web 应用）时调度。
 tools: Read, Grep, Glob, Edit, Write, Bash
 rules: [dev-contracts]
 skills: [test-e2e-playwright, dev-verification]
@@ -20,7 +20,7 @@ skills: [test-e2e-playwright, dev-verification]
 
 3. **Read** `openspec/contracts/<domain>/` 下的 enums.json + errors.json + dto.json → API client 参数类型、测试断言中的错误码/状态值/scope MUST 引用 contracts 常量，禁止手写字符串字面量
 
-4. **探查** — Grep/Glob `app/` 下已有 data-id 值 → 与 test-plan.md 前缀对齐
+4. **探查** — Grep/Glob `web/src/` 下已有 data-id 值 → 与 test-plan.md 前缀对齐（E2E 仅覆盖 Web 应用）
 
 5. **编写** — 调用 `test-e2e-playwright` skill（skill 负责完整编写流程）
    - ⚠️ Page Object 必须先于 spec 创建，Locator 只用 `[data-id="..."]`

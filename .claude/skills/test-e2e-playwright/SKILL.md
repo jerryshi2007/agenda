@@ -1,7 +1,7 @@
 ---
 name: test-e2e-playwright
-description: 按测试用例矩阵写 Playwright E2E 脚本时使用——项目结构、data-id 定位、Page Object 模式、fixture/seed、多浏览器。
-rules: [test-standards, dev-miniapp-standards, req-staging]
+description: 按测试用例矩阵写 Playwright E2E 脚本时使用（仅 Web 应用）——项目结构、data-id 定位、Page Object 模式、fixture/seed、多浏览器。
+rules: [test-standards, dev-vue3-standards, req-staging]
 ---
 
 # test-e2e-playwright · Playwright E2E 脚本编写
@@ -14,8 +14,8 @@ rules: [test-standards, dev-miniapp-standards, req-staging]
 ## 前置条件
 - 已有 `test-plan.md`（`test-planner` 产出），含测试矩阵、data-id 清单、测试数据需求
 - Read `production/staging/<name>/requirement.md` + `epic-story.md`（验收标准/边界异常/优先级）
-- Read 项目根目录的 `CLAUDE.md`，了解 `app/` 下前端目录约定
-- Read `rules/dev-miniapp-standards.md` 了解 `data-id` 命名规范
+- Read 项目根目录的 `CLAUDE.md`，了解 `web/src/` 下 Web 应用前端目录约定
+- Read `rules/dev-vue3-standards.md` 了解 `data-id` 命名规范
 
 ## 目录结构
 
@@ -80,7 +80,7 @@ export class LoginPage {
 
 ## data-id 定位策略
 
-**定位规范定义见 `rules/dev-miniapp-standards.md` data-id 节（权威来源）。** 以下为 Playwright 特有补充：
+**定位规范定义见 `rules/dev-vue3-standards.md` data-id 节（权威来源）。** 以下为 Playwright 特有补充：
 
 - **Playwright 定位方式**：使用 `page.locator('[data-id="..."]')` 定位元素，禁止 CSS 类名、DOM 索引、原生 `id`、文本内容。
 - **单元测试与 E2E 共用**：同一个 `data-id` 值在 Vitest 和 Playwright 中复用，保证两套测试定位一致性。

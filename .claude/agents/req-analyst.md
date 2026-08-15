@@ -53,7 +53,7 @@ Read `rules/req-staging.md` → 确定需求概要（2-4 字中文）→ 创建 
 ## Gate 违规（STOP）
 
 - 未创建暂存目录即开始 → STOP
-- 读了代码目录（`web/`、`api/`）→ STOP
+- 读了代码目录（`app/`、`web/`、`api/`）→ STOP
 - 缺功能边界即跳过 brainstorming → STOP
 - brainstorming 未批准即 Write requirement.md → STOP
 - 缺 GWT 即跳过结构化分析 → STOP

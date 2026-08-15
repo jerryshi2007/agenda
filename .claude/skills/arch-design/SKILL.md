@@ -19,7 +19,7 @@ dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quali
 读 proposal.md + delta specs → 提取功能/非功能需求 + 跨切面关注点
 
 ### 3. 现状分析
-探查 api/ + app/ 已有代码 → 标注可复用/扩展/新建。不推翻现有模式，增量设计。
+探查 api/ + app/（小程序）+ web/（Web 应用）已有代码 → 标注可复用/扩展/新建。不推翻现有模式，增量设计。
 
 ### 4. 确定划分原则（DDD 限界上下文）
 - 从 spec 识别聚合根（哪些实体一起变、一起保证一致性？）

@@ -1,10 +1,10 @@
 ---
-name: ui-miniapp-web
+name: design-miniapp
 description: 出小程序原型时使用——低保真 HTML 原型验证交互，增加小程序组件映射标注和 rpx 转换。
 rules: [ui-miniapp-standards]
 ---
 
-# ui-miniapp-web · 小程序原型设计
+# design-miniapp · 小程序原型设计
 
 ## 何时使用
 
