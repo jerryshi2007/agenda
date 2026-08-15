@@ -75,10 +75,15 @@ agenda/
 │   │   │   ├── LoginRequest.cs
 │   │   │   ├── LoginResponse.cs
 │   │   │   ├── RefreshRequest.cs
+│   │   │   ├── RefreshResponse.cs
 │   │   │   ├── ProfileResponse.cs
 │   │   │   ├── UpdateProfileRequest.cs
 │   │   │   ├── DeletionStatusResponse.cs
-│   │   │   └── RecoverResponse.cs
+│   │   │   ├── DeletionResponse.cs
+│   │   │   ├── RecoverResponse.cs
+│   │   │   ├── UploadAvatarResponse.cs
+│   │   │   ├── UserFamiliesResponse.cs
+│   │   │   └── FamilyInfo.cs
 │   │   └── Validators/
 │   │       ├── LoginRequestValidator.cs
 │   │       └── UpdateProfileRequestValidator.cs
@@ -97,6 +102,7 @@ agenda/
 │   │   │   ├── IJwtService.cs
 │   │   │   ├── WeChatService.cs
 │   │   │   └── IWeChatService.cs
+│   │   ├── ErrorResponse.cs        # 统一错误信封（横切，所有模块共用）
 │   │   ├── Storage/
 │   │   │   ├── AvatarStorageService.cs
 │   │   │   └── IAvatarStorageService.cs
@@ -433,7 +439,7 @@ Errors: 401
 POST /api/v1/auth/deletion
 Request:  {} (empty body, user identity from JWT)
 Response: { "expiresAt": "2026-09-07T10:00:00Z", "remainingDays": 30 }
-Errors: 400 (FAMILY_STILL_ACTIVE - 需先退出所有家庭), 401, 409 (already deleted - 幂等返回200)
+Errors: 400 (FAMILY_STILL_ACTIVE), 401 (TOKEN_INVALID)；已注销账户重复请求 → 幂等返回 200（非错误）
 ```
 
 **恢复注销：**
@@ -449,7 +455,7 @@ Errors: 400 (NOT_DELETED / EXPIRED), 401
 POST /api/v1/upload/avatar
 Request:  multipart/form-data { file: <image> }
 Response: { "url": "https://static.example.com/avatars/xxx.png" }
-Errors: 400 (invalid format/size), 401, 413 (file too large)
+Errors: 400 (FILE_FORMAT_INVALID), 401, 413 (FILE_TOO_LARGE)
 ```
 
 **用户家庭列表（供"我的"页面使用）：**
@@ -483,12 +489,15 @@ Errors: 401
 | 400 | `FAMILY_STILL_ACTIVE` | 注销被拦截：用户仍属于家庭 |
 | 400 | `NOT_DELETED` | 恢复请求无效：用户未处于已注销状态 |
 | 400 | `EXPIRED` | 恢复请求无效：30 天已过 |
+| 400 | `FILE_FORMAT_INVALID` | 头像文件格式不支持 |
 | 401 | `TOKEN_INVALID` | JWT 无效/过期/被篡改 |
-| 409 | `ALREADY_DELETED` | 重复注销请求（幂等） |
 | 413 | `FILE_TOO_LARGE` | 头像文件过大 |
 | 429 | `RATE_LIMITED` | 登录/续期频率超限 |
+| 500 | `INTERNAL_ERROR` | 服务异常（全局异常中间件兜底） |
 | 502 | `WECHAT_API_ERROR` | 微信服务端返回错误 |
 | 503 | `WECHAT_API_TIMEOUT` | 微信 API 超时 |
+
+**统一错误信封**：所有错误响应 MUST 采用统一信封 `{ "error": "<错误码>", "message": "<中文提示>", "traceId": "<请求追踪ID>" }`。其中 `error` 与 `message` 必填（`message` 取 `errors.json` 中对应错误码的中文提示，为前端展示权威值），`traceId` 仅由全局异常中间件生成、可缺省。控制器级显式错误（400/401/413/429/502/503）同样 MUST 返回 `{ error, message }`，确保与 `dto.json` 的 `ErrorResponse`（message 必填）一致；FluentValidation 默认的 ProblemDetails 形状统一替换为上述信封。
 
 #### 安全约束
 
@@ -498,6 +507,27 @@ Errors: 401
 - 密钥轮换支持：旧密钥验证宽限期 24h（`Jwt:LegacySecretKeys` 数组）
 - API 版本：所有端点统一使用 `/api/v1/` URL 路径版本前缀，后续破坏性变更发 `/api/v2/`
 - CORS：仅允许小程序合法域名（通过 `appsettings.json` 配置白名单）
+
+#### 契约文件（机器可读提取）
+
+本模块 API 契约中的可机读部分（枚举值、错误码、DTO 结构）已提取为 JSON 契约文件，作为三端（后端 / 前端 / 测试）共享真相源，存放于 `openspec/contracts/auth/`：
+
+| 文件 | 内容 |
+|------|------|
+| `enums.json` | 共享枚举值（`UserStatus`: Active / Deleted） |
+| `errors.json` | 错误码 → HTTP 状态码 → 中文提示（15 个错误码） |
+| `dto.json` | 全部 9 个端点的 request/response DTO 字段名、类型、必填标记、约束（13 个 DTO） |
+
+**契约域说明**：5 个 auth spec 子域（auth-login / auth-token / auth-profile / auth-my-page / auth-deletion）统一归一个 contract domain `auth`（后续 event 模块落地时同样归 `schedule` 域）。
+
+**三端消费约束**（遵循 `dev-contracts` rule）：
+
+- **后端（dev-dotnet）**：枚举值、错误码 MUST 从 `openspec/contracts/auth/` 读取或生成为 C# 常量类/enum（如 `UserStatusConstants.Deleted`、`ErrorCodes.CodeInvalid`），禁止在 Controller/Service 中硬编码字符串字面量。
+- **前端（dev-miniapp）**：API 请求参数中的枚举值、错误码 MUST 从 contracts 引用（如 `app/services/auth.js` 中错误码判断引用 `errors.json`），禁止手写 `'FAMILY_STILL_ACTIVE'` 等字符串。
+- **测试（test-writer）**：API client 请求参数类型、错误码/状态值断言 MUST 从 contracts 引用（如 `errors.CODE_INVALID`），禁止写裸字符串。
+
+**与 prose 契约的关系**：design.md 本节（§3.4）的 prose 描述说明“为什么这样设计”，contracts JSON 描述“具体值是什么”。当两者不一致时，以 contracts JSON 为准（它是机器可读真相源）。`errors.json` 中的 `message` 为用户可读中文提示（前端展示的权威值），§3.4 错误码表的“说明”列为开发者视角描述。
+
 
 ### 3.5 前端架构
 
@@ -704,7 +734,7 @@ App
  |                   |                                |                           |
  |                   |  <-- 200 {jwt,userId,          |                           |
  |                   |         isNewUser:true,         |                           |
- |                   |         needsProfile:true}      |                           |
+ |                   |         needsProfileCollection:true}      |                           |
  |                   |                                |                           |
  |                   |-- 存储 JWT to Storage           |                           |
  |                   |-- set globalData.userId         |                           |

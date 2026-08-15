@@ -1,0 +1,17 @@
+{
+  "CODE_INVALID": { "httpStatus": 400, "message": "微信登录凭证无效，请重试" },
+  "CODE_EXPIRED": { "httpStatus": 400, "message": "微信登录凭证已过期，请重试" },
+  "NICKNAME_EMPTY": { "httpStatus": 400, "message": "昵称不能为空" },
+  "NICKNAME_TOO_LONG": { "httpStatus": 400, "message": "昵称不能超过 20 个字符" },
+  "NICKNAME_SENSITIVE": { "httpStatus": 400, "message": "昵称包含不允许的词汇" },
+  "FILE_FORMAT_INVALID": { "httpStatus": 400, "message": "头像文件格式不支持" },
+  "FAMILY_STILL_ACTIVE": { "httpStatus": 400, "message": "请先退出所有家庭后再注销" },
+  "NOT_DELETED": { "httpStatus": 400, "message": "账户未处于注销状态，无法恢复" },
+  "EXPIRED": { "httpStatus": 400, "message": "注销已超过 30 天，无法恢复" },
+  "TOKEN_INVALID": { "httpStatus": 401, "message": "登录已过期，请重新登录" },
+  "FILE_TOO_LARGE": { "httpStatus": 413, "message": "头像文件过大，请重新选择" },
+  "RATE_LIMITED": { "httpStatus": 429, "message": "操作过于频繁，请稍后再试" },
+  "WECHAT_API_ERROR": { "httpStatus": 502, "message": "微信服务异常，请稍后重试" },
+  "WECHAT_API_TIMEOUT": { "httpStatus": 503, "message": "服务繁忙，请稍后重试" },
+  "INTERNAL_ERROR": { "httpStatus": 500, "message": "服务异常，请稍后重试" }
+}

@@ -3,6 +3,7 @@
 > 日期：2026-08-08
 > 总 task 数：36
 > 来源：openspec/changes/add-auth-module/design.md（9 ADR + 9 API + 10 时序图 + 组件树 + data-id 表）
+> API 契约（枚举/错误码/DTO）已提取至 `openspec/contracts/auth/`，三端实现 MUST 从 contracts 引用，禁止硬编码字符串字面量
 
 ## Story 依赖链
 
@@ -54,7 +55,7 @@ AUTH-001 (隐私+登录) -> AUTH-002 (登录态) -> AUTH-003 (资料) -> AUTH-00
 
 第 4 梯队：全局横切
   T28a (ExceptionHandlingMiddleware) ← 所有后端完成后
-  T28b (页面状态态+安全区域收尾) ← 所有前端完成后
+  T28b (页面状态+安全区域收尾) ← 所有前端完成后
 ```
 
 ## Task 列表
@@ -288,9 +289,9 @@ AUTH-001 (隐私+登录) -> AUTH-002 (登录态) -> AUTH-003 (资料) -> AUTH-00
   1. `[ApiController]` + `[Route("api/v1/auth")]`
   2. `POST /api/v1/auth/login` (`[AllowAnonymous]`) 接收 LoginRequest -> 返回 `Ok(LoginResponse)`
   3. `POST /api/v1/auth/refresh` (`[AllowAnonymous]`) 接收 RefreshRequest -> 返回 `Ok(RefreshResponse)`
-  4. code 无效返回 HTTP 400 + `{ error: "CODE_INVALID" }`
-  5. 微信 API 超时返回 HTTP 503 + `{ error: "WECHAT_API_TIMEOUT" }`
-  6. WeChatApiException 返回 HTTP 502 + `{ error: "WECHAT_API_ERROR" }`
+  4. code 无效返回 HTTP 400 + `{ error: "CODE_INVALID", message: "微信登录凭证无效，请重试" }`
+  5. 微信 API 超时返回 HTTP 503 + `{ error: "WECHAT_API_TIMEOUT", message: "服务繁忙，请稍后重试" }`
+  6. WeChatApiException 返回 HTTP 502 + `{ error: "WECHAT_API_ERROR", message: "微信服务异常，请稍后重试" }`
   7. Controller 不包含业务逻辑
   8. Swagger UI 中可见端点及请求/响应 schema
 - **验证命令**: `dotnet test --filter "FullyQualifiedName~AuthController"` + Swagger UI 手动调用 login 端点
@@ -545,6 +546,7 @@ AUTH-001 (隐私+登录) -> AUTH-002 (登录态) -> AUTH-003 (资料) -> AUTH-00
   - `api/Infrastructure/Storage/IAvatarStorageService.cs`
   - `api/Infrastructure/Storage/AvatarStorageService.cs`
   - `api/Infrastructure/Storage/UploadController.cs`
+  - `api/Auth/Dtos/UploadAvatarResponse.cs`
 - **完成标准**:
   1. `UploadAsync(Guid userId, IFormFile file)` 校验格式（jpg/jpeg/png/gif）和大小（<= 2MB）-> 保存到 `AvatarRootPath/{userId}.{ext}` -> 返回 `AvatarBaseUrl` 拼接的 URL
   2. `DeleteAsync` 删除旧文件
@@ -613,6 +615,8 @@ AUTH-001 (隐私+登录) -> AUTH-002 (登录态) -> AUTH-003 (资料) -> AUTH-00
 - **产出文件**:
   - `api/Auth/IFamilyQueryService.cs`
   - `api/Auth/AuthController.cs`（修改，增加 GET /api/v1/users/me/families）
+  - `api/Auth/Dtos/FamilyInfo.cs`
+  - `api/Auth/Dtos/UserFamiliesResponse.cs`
 - **完成标准**:
   1. `IFamilyQueryService.GetUserFamiliesAsync(Guid userId)` 返回 `List<FamilyInfo>`，`FamilyInfo { FamilyId, FamilyName, Role, MemberCount }`
   2. `GET /api/v1/users/me/families` (`[Authorize]`) 返回 `{ families: [...] }`
@@ -783,6 +787,7 @@ AUTH-001 (隐私+登录) -> AUTH-002 (登录态) -> AUTH-003 (资料) -> AUTH-00
 - **输入**: design.md 3.4 节错误码枚举、`dev-dotnet-standards` 异常处理节
 - **产出文件**:
   - `api/Infrastructure/Middleware/ExceptionHandlingMiddleware.cs`
+  - `api/Infrastructure/ErrorResponse.cs`
   - `api/Program.cs`（修改，注册中间件到管道最前面）
 - **完成标准**:
   1. 统一捕获所有未处理异常
@@ -794,14 +799,14 @@ AUTH-001 (隐私+登录) -> AUTH-002 (登录态) -> AUTH-003 (资料) -> AUTH-00
 
 ---
 
-### Task 28b: 页面状态态完善 + 全局安全区域适配收尾
+### Task 28b: 页面状态完善 + 全局安全区域适配收尾
 
 - **所属 Story**: 全局横切
 - **负责 agent**: `dev-miniapp`
 - **依赖**: Task 13, Task 14, Task 22a, Task 22b, Task 24a, Task 24b, Task 27a, Task 27b
 - **输入**: design.md 3.5 节安全区域适配 + 数据流图（加载/错误态）、`ui-miniapp-standards` 安全区域规范
 - **产出文件**:
-  - `app/styles/common.wxss`（修改 Task 5b，补充状态态通用样式）
+  - `app/styles/common.wxss`（修改 Task 5b，补充状态通用样式）
 - **完成标准**:
   1. common.wxss 补充 `.skeleton` / `.skeleton-line` / `.skeleton-avatar` 骨架屏样式
   2. common.wxss 补充 `.empty-state` 通用空态、`.error-state` 通用错误态样式
@@ -851,7 +856,7 @@ AUTH-001 (隐私+登录) -> AUTH-002 (登录态) -> AUTH-003 (资料) -> AUTH-00
 | 27a | settings 注销弹窗流程 | dev-miniapp | A5 | T12,T24b | 2 |
 | 27b | deleted-recovery 页面 | dev-miniapp | A5 | T12,T15a | 4 |
 | 28a | ExceptionHandlingMiddleware | dev-dotnet | 全局 | T10 | 2 |
-| 28b | 页面状态态 + 安全区域收尾 | dev-miniapp | 全局 | T13-T27b | 1 |
+| 28b | 页面状态 + 安全区域收尾 | dev-miniapp | 全局 | T13-T27b | 1 |
 
 ## 自审清单
 

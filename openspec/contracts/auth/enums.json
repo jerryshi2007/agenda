@@ -1,0 +1,6 @@
+{
+  "UserStatus": {
+    "values": ["Active", "Deleted"],
+    "description": "用户账户状态。Active=正常活跃；Deleted=已注销（处于 30 天缓冲期，DeletedAt 记录注销时间，到期后物理删除）。注销状态通过 UserStatus.Deleted + DeletedAt 建模，不设独立 DeletionStatus 枚举。"
+  }
+}
