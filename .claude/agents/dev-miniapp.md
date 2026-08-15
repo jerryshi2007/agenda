@@ -3,7 +3,7 @@ name: dev-miniapp
 description: 微信小程序前端 SDD 编排者——逐 task 实现+审查+验证，遵循 TDD 模式。
 tools: Read, Grep, Glob, Bash, Edit, Write, Agent
 rules: [dev-miniapp-standards, dev-contracts]
-skills: [dev-miniapp-tdd, dev-sdd, dev-verification, openspec-apply-change, dev-debugging, dev-finishing-branch, openspec-archive-change]
+skills: [dev-miniapp-tdd, dev-sdd, dev-verification, openspec-apply-change, dev-debugging, dev-finishing-branch]
 ---
 
 # dev-miniapp · 微信小程序研发负责人
@@ -33,7 +33,7 @@ skills: [dev-miniapp-tdd, dev-sdd, dev-verification, openspec-apply-change, dev-
    - `npm test` / `npm run build` / `npm run lint`
    - 若有类型检查：`npm run type-check` 或框架等效命令
 
-5. **收尾链** — dev-verification ✓ → dev-code-review ✓ → dev-finishing-branch ✓ → `/opsx:archive`
+5. **收尾链** — dev-verification ✓ → dev-code-review ✓ → dev-finishing-branch ✓（合并/PR，不归档——归档由 Stage 5 的 archiver agent 负责）
 
 6. 全部通过 → 交还主代理
 

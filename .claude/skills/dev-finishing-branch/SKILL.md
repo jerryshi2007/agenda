@@ -13,7 +13,7 @@ rules: [openspec-workflow]
 - 代码审查已通过（`dev-code-review` 双判决均为 ✅）
 - 准备将工作合并回主分支
 
-> 本 skill 负责开发侧收尾（git 合并/PR），归档阶段（delta spec 合并、openspec archive）由 `openspec-archive-change` skill 负责。完整收尾链定义见 `dev-sdd` skill。
+> 本 skill 负责开发侧收尾（git 合并/PR），归档阶段（delta spec 合并、openspec archive）由 Stage 5 的 `archiver` agent 负责。完整收尾链定义见 `dev-sdd` skill。
 
 ## 流程
 
@@ -54,16 +54,12 @@ rules: [openspec-workflow]
    # 创建 PR，包含 openspec/changes/<name>/proposal.md 摘要
    ```
 
-5. **Archive**
+5. **交还归档**
 
-   合并/PR 后，执行 OpenSpec archive：
-   ```
-   /opsx:archive <change-name>
-   ```
-   Delta specs 合并入 `openspec/specs/`，变更移至 `archive/`。
+   合并/PR 后交还主代理。**归档不在本 skill 职责内**——由 Stage 5 的 `archiver` agent 执行两步归档（`openspec-archive-change` → `staging-archive`）。
 
 ## 关键原则
 
-- 不跳过 archive——未 archive 的变更会让 `openspec/specs/` 与代码脱节
+- 不跳过归档交接——实现完成必须交还主代理调度 `archiver`，未归档的变更会让 `openspec/specs/` 与代码脱节
 - 合并前确认 `dev-verification` 新鲜通过
 - PR 描述引用 `openspec/changes/<name>/proposal.md` 作为变更动机

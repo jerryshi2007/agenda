@@ -48,7 +48,7 @@ Fresh subagent per task + task review（spec + quality）+ broad final review = 
 
 1. **`dev-verification`** — 如果本轮对话中尚未运行完整验证（测试 + 构建 + 类型检查），先运行 `dev-verification` skill
 2. **`dev-code-review`** — 如果本轮对话中尚未执行全分支代码审查，先运行 `dev-code-review` skill
-3. **`dev-finishing-branch`** — 引导用户执行收尾：确认状态、清理遗留文件、合并/PR、然后 `/opsx:archive`
+3. **`dev-finishing-branch`** — 引导用户执行收尾：确认状态、清理遗留文件、合并/PR（不归档，归档由 Stage 5 archiver 负责）
 
 > 实现完成≠可以归档。finishing-branch 负责检查 artifacts 完整性、清理遗留文件、确认验证与审查已通过——跳过它会导致 openspec status 报告 artifacts 缺失。
 

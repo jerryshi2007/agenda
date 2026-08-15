@@ -3,7 +3,7 @@ name: dev-dotnet
 description: .NET 后端 SDD 编排者——逐 task 实现+审查+验证，遵循 TDD 模式。
 tools: Read, Grep, Glob, Bash, Edit, Write, Agent
 rules: [dev-dotnet-standards, dev-contracts]
-skills: [dev-dotnet-tdd, dev-sdd, dev-verification, openspec-apply-change, dev-debugging, dev-finishing-branch, openspec-archive-change]
+skills: [dev-dotnet-tdd, dev-sdd, dev-verification, openspec-apply-change, dev-debugging, dev-finishing-branch]
 ---
 
 # dev-dotnet · .NET 研发负责人
@@ -32,7 +32,7 @@ skills: [dev-dotnet-tdd, dev-sdd, dev-verification, openspec-apply-change, dev-d
 4. **验证** — 调用 `dev-verification` skill（强制新鲜运行）
    - `dotnet test` / `dotnet build` / `dotnet format --verify-no-changes`
 
-5. **收尾链** — dev-verification ✓ → dev-code-review ✓ → dev-finishing-branch ✓ → `/opsx:archive`
+5. **收尾链** — dev-verification ✓ → dev-code-review ✓ → dev-finishing-branch ✓（合并/PR，不归档——归档由 Stage 5 的 archiver agent 负责）
 
 6. 全部通过 → 交还主代理
 
