@@ -43,10 +43,28 @@ function beijingDayOfWeek(dateStr) {
   return new Date(`${dateStr}T00:00:00Z`).getUTCDay();
 }
 
+/**
+ * 当前北京时间的墙钟小时（0-23），用于运行时守卫（test-plan.md §6 R5）。
+ * 服务器判定依赖北京时间墙钟（逾期线 02:00、提前窗 23:29），测试机本地时区可能非 CST，
+ * 故 MUST 按 UTC+8 计算（getUTC* 避免本地时区偏移）。
+ */
+function beijingHour() {
+  return new Date(Date.now() + 8 * HOUR_MS).getUTCHours();
+}
+
+/**
+ * 当前北京时间的墙钟分钟（0-59），用于运行时守卫。
+ */
+function beijingMinute() {
+  return new Date(Date.now() + 8 * HOUR_MS).getUTCMinutes();
+}
+
 module.exports = {
   beijingDate,
   beijingToday,
   beijingYesterday,
   beijingTomorrow,
   beijingDayOfWeek,
+  beijingHour,
+  beijingMinute,
 };

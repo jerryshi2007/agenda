@@ -32,8 +32,8 @@ test.describe('2.E 横切', () => {
     const body = await res.json();
     expect(body.error).toBe(errorKey(checkinErrors.TERMINAL_STATE, checkinErrors));
     expect(body.message).toBe(checkinErrors.TERMINAL_STATE.message);
-    // traceId 为全局异常中间件附加的追踪标识，可缺省/null（test-plan §2.E）。
-    expect(body).toHaveProperty('traceId');
+    // traceId 为全局异常中间件附加的追踪标识，可缺省/null（dto.json ErrorResponse.traceId required:false）。
+    expect(body.traceId === undefined || body.traceId === null || typeof body.traceId === 'string').toBe(true);
   });
 
 });

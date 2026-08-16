@@ -7,7 +7,7 @@ const crypto = require('crypto');
 const { healthCheck, checkin, cancelInstance } = require('../helpers/api-client');
 const { AUTH } = require('../helpers/data-factory');
 const { checkinErrors, errors, CheckinSource, assertError } = require('../helpers/contracts');
-const { beijingToday, beijingYesterday, beijingTomorrow } = require('../helpers/checkin-time');
+const { beijingToday, beijingYesterday, beijingTomorrow, beijingHour } = require('../helpers/checkin-time');
 const checkinDb = require('../helpers/checkin-db');
 const { FIXTURES, seedFixture, cleanupFixture } = require('../helpers/checkin-fixtures');
 
@@ -51,8 +51,10 @@ test.describe('2.B 打卡执行', () => {
     expect(body.checkinId).toBeGreaterThan(0);
     expect(body.scheduleId).toBe(id);
     expect(body.date).toBe(beijingToday());
-    // checkinAt 为服务器 ISO 8601 时间（§3.1 只验证可解析）。
-    expect(new Date(body.checkinAt).toISOString()).toBe(body.checkinAt);
+    // checkinAt 为服务器 ISO 8601 时间（DateTimeOffset，含 +08:00 偏移）。toISOString() 恒输出
+    // UTC Z 格式，与原始偏移串永不相等，故改为断言可解析 + 偏移存在（§3.1 只验证可解析）。
+    expect(Number.isNaN(new Date(body.checkinAt).getTime())).toBe(false);
+    expect(body.checkinAt).toMatch(/\+\d{2}:\d{2}$/);
     expect(body.source).toBe(CheckinSource.Parent);
     // 正常成功响应缺省 alreadyCheckedIn（dto.json「可缺省」）。
     expect(body.alreadyCheckedIn).toBeUndefined();
@@ -110,6 +112,10 @@ test.describe('2.B 打卡执行', () => {
 
   test('[TC-CHK-POST-006] 提前窗口未开放拒绝', async ({ request }) => {
     // 需 now<23:29 CST（§6 R5）：startTime 23:59 → 提前窗口 23:29。
+    // 保守以 >=23:00 整点跳过（而非 23:29），避免测试机与服务器时钟微秒级偏差在边界翻转。
+    if (beijingHour() >= 23) {
+      test.skip(true, '需北京时间 < 23:29（startTime 23:59 提前窗 23:29），当前已进入窗口开放时段');
+    }
     const id = await seed(request, FIXTURES.activityTodayEarly());
     const res = await checkin(request, AUTH.PARENT_A, { scheduleId: id, date: beijingToday() });
     await assertError(res, checkinErrors.CHECKIN_WINDOW_CLOSED, checkinErrors);

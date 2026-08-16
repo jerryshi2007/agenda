@@ -7,7 +7,7 @@ const crypto = require('crypto');
 const { healthCheck, checkin, undoCheckin } = require('../helpers/api-client');
 const { AUTH, afterschoolActivity } = require('../helpers/data-factory');
 const { checkinErrors, errors, CheckinStatus, assertError } = require('../helpers/contracts');
-const { beijingToday, beijingYesterday, beijingDayOfWeek } = require('../helpers/checkin-time');
+const { beijingToday, beijingYesterday, beijingDayOfWeek, beijingHour } = require('../helpers/checkin-time');
 const checkinDb = require('../helpers/checkin-db');
 const { FIXTURES, seedFixture, cleanupFixture } = require('../helpers/checkin-fixtures');
 
@@ -93,6 +93,9 @@ test.describe('2.C 撤销打卡', () => {
 
   test('[TC-CHK-UNDO-006] 课后活动逾期撤销拒绝（WINDOW_CLOSED）', async ({ request }) => {
     // 需 now>02:00 CST（§6 R5）：endTime 00:00 → endTime+2h = 02:00。
+    if (beijingHour() < 2) {
+      test.skip(true, '需北京时间 >= 02:00（endTime 00:00 的逾期线），当前时段实例未逾期');
+    }
     const id = await seed(request, afterschoolActivity({
       name: 'E2E-打卡-活动-撤销逾期',
       timeSlots: [

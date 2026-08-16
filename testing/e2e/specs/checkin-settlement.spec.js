@@ -10,6 +10,11 @@
 //   - 触发端点 MUST 同步 await SettlementJob.ExecuteAsync（否则 DB 断言与 Job 竞态）。
 //
 // 每用例前 truncate 三张 checkin 表，保证 streak/结算断言确定性（避免跨用例累加污染）。
+//
+// TIME-SKEW 风险（test-runner 分类用）：各用例在 seed 前计算 beijingYesterday()，但 SettlementJob
+// 触发瞬间内部重算「昨天」。若 seed 与 trigger 之间跨北京时间 00:00，则 seed 的 yesterday 与 Job 的
+// yesterday 不一致，日程不会被结算 → 用例确定性失败。这是毫秒级固有竞态，无法通过代码守卫完全消除；
+// 触发时若命中午夜窗口，test-runner 应将失败归类为 TIME-SKEW 而非真实回归。
 
 const { test, expect } = require('@playwright/test');
 const crypto = require('crypto');
@@ -252,6 +257,8 @@ test.describe('2.D 结算任务', () => {
     await trigger(request);
 
     expect(await checkinDb.getSettlement(routineId, today)).toBeNull();
+    // 「今天」实例完全未被纳入昨日结算（BE-18：结算范围严格限定北京时间昨天）。
+    expect(await checkinDb.getSettlement(routineId, beijingYesterday())).toBeNull();
     const window = await getCheckinWindow(request, AUTH.PARENT_A, routineId, today);
     expect((await window.json()).canCheckin).toBe(true);
   });

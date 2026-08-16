@@ -84,22 +84,6 @@ async function deleteCheckin(scheduleId, date) {
   });
 }
 
-/**
- * 读取某实例打卡记录（断言用）。
- * @returns {Promise<{ id: string, scheduleId: string, date: string, userId: string, source: number }|null>}
- */
-async function getCheckin(scheduleId, date) {
-  return withClient(async (client) => {
-    const res = await client.query(
-      `SELECT "Id" AS id, "ScheduleId" AS "scheduleId", "Date" AS date,
-              "UserId" AS "userId", "Source" AS source
-       FROM "CheckinRecords" WHERE "ScheduleId" = $1 AND "Date" = $2`,
-      [scheduleId, date]
-    );
-    return res.rows[0] || null;
-  });
-}
-
 async function countCheckins(scheduleId, date) {
   return withClient(async (client) => {
     const res = await client.query(
@@ -290,7 +274,6 @@ module.exports = {
   ScheduleStatus,
   insertCheckin,
   deleteCheckin,
-  getCheckin,
   countCheckins,
   insertSettlement,
   deleteSettlement,

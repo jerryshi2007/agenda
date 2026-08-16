@@ -8,7 +8,6 @@ const errors = require('../../../openspec/contracts/auth/errors.json');
 const enums = require('../../../openspec/contracts/auth/enums.json');
 const checkinErrors = require('../../../openspec/contracts/checkin/errors.json');
 const checkinEnums = require('../../../openspec/contracts/checkin/enums.json');
-const checkinDto = require('../../../openspec/contracts/checkin/dto.json');
 
 /**
  * Derive a frozen `{ VALUE: 'VALUE' }` map from a contract enum `values` array so specs can
@@ -61,7 +60,6 @@ module.exports = {
   enums,
   checkinErrors,
   checkinEnums,
-  checkinDto,
   CheckinStatus,
   CheckinSource,
   StreakScope,

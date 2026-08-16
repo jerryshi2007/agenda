@@ -7,7 +7,7 @@ const crypto = require('crypto');
 const { healthCheck, getCheckinWindow, checkin, cancelInstance } = require('../helpers/api-client');
 const { AUTH, afterschoolActivity } = require('../helpers/data-factory');
 const { checkinErrors, errors, CheckinStatus, assertError } = require('../helpers/contracts');
-const { beijingToday, beijingYesterday, beijingTomorrow, beijingDayOfWeek } = require('../helpers/checkin-time');
+const { beijingToday, beijingYesterday, beijingTomorrow, beijingDayOfWeek, beijingHour } = require('../helpers/checkin-time');
 const checkinDb = require('../helpers/checkin-db');
 const {
   FIXTURES, CheckinReason, STATUS_LABELS, seedFixture, cleanupFixture,
@@ -54,8 +54,10 @@ test.describe('2.A 打卡窗口查询', () => {
     expect(body.reason).toBeNull();
     expect(body.status).toBe(CheckinStatus.incomplete);
     expect(body.statusLabel).toBe(STATUS_LABELS[CheckinStatus.incomplete]);
-    // serverTime 为北京时间 ISO 8601，可解析即可（§3.1 不断言精确秒）。
-    expect(new Date(body.serverTime).toISOString()).toBe(body.serverTime);
+    // serverTime 为北京时间 ISO 8601（DateTimeOffset，如 "...+08:00"）。toISOString() 恒输出
+    // UTC Z 格式，与原始偏移串永不相等，故改为断言可解析 + 偏移存在（§3.1 不断言精确秒）。
+    expect(Number.isNaN(new Date(body.serverTime).getTime())).toBe(false);
+    expect(body.serverTime).toMatch(/\+\d{2}:\d{2}$/);
   });
 
   test('[TC-CHK-WIN-002] 提前窗口未开放返回 EARLY + 剩余秒数', async ({ request }) => {
@@ -112,6 +114,9 @@ test.describe('2.A 打卡窗口查询', () => {
 
   test('[TC-CHK-WIN-006] 课后活动即时逾期（今天 endTime+2h 已过）返回 ended', async ({ request }) => {
     // 需 now>02:00 CST（§6 R5）：endTime 00:00 → endTime+2h = 02:00，早于 02:00 运行时翻转。
+    if (beijingHour() < 2) {
+      test.skip(true, '需北京时间 >= 02:00（endTime 00:00 的逾期线），当前时段实例未逾期');
+    }
     const id = await seed(request, afterschoolActivity({
       name: 'E2E-打卡-活动-今日即时逾期',
       timeSlots: [
