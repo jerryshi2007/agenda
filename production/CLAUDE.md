@@ -25,14 +25,14 @@
 |------|:--:|:--:|:--:|:--:|:--:|------|
 | 日程管理 | ✅ | ✅ | ✅ | ✅ | ✅ | add-event-module (archived) |
 | 认证 | ✅ | ✅ | ✅ | ✅ | ✅ | add-auth-module (archived) |
-| 打卡 | ✅ | 🔄 | ⬜ | ⬜ | ⬜ | add-checkin-module |
+| 打卡 | ✅ | ✅ | ✅ | ✅ | ✅ | add-checkin-module (archived) |
 | 家庭 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
 | 模板 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
 | 展示模式 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
 
 - **日程管理**：全流程完成（五阶段 done），OpenSpec 已归档
 - **认证**：全流程完成（五阶段 done），OpenSpec 已归档
-- **打卡**：Stage 2 设计中（design.md 已产出待 arch-review），OpenSpec `add-checkin-module`
+- **打卡**：全流程完成（五阶段 done），OpenSpec 已归档
 - **家庭 / 模板 / 展示模式**：requirements/ 文档已完成，尚未进入 staging 流程
 - **归档**：模块完成后由 `archiver` agent 两步归档——OpenSpec 变更 → `openspec/changes/archive/`，staging 目录 → `production/archive/`
 

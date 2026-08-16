@@ -7,8 +7,8 @@
 | 模块 | Stage 1 产品 | Stage 2 设计 | Stage 3 研发 | Stage 4 测试 | Stage 5 归档 | OpenSpec |
 |------|:--:|:--:|:--:|:--:|:--:|------|
 | 日程管理 | ✅ | ✅ | ✅ | ✅ | ✅ | add-event-module (archived) |
-| 认证 | ✅ | ✅ | 🔄 | ⬜ | ⬜ | add-auth-module |
-| 打卡 | ✅ | 🔄 | ⬜ | ⬜ | ⬜ | add-checkin-module |
+| 认证 | ✅ | ✅ | ✅ | ✅ | ✅ | add-auth-module (archived) |
+| 打卡 | ✅ | ✅ | ✅ | ✅ | ✅ | add-checkin-module (archived) |
 | 家庭/模板/展示模式 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
 
 - `app/` 已有日程管理前端代码（4 页面 + 11 组件 + 3 Service + 2 Util），认证模块（mine/privacy-prompt 页面）

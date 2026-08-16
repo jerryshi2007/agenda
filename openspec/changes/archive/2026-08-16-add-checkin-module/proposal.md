@@ -24,5 +24,5 @@
 ## Impact
 
 - **api/**：新增 `api/Checkin/` 目录（CheckinController、CheckinService、DTOs、Validators）；扩展 `api/Domain/Entities/` 新增 Checkin 实体；扩展 `api/Infrastructure/Data/` 新增 CheckinConfiguration；新增结算定时任务
-- **app/**：增强日程详情页（`pages/event-detail/`）的打卡按钮与撤销按钮交互逻辑；新增 `services/checkin.js` API 封装
+- **app/**：增强日程详情页（`pages/schedule-detail/`）的打卡按钮与撤销按钮交互逻辑；新增 `services/checkin.js` API 封装
 - **openspec/specs/**：新建 `checkin-record` 和 `checkin-settlement` 两个 capability spec

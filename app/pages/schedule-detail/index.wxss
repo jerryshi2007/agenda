@@ -97,6 +97,38 @@
   flex-shrink: 0;
 }
 
+/* 打卡按钮状态 */
+.checkin-btn-disabled {
+  background: var(--color-border-light);
+  color: var(--color-text-placeholder);
+}
+
+.checkin-btn-undo {
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  border: 2rpx solid var(--color-border);
+}
+
+.checkin-btn-loading {
+  background: var(--color-border-light);
+  color: var(--color-text-placeholder);
+}
+
+.checkin-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-page);
+  border-radius: var(--radius-md);
+}
+
+.checkin-error-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
 /* 弹窗内单选 */
 .modal-radio-group {
   text-align: left;

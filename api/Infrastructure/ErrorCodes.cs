@@ -22,6 +22,15 @@ public static class ErrorCodes
     public const string WeChatApiTimeout = "WECHAT_API_TIMEOUT";
     public const string InternalError = "INTERNAL_ERROR";
 
+    // ---- Checkin module（从 openspec/contracts/checkin/errors.json 生成）----
+    public const string CheckinWindowClosed = "CHECKIN_WINDOW_CLOSED";
+    public const string TerminalState = "TERMINAL_STATE";
+    public const string NotCheckedIn = "NOT_CHECKED_IN";
+    public const string WindowClosed = "WINDOW_CLOSED";
+    public const string ScheduleCancelled = "SCHEDULE_CANCELLED";
+    public const string NotFamilyMember = "NOT_FAMILY_MEMBER";
+    public const string ScheduleNotFound = "SCHEDULE_NOT_FOUND";
+
     private static readonly IReadOnlyDictionary<string, string> Messages = new Dictionary<string, string>
     {
         [CodeInvalid] = "微信登录凭证无效，请重试",
@@ -38,7 +47,14 @@ public static class ErrorCodes
         [RateLimited] = "操作过于频繁，请稍后再试",
         [WeChatApiError] = "微信服务异常，请稍后重试",
         [WeChatApiTimeout] = "服务繁忙，请稍后重试",
-        [InternalError] = "服务异常，请稍后重试"
+        [InternalError] = "服务异常，请稍后重试",
+        [CheckinWindowClosed] = "打卡时间窗口已关闭",
+        [TerminalState] = "该日程已结算，不可打卡或撤销",
+        [NotCheckedIn] = "该日程尚未打卡，无法撤销",
+        [WindowClosed] = "撤销窗口已关闭，无法撤销",
+        [ScheduleCancelled] = "该日程已取消或排除，无法打卡",
+        [NotFamilyMember] = "你不是该日程所属家庭的成员，无权操作",
+        [ScheduleNotFound] = "日程不存在"
     };
 
     private static readonly IReadOnlyDictionary<string, int> HttpStatuses = new Dictionary<string, int>
@@ -57,7 +73,14 @@ public static class ErrorCodes
         [RateLimited] = 429,
         [WeChatApiError] = 502,
         [WeChatApiTimeout] = 503,
-        [InternalError] = 500
+        [InternalError] = 500,
+        [CheckinWindowClosed] = 400,
+        [TerminalState] = 400,
+        [NotCheckedIn] = 400,
+        [WindowClosed] = 400,
+        [ScheduleCancelled] = 400,
+        [NotFamilyMember] = 403,
+        [ScheduleNotFound] = 404
     };
 
     public static string Message(string code) =>

@@ -14,6 +14,9 @@ public class AppDbContext : DbContext
     public DbSet<TimeSlot> TimeSlots => Set<TimeSlot>();
     public DbSet<Cancellation> Cancellations => Set<Cancellation>();
     public DbSet<ScheduleDateExclusion> ScheduleDateExclusions => Set<ScheduleDateExclusion>();
+    public DbSet<CheckinSettlement> CheckinSettlements => Set<CheckinSettlement>();
+    public DbSet<Streak> Streaks => Set<Streak>();
+    public DbSet<Domain.Entities.Checkin> Checkins => Set<Domain.Entities.Checkin>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

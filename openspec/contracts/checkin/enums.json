@@ -1,0 +1,16 @@
+{
+  "CheckinSource": {
+    "values": ["Parent", "Child"],
+    "numeric": { "Parent": 1, "Child": 2 },
+    "description": "打卡操作来源。Parent=家长代打；Child=孩子自打。numeric 对齐 api/Domain/Enums/UserRole.cs 的角色编号约定（Parent=1, Child=2），新建 CheckinSource.cs 时沿用。"
+  },
+  "StreakScope": {
+    "values": ["Schedule", "Child"],
+    "numeric": { "Schedule": 1, "Child": 2 },
+    "description": "连续天数聚合范围。Schedule=单日程连续打卡天数（SubjectId=ScheduleId）；Child=孩子整体连续打卡天数（SubjectId=AssignedChildId）。连续天数仅对日常作息（DailyRoutine）计算。"
+  },
+  "CheckinStatus": {
+    "values": ["incomplete", "completed", "cancelled", "ended", "overdue"],
+    "description": "打卡实例状态（窗口查询/撤销响应的 status 字段，小写字符串，非 C# 枚举）。excluded（已排除）与 cancelled（已取消）合并，统一返回 cancelled，不单独暴露 excluded。"
+  }
+}

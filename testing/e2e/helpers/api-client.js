@@ -134,6 +134,33 @@ async function uploadAvatar(request, authToken, file) {
   });
 }
 
+// ---- Checkin endpoints ----
+
+async function getCheckinWindow(request, authToken, scheduleId, date) {
+  return request.get(`/api/v1/checkin/window/${scheduleId}/${date}`, buildOptions(authToken));
+}
+
+async function checkin(request, authToken, body) {
+  const opts = buildOptions(authToken);
+  opts.data = body;
+  return request.post('/api/v1/checkin', opts);
+}
+
+async function undoCheckin(request, authToken, scheduleId, date) {
+  return request.delete(`/api/v1/checkin/${scheduleId}/${date}`, buildOptions(authToken));
+}
+
+/**
+ * 触发每日结算任务（Development-only 测试端点，test-plan.md §3.5 方案 1 / Gate 0-6）。
+ * 后端由 dev-dotnet 落地 `POST /api/v1/test/checkin/settle`，直连 SettlementJob.ExecuteAsync
+ * 或 RecurringJob.TriggerJob("daily-settlement")。
+ * @param {import('@playwright/test').APIRequestContext} request
+ * @param {string} authToken - 传 PARENT_A 即可（若端点 AllowAnonymous 则该头被忽略）
+ */
+async function triggerSettlement(request, authToken) {
+  return request.post('/api/v1/test/checkin/settle', buildOptions(authToken));
+}
+
 // ---- Health check ----
 
 async function healthCheck(request) {
@@ -150,6 +177,10 @@ module.exports = {
   restoreInstance,
   checkConflict,
   queryCalendar,
+  getCheckinWindow,
+  checkin,
+  undoCheckin,
+  triggerSettlement,
   login,
   refresh,
   getProfile,

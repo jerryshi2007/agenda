@@ -1,0 +1,9 @@
+{
+  "CHECKIN_WINDOW_CLOSED": { "httpStatus": 400, "message": "打卡时间窗口已关闭" },
+  "TERMINAL_STATE": { "httpStatus": 400, "message": "该日程已结算，不可打卡或撤销" },
+  "NOT_CHECKED_IN": { "httpStatus": 400, "message": "该日程尚未打卡，无法撤销" },
+  "WINDOW_CLOSED": { "httpStatus": 400, "message": "撤销窗口已关闭，无法撤销" },
+  "SCHEDULE_CANCELLED": { "httpStatus": 400, "message": "该日程已取消或排除，无法打卡" },
+  "NOT_FAMILY_MEMBER": { "httpStatus": 403, "message": "你不是该日程所属家庭的成员，无权操作" },
+  "SCHEDULE_NOT_FOUND": { "httpStatus": 404, "message": "日程不存在" }
+}
