@@ -2,14 +2,14 @@
 
 | 字段 | 值 |
 |------|-----|
-| 状态 | in-progress |
+| 状态 | done |
 | 创建日期 | 2026-08-08 |
 | 最后更新 | 2026-08-16 |
 
 ## 状态流转
 
     draft → confirmed → dev-ready → in-progress → done
-                                    ↑ 当前
+                                                  ↑ 当前
 
 ## 阶段进度
 
@@ -19,7 +19,7 @@
 | Stage 2 设计 | ✅ done | add-checkin-module |
 | Stage 3 研发 | ✅ done | add-checkin-module |
 | Stage 4 测试 | ✅ done | — |
-| Stage 5 归档 | ⬜ pending | add-checkin-module |
+| Stage 5 归档 | ✅ done | add-checkin-module |
 
 ## 关联文档
 
