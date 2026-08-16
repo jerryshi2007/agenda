@@ -1,6 +1,12 @@
 {
   "UserStatus": {
     "values": ["Active", "Deleted"],
-    "description": "用户账户状态。Active=正常活跃；Deleted=已注销（处于 30 天缓冲期，DeletedAt 记录注销时间，到期后物理删除）。注销状态通过 UserStatus.Deleted + DeletedAt 建模，不设独立 DeletionStatus 枚举。"
+    "numeric": { "Active": 0, "Deleted": 1 },
+    "description": "用户账户状态。Active=正常活跃；Deleted=已注销（处于 30 天缓冲期，DeletedAt 记录注销时间，到期后物理删除）。注销状态通过 UserStatus.Deleted + DeletedAt 建模，不设独立 DeletionStatus 枚举。numeric 对齐 api/Domain/Enums/UserStatus.cs（Active=0, Deleted=1）。"
+  },
+  "UserRole": {
+    "values": ["Parent", "Child"],
+    "numeric": { "Parent": 1, "Child": 2 },
+    "description": "账户级角色（区别于家庭内角色，家庭角色契约域归 family，见 dto.json FamilyInfo.role）。numeric 对齐 api/Domain/Enums/UserRole.cs（Parent=1, Child=2）。"
   }
 }

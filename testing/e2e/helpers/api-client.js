@@ -79,6 +79,61 @@ async function queryCalendar(request, authToken, params = {}) {
   return request.get(`/api/v1/calendar${queryString ? '?' + queryString : ''}`, opts);
 }
 
+// ---- Auth endpoints ----
+
+async function login(request, body) {
+  return request.post('/api/v1/auth/login', { data: body });
+}
+
+async function refresh(request, body) {
+  return request.post('/api/v1/auth/refresh', { data: body });
+}
+
+async function getProfile(request, authToken) {
+  return request.get('/api/v1/auth/profile', buildOptions(authToken));
+}
+
+async function updateProfile(request, authToken, body) {
+  const opts = buildOptions(authToken);
+  opts.data = body;
+  return request.put('/api/v1/auth/profile', opts);
+}
+
+async function getDeletionStatus(request, authToken) {
+  return request.get('/api/v1/auth/deletion-status', buildOptions(authToken));
+}
+
+async function deleteAccount(request, authToken) {
+  return request.post('/api/v1/auth/deletion', buildOptions(authToken));
+}
+
+async function recoverAccount(request, authToken) {
+  return request.post('/api/v1/auth/deletion/recover', buildOptions(authToken));
+}
+
+async function getMyFamilies(request, authToken) {
+  return request.get('/api/v1/users/me/families', buildOptions(authToken));
+}
+
+/**
+ * Upload an avatar via multipart/form-data (field name "file").
+ * @param {import('@playwright/test').APIRequestContext} request
+ * @param {string} authToken
+ * @param {{ fileName: string, mimeType: string, buffer: Buffer }} file
+ */
+async function uploadAvatar(request, authToken, file) {
+  return request.post('/api/v1/upload/avatar', {
+    ...buildOptions(authToken),
+    multipart: {
+      file: {
+        name: file.fileName,
+        mimeType: file.mimeType,
+        buffer: file.buffer,
+      },
+    },
+  });
+}
+
 // ---- Health check ----
 
 async function healthCheck(request) {
@@ -95,5 +150,14 @@ module.exports = {
   restoreInstance,
   checkConflict,
   queryCalendar,
+  login,
+  refresh,
+  getProfile,
+  updateProfile,
+  getDeletionStatus,
+  deleteAccount,
+  recoverAccount,
+  getMyFamilies,
+  uploadAvatar,
   healthCheck,
 };
