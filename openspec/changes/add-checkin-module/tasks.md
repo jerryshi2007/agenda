@@ -32,24 +32,24 @@
 
 **预估工时**：0.5d | **依赖**：auth-module 项目骨架
 
-- [ ] **1.1** `CheckinSource.cs` + `StreakScope.cs` 枚举
+- [x] **1.1** `CheckinSource.cs` + `StreakScope.cs` 枚举
   路径：`api/Domain/Enums/CheckinSource.cs`, `api/Domain/Enums/StreakScope.cs`
   内容：`CheckinSource { Parent, Child }`；`StreakScope { Schedule = 1, Child = 2 }`
   验证：编译通过；枚举值与 design.md §3 实体定义一致
 
-- [ ] **1.2** `Checkin.cs` 实体
+- [x] **1.2** `Checkin.cs` 实体
   路径：`api/Domain/Entities/Checkin.cs`
   字段：`Id (long, PK)`, `ScheduleId (Guid, NOT NULL)`, `Date (DateOnly, NOT NULL)`, `UserId (Guid, NOT NULL)`, `CheckinAt (DateTimeOffset, NOT NULL)`, `Source (CheckinSource, NOT NULL)`, `CreatedAt (DateTimeOffset, NOT NULL)`
   验证：编译通过；字段与 design.md §3 ER 一致；无 Status/IsDeleted 字段
 
-- [ ] **1.3** `CheckinSettlement.cs` + `Streak.cs` 实体
+- [x] **1.3** `CheckinSettlement.cs` + `Streak.cs` 实体
   路径：`api/Domain/Entities/CheckinSettlement.cs`, `api/Domain/Entities/Streak.cs`
   内容：
   - `CheckinSettlement`：`Id (long, PK)`, `ScheduleId (Guid, NOT NULL)`, `Date (DateOnly, NOT NULL)`, `Status (ScheduleStatus, NOT NULL)`, `SettledAt (DateTimeOffset, NOT NULL)`
   - `Streak`：`Id (long, PK)`, `Scope (StreakScope, NOT NULL)`, `SubjectId (Guid, NOT NULL)`, `CurrentStreak (int, NOT NULL)`, `LastSettledDate (DateOnly?)`, `UpdatedAt (DateTimeOffset, NOT NULL)`
   验证：编译通过；字段与 design.md §3 实体定义一致
 
-- [ ] **1.4** EF Core 配置类
+- [x] **1.4** EF Core 配置类
   路径：`api/Infrastructure/Data/Configurations/CheckinConfiguration.cs`, `api/Infrastructure/Data/Configurations/CheckinSettlementConfiguration.cs`, `api/Infrastructure/Data/Configurations/StreakConfiguration.cs`
   内容：
   - `CheckinConfiguration`：`.ToTable("CheckinRecords")`（对齐 `AnonymizationService.AnonymizeCheckinRecordsAsync` 引用的表名）、`UNIQUE(ScheduleId, Date)`、索引 `(ScheduleId, Date)`、索引 `(UserId)`
@@ -57,12 +57,12 @@
   - `StreakConfiguration`：`.ToTable("Streaks")`、`UNIQUE(Scope, SubjectId)`
   验证：迁移生成后 DB 中存在对应表/约束/索引
 
-- [ ] **1.5** 扩展 `AppDbContext`
+- [x] **1.5** 扩展 `AppDbContext`
   路径：`api/Infrastructure/Data/AppDbContext.cs`
   内容：仅新增 `DbSet<Checkin> Checkins`、`DbSet<CheckinSettlement> CheckinSettlements`、`DbSet<Streak> Streaks`（Schedule/Cancellation/TimeSlot/ScheduleDateExclusion 等 DbSet 已存在，勿重复添加）
   验证：编译通过
 
-- [ ] **1.6** 创建并应用 EF Core 迁移
+- [x] **1.6** 创建并应用 EF Core 迁移
   命令：`dotnet ef migrations add AddCheckin` → `dotnet ef database update`
   验证：DB 中 `CheckinRecords`/`CheckinSettlements`/`Streaks` 表存在，UNIQUE 约束和索引已创建
 
@@ -74,7 +74,7 @@
 
 > `IScheduleQueryService`（`api/Domain/Interfaces/IScheduleQueryService.cs`）及实现 `ScheduleQueryService`（`api/Schedule/Services/ScheduleQueryService.cs`）已存在（ADR-017 依赖反转），5 个方法 `GetScheduleAsync`/`GetTimeSlotAsync`/`GetCancellationStatusAsync`/`IsDateExcludedAsync`/`GetDueDateAsync` 恰好覆盖打卡窗口判定。**不新建接口、不建 Mock**，仅做 DI 注册。
 
-- [ ] **2.1** DI 注册
+- [x] **2.1** DI 注册
   位置：`Program.cs`
   内容：`services.AddScoped<IScheduleQueryService, ScheduleQueryService>()`、`services.AddScoped<ICheckinService, CheckinService>()`
   验证：应用启动无 DI 解析异常；`codegraph explore` 确认 `ScheduleQueryService` 已注册为 `IScheduleQueryService` 实现
@@ -85,27 +85,27 @@
 
 **预估工时**：0.5d | **依赖**：任务 2 完成
 
-- [ ] **3.1** `CheckinService.GetCheckinWindowAsync()`
+- [x] **3.1** `CheckinService.GetCheckinWindowAsync()`
   路径：`api/Checkin/CheckinService.cs`
   实现：注入 `IScheduleQueryService` → 按 design.md §3 五步状态推导（step 1 查 Checkin → step 2 查 Cancellation/Exclusion 合并 cancelled → step 3 查 CheckinSettlement → step 4 课后活动 endTime+2h 即时逾期 → step 5 默认"进行中"）→ 返回 `CheckinWindowResponse`
   验证：单元测试覆盖 6 种状态（未完成/已完成/已取消/已结束/未完成终态/逾期未完成）
 
-- [ ] **3.2** 课后活动即时逾期判定
+- [x] **3.2** 课后活动即时逾期判定
   位置：`CheckinService` 内联逻辑
   规则：`serverTime > endTime + 2h` 且无 Checkin → status=ended（endTime 经 `IScheduleQueryService.GetTimeSlotAsync` 按 `date.DayOfWeek` 取 TimeSlot.EndTime，非扁平字段）
   验证：单元测试：当前时间 = 19:01, endTime=17:00 → ended
 
-- [ ] **3.3** 日常作息/作业任务逾期判定（含结算记录查询）
+- [x] **3.3** 日常作息/作业任务逾期判定（含结算记录查询）
   位置：`CheckinService` 内联逻辑
   规则：查 `CheckinSettlement` 存在 → 终态（Status=Ended/Overdue/Incomplete）；日常作息 `date < today` 且无 Checkin 且无结算记录 → 终态"未完成"；作业任务 `dueDate < today` 且无 Checkin 且无结算记录 → "逾期未完成"
   验证：单元测试覆盖两种过期场景 + 结算记录命中场景
 
-- [ ] **3.4** 提前打卡窗口判定
+- [x] **3.4** 提前打卡窗口判定
   位置：`CheckinService` 内联逻辑
   规则：`serverTime >= startTime - 30min` → canCheckin=true；`serverTime < startTime - 30min` → canCheckin=false, reason=EARLY, remainingSeconds
   验证：单元测试：startTime=16:00, serverTime=15:31 → canCheckin=true；serverTime=15:29 → canCheckin=false
 
-- [ ] **3.5** `GET /api/v1/checkin/window/{scheduleId}/{date}` 端点
+- [x] **3.5** `GET /api/v1/checkin/window/{scheduleId}/{date}` 端点
   路径：`api/Checkin/CheckinController.cs`
   认证：`[Authorize]` + JWT
   权限：校验当前用户是否为 Schedule 所属家庭成员（403 `NOT_FAMILY_MEMBER` 否则）
@@ -119,7 +119,7 @@
 
 **预估工时**：0.3d | **依赖**：任务 3 完成
 
-- [ ] **4.1** `POST /api/v1/checkin` 端点
+- [x] **4.1** `POST /api/v1/checkin` 端点
   路径：`api/Checkin/CheckinController.cs`
   Request：`{ scheduleId: Guid, date: DateOnly }`
   Response (成功)：`{ checkinId, scheduleId, date, checkinAt, source }`
@@ -127,17 +127,17 @@
   认证：`[Authorize]` + JWT
   权限：校验家庭成员身份（403 `NOT_FAMILY_MEMBER` 否则）
 
-- [ ] **4.2** 打卡幂等逻辑
+- [x] **4.2** 打卡幂等逻辑
   位置：`CheckinService`
   实现：SELECT 查 Checkin → 存在则返回 alreadyCheckedIn=true（200 OK，非 409）；不存在 → INSERT + DB UNIQUE 约束兜底
   验证：并发测试：两请求同时打卡，均返回 200，仅创建一条记录
 
-- [ ] **4.3** 打卡时间窗口二次校验
+- [x] **4.3** 打卡时间窗口二次校验
   位置：`CheckinService` —— 服务端以 `DateTimeOffset.UtcNow` 转北京时间为准
   规则：调用 `GetCheckinWindowAsync()` → canCheckin=false 时返回 400 `CHECKIN_WINDOW_CLOSED` 或 `TERMINAL_STATE`；日程已取消/排除返回 400 `SCHEDULE_CANCELLED`
   验证：单元测试：窗口关闭时 POST 返回 400
 
-- [ ] **4.4** FluentValidation 校验
+- [x] **4.4** FluentValidation 校验
   路径：`api/Checkin/Validators/CheckinRequestValidator.cs`
   规则：`scheduleId` 非空, `date` 非空且不能是未来日期（> today）
   验证：单元测试：空 scheduleId → 400；未来日期 → 400
@@ -148,13 +148,13 @@
 
 **预估工时**：0.2d | **依赖**：任务 4 完成
 
-- [ ] **5.1** `DELETE /api/v1/checkin/{scheduleId}/{date}` 端点
+- [x] **5.1** `DELETE /api/v1/checkin/{scheduleId}/{date}` 端点
   路径：`api/Checkin/CheckinController.cs`
   Response (成功)：`{ scheduleId, date, undone: true, status: "incomplete" }`
   认证：`[Authorize]` + JWT
   权限：同一家庭成员可撤销（含家长撤销孩子打卡）
 
-- [ ] **5.2** 撤销条件校验
+- [x] **5.2** 撤销条件校验
   位置：`CheckinService`
   规则：
   ① Checkin 不存在 → 400 `NOT_CHECKED_IN`
@@ -162,7 +162,7 @@
   ③ 课后活动 endTime+2h < serverTime → 400 `WINDOW_CLOSED`
   验证：单元测试覆盖三种拒绝场景
 
-- [ ] **5.3** 撤销执行
+- [x] **5.3** 撤销执行
   位置：`CheckinService`
   实现：物理 DELETE Checkin 记录 → 返回 undone:true + status:"incomplete"
   验证：撤销后可立即重新 POST 打卡（窗口仍开放时）
@@ -173,11 +173,11 @@
 
 **预估工时**：0.6d | **依赖**：任务 2 完成（可与任务 3-5 并行）
 
-- [ ] **6.1** NuGet 包安装
+- [x] **6.1** NuGet 包安装
   包：`Hangfire.Core`, `Hangfire.Postgres`
   验证：`dotnet list package` 确认版本安装
 
-- [ ] **6.2** `HangfireConfiguration.cs`
+- [x] **6.2** `HangfireConfiguration.cs`
   路径：`api/Infrastructure/Hangfire/HangfireConfiguration.cs`
   内容：
   - `AddHangfire(cfg => cfg.UsePostgreSqlStorage(connStr))`
@@ -185,7 +185,7 @@
   - Dashboard 仅在 Development 环境启用；生产环境加 IP 白名单或禁用（R9 缓解）
   验证：应用启动后 `/hangfire` Dashboard 可访问（开发环境）
 
-- [ ] **6.3** `SettlementJob.cs`（写库完整实现）
+- [x] **6.3** `SettlementJob.cs`（写库完整实现）
   路径：`api/Infrastructure/Jobs/SettlementJob.cs`
   属性：`[AutomaticRetry(Attempts = 3, OnAttemptsExceeded = AttemptsExceededAction.Fail)]`
   实现（对齐 spec `Daily Settlement Execution / Idempotency / Error Recovery / Concurrent Safety / Streak Update`）：
@@ -195,12 +195,12 @@
   4. 对日常作息 upsert `Streak`（单日程 + 孩子整体，`LastSettledDate` 防重复累加）
   验证：Dashboard 手动触发 Job，DB 中 `CheckinSettlements`/`Streaks` 记录正确；重复触发不产生重复/变更（幂等）
 
-- [ ] **6.4** Recurring Job 注册
+- [x] **6.4** Recurring Job 注册
   位置：`Program.cs` 中 `ScheduleRecurringJobs()`
   内容：`RecurringJob.AddOrUpdate<SettlementJob>("daily-settlement", job => job.ExecuteAsync(default), "5 0 * * *", new RecurringJobOptions { TimeZone = TimeZoneInfo.FindSystemTimeZoneById("China Standard Time") })`
   验证：Hangfire Dashboard Recurring Jobs 页可见"daily-settlement"，NextExecution 为当天 00:05 CST
 
-- [ ] **6.5** 首期结算范围说明
+- [x] **6.5** 首期结算范围说明
   当前实现：Hangfire 调度 + 写库 `CheckinSettlement`（未打卡→终态 transition 落盘）+ 幂等 + 错误重试（per-child 事务）+ 并发安全（只处理昨天）+ streak 数据写库 `Streak`
   连续天数前端展示（家长看板/孩子统计页 CHK-07/08/09）留二期，本阶段仅持久化 streak 数据
   验证：Job 执行无异常，Dashboard 显示 Success；重复触发幂等

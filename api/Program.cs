@@ -2,8 +2,10 @@ using System.Text;
 using Agenda.Api.Infrastructure;
 using Agenda.Api.Infrastructure.Auth;
 using Agenda.Api.Infrastructure.Data;
+using Agenda.Api.Infrastructure.Hangfire;
 using Agenda.Api.Infrastructure.Middleware;
 using Agenda.Api.Shared.Extensions;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -86,6 +88,12 @@ builder.Services.AddSwaggerGen(c =>
 // ---- Schedule Module ----
 builder.Services.AddScheduleModule();
 
+// ---- Checkin Module ----
+builder.Services.AddCheckinModule();
+
+// ---- Checkin Settlement (Hangfire) ----
+builder.Services.AddHangfireModule(builder.Configuration);
+
 // ---- CORS ----
 var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
 builder.Services.AddCors(options =>
@@ -131,6 +139,23 @@ if (app.Environment.IsDevelopment())
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
         logger.LogWarning(ex, "Database migration failed. This is expected if PostgreSQL is not running.");
     }
+}
+
+// ---- Hangfire (checkin settlement) ----
+// Dashboard 仅在 Development 环境启用（R9 缓解：生产环境不开放）。
+if (app.Environment.IsDevelopment())
+{
+    app.UseHangfireDashboard();
+}
+
+try
+{
+    HangfireConfiguration.ScheduleRecurringJobs();
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogWarning(ex, "Hangfire recurring job registration failed. This is expected if PostgreSQL is not running.");
 }
 
 app.Run();
