@@ -21,6 +21,12 @@
 - **Read 只用于精确行级内容**——以下场景才直接 Read 目标文件：写代码前后确认精确上下文、task brief 指定的待改文件、契约 JSON（enums/errors/dto）。"某个类做什么、谁调用它、改了影响谁"这类理解性问题用 codegraph。
 - **查不到符号先同步索引**——codegraph 查不到应有符号时，MUST 先 `codegraph sync .`（增量）或 `codegraph index --force .`（重建）再查，不要直接退化为 grep/大量 Read。
 
+### 测试阶段：消费约束（Stage 4）
+
+- **定位/理解已有代码优先走 codegraph**——test-planner / test-writer / test-reviewer / test-runner 探查、理解已有 API/Controller/Service/组件时，MUST 先 `codegraph_explore` / `codegraph explore` 查符号与调用关系，禁止一上来就 Read 大文件或 grep 全仓库。
+- **Read 只用于精确行级内容**——测试线直接 Read 仅限：契约 JSON（enums/errors/dto）、spec/requirement 文档、待审查/待运行的测试文件本体、失败堆栈定位到的具体行。"这个端点怎么解析请求、这个 Service 依赖谁"这类理解性问题用 codegraph。
+- **查不到符号先同步索引**——同研发阶段：先 `codegraph sync .` 再查，不直接退化为 grep/大量 Read。
+
 ### 索引新鲜度
 
 - 代码提交后索引由 OS 文件事件自动同步（2 秒防抖）。怀疑索引过时（查不到新提交的符号）时 `codegraph sync .` 手动增量更新。
@@ -30,5 +36,6 @@
 - ✅ arch-design 现状分析：`codegraph_explore "列出 User 实体及其被引用位置"` → design.md 对账清单标注「复用 User，升级 Status 字段对齐契约」
 - ✅ dev-dotnet 实现前：`codegraph_explore "AuthService 调用链"` → 得知 AuthController 依赖 IAuthService，不 Read 整个 Auth/ 目录
 - ✅ 查不到 UserStatus：先 `codegraph sync .` 再查，而非 `grep -r UserStatus`
+- ✅ test-writer 探查端点：`codegraph_explore "AuthController 请求处理链"` → 得知 9 个端点依赖 IAuthService，不 Read 整个 Auth/ 目录
 - ❌ 设计时假设 api/ 为空、不探查已有代码直接画全新 ER 图（导致 User 的 IsDeleted vs UserStatus 冲突返工）
 - ❌ 实现一个 Service 前 Read 整个模块 20 个文件理解现状（应 codegraph 查调用关系 + 只 Read 待改文件）
