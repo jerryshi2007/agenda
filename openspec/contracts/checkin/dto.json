@@ -1,0 +1,46 @@
+{
+  "CheckinWindowResponse": {
+    "fields": {
+      "scheduleId": { "type": "Guid", "required": true, "description": "日程唯一标识" },
+      "date": { "type": "DateOnly", "required": true, "description": "打卡日期" },
+      "canCheckin": { "type": "boolean", "required": true, "description": "当前是否可打卡" },
+      "canUndo": { "type": "boolean", "required": true, "description": "当前是否可撤销打卡" },
+      "reason": { "type": "string", "required": false, "description": "不可打卡原因，取值 EARLY / TERMINAL_STATE / CHECKIN_WINDOW_CLOSED，可打卡时为 null" },
+      "remainingSeconds": { "type": "integer", "required": false, "description": "距可打卡剩余秒数，仅 reason=EARLY 时返回" },
+      "status": { "type": "CheckinStatus", "required": true, "description": "实例状态，取值见 enums.json CheckinStatus" },
+      "statusLabel": { "type": "string", "required": true, "description": "状态中文标签，如「未完成」「已完成」「已结束」「逾期未完成」「已取消」" },
+      "serverTime": { "type": "DateTimeOffset", "required": true, "description": "服务器时间（北京时间），ISO 8601 格式，作为前端展示的时间基准" }
+    }
+  },
+  "CheckinRequest": {
+    "fields": {
+      "scheduleId": { "type": "Guid", "required": true, "description": "日程唯一标识" },
+      "date": { "type": "DateOnly", "required": true, "description": "打卡日期，不可为未来日期" }
+    }
+  },
+  "CheckinResponse": {
+    "fields": {
+      "checkinId": { "type": "long", "required": true, "description": "打卡记录 Id" },
+      "scheduleId": { "type": "Guid", "required": true },
+      "date": { "type": "DateOnly", "required": true },
+      "checkinAt": { "type": "DateTimeOffset", "required": true, "description": "服务器打卡时间（ISO 8601）" },
+      "source": { "type": "CheckinSource", "required": true, "description": "打卡操作来源，取值见 enums.json CheckinSource" },
+      "alreadyCheckedIn": { "type": "boolean", "required": false, "description": "幂等响应：实例已打卡时为 true，正常成功响应可缺省" }
+    }
+  },
+  "UndoCheckinResponse": {
+    "fields": {
+      "scheduleId": { "type": "Guid", "required": true },
+      "date": { "type": "DateOnly", "required": true },
+      "undone": { "type": "boolean", "required": true, "description": "撤销是否成功" },
+      "status": { "type": "CheckinStatus", "required": true, "description": "撤销后实例状态，恒为 incomplete" }
+    }
+  },
+  "ErrorResponse": {
+    "fields": {
+      "error": { "type": "string", "required": true, "description": "错误码，取值见 errors.json" },
+      "message": { "type": "string", "required": true, "description": "用户可读的中文错误提示" },
+      "traceId": { "type": "string", "required": false, "description": "请求追踪 ID（全局异常中间件生成）" }
+    }
+  }
+}
