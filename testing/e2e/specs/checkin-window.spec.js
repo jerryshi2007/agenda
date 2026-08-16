@@ -113,14 +113,15 @@ test.describe('2.A 打卡窗口查询', () => {
   });
 
   test('[TC-CHK-WIN-006] 课后活动即时逾期（今天 endTime+2h 已过）返回 ended', async ({ request }) => {
-    // 需 now>02:00 CST（§6 R5）：endTime 00:00 → endTime+2h = 02:00，早于 02:00 运行时翻转。
+    // 需 now>02:00 CST（§6 R5）：endTime 00:00:01 → endTime+2h = 02:00:01，早于 02:00 运行时翻转。
+    // endTime 取 00:00:01 而非 00:00:00 是为满足 TIME_SLOT_INVALID（endTime>startTime），逾期线实质仍为 02:00。
     if (beijingHour() < 2) {
-      test.skip(true, '需北京时间 >= 02:00（endTime 00:00 的逾期线），当前时段实例未逾期');
+      test.skip(true, '需北京时间 >= 02:00（endTime 00:00:01 的逾期线），当前时段实例未逾期');
     }
     const id = await seed(request, afterschoolActivity({
       name: 'E2E-打卡-活动-今日即时逾期',
       timeSlots: [
-        { dayOfWeek: beijingDayOfWeek(beijingToday()), startTime: '00:00:00', endTime: '00:00:00' },
+        { dayOfWeek: beijingDayOfWeek(beijingToday()), startTime: '00:00:00', endTime: '00:00:01' },
       ],
     }));
 

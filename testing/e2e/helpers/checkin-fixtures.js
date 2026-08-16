@@ -68,12 +68,14 @@ const FIXTURES = {
     });
   },
 
-  // FIX_ROUTINE_YESTERDAY —— 昨天日常作息（WIN-007 / POST-008 / UNDO-005 / 结算作息分支）
-  routineYesterday(name = 'E2E-打卡-作息-昨日') {
+  // FIX_ROUTINE_YESTERDAY —— 昨天日常作息（WIN-007 / POST-008 / UNDO-005 / 结算作息分支）。
+  // 默认 14:00–14:30 与 activityYesterday(10:00–11:00) 错开，避免 SET-001 同子同日重叠 409；
+  // 同测需并行建多条作息时，用 startTime/endTime 覆盖错开（SET-004）。
+  routineYesterday(name = 'E2E-打卡-作息-昨日', { startTime = '14:00:00', endTime = '14:30:00' } = {}) {
     return dailyRoutine({
       name,
       timeSlots: [
-        { dayOfWeek: beijingDayOfWeek(beijingYesterday()), startTime: '10:00:00', endTime: '10:30:00' },
+        { dayOfWeek: beijingDayOfWeek(beijingYesterday()), startTime, endTime },
       ],
     });
   },

@@ -92,14 +92,15 @@ test.describe('2.C 撤销打卡', () => {
   });
 
   test('[TC-CHK-UNDO-006] 课后活动逾期撤销拒绝（WINDOW_CLOSED）', async ({ request }) => {
-    // 需 now>02:00 CST（§6 R5）：endTime 00:00 → endTime+2h = 02:00。
+    // 需 now>02:00 CST（§6 R5）：endTime 00:00:01 → endTime+2h = 02:00:01。
+    // endTime 取 00:00:01 而非 00:00:00 是为满足 TIME_SLOT_INVALID（endTime>startTime），逾期线实质仍为 02:00。
     if (beijingHour() < 2) {
-      test.skip(true, '需北京时间 >= 02:00（endTime 00:00 的逾期线），当前时段实例未逾期');
+      test.skip(true, '需北京时间 >= 02:00（endTime 00:00:01 的逾期线），当前时段实例未逾期');
     }
     const id = await seed(request, afterschoolActivity({
       name: 'E2E-打卡-活动-撤销逾期',
       timeSlots: [
-        { dayOfWeek: beijingDayOfWeek(beijingToday()), startTime: '00:00:00', endTime: '00:00:00' },
+        { dayOfWeek: beijingDayOfWeek(beijingToday()), startTime: '00:00:00', endTime: '00:00:01' },
       ],
     }));
     // DB-SEED 已打卡（若 now>02:00 该实例即时逾期，POST 会被拒，故直连 DB 造打卡记录）。

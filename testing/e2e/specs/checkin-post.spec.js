@@ -156,7 +156,10 @@ test.describe('2.B 打卡执行', () => {
   });
 
   test('[TC-CHK-POST-012] 空 scheduleId 拒绝', async ({ request }) => {
-    const res = await checkin(request, AUTH.PARENT_A, { scheduleId: null, date: beijingToday() });
+    // scheduleId 传 Guid.Empty（而非 null）：null 会在模型绑定层 JSON 反序列化到非空 Guid 时失败，
+    // 产出 400 ValidationProblemDetails，而非 FluentValidation 的统一错误信封。Guid.Empty 才能进入
+    // CheckinRequestValidator 的 NotEmpty 规则（§6.3 O3）。
+    const res = await checkin(request, AUTH.PARENT_A, { scheduleId: '00000000-0000-0000-0000-000000000000', date: beijingToday() });
     // O3：验证器对 scheduleId 为空复用 CHECKIN_WINDOW_CLOSED。
     await assertError(res, checkinErrors.CHECKIN_WINDOW_CLOSED, checkinErrors);
   });

@@ -130,7 +130,8 @@ test.describe('2.D 结算任务', () => {
     // 未打卡作息 → 触发写结算行（幂等锚点：结算行数不变）。
     const uncheckedId = await seed(request, FIXTURES.routineYesterday('E2E-结算-幂等-未打卡'));
     // 已打卡作息 → 触发 streak 累加（幂等锚点：LastSettledDate 不重复累加）。
-    const checkedId = await seed(request, FIXTURES.routineYesterday('E2E-结算-幂等-已打卡'));
+    // 两条作息同日同子，时间槽需错开（15:00–15:30 vs 默认 14:00–14:30），否则 Schedule API 返回 409。
+    const checkedId = await seed(request, FIXTURES.routineYesterday('E2E-结算-幂等-已打卡', { startTime: '15:00:00', endTime: '15:30:00' }));
     await checkinDb.insertCheckin({ scheduleId: checkedId, date: yesterday });
 
     await trigger(request);
