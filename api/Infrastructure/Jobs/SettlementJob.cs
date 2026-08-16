@@ -12,7 +12,7 @@ namespace Agenda.Api.Infrastructure.Jobs;
 /// 处理昨日未打卡实例，写库终态（CheckinSettlement）+ 更新日常作息 streak。
 /// 幂等（插入前查重 + UNIQUE 兜底 + LastSettledDate 锚点）、per-child 事务、单 worker 防并发。
 /// </summary>
-public class SettlementJob
+public class SettlementJob : ISettlementJob
 {
     private readonly AppDbContext _db;
     private readonly IScheduleQueryService _scheduleQuery;

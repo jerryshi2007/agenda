@@ -27,6 +27,7 @@ public static class HangfireConfiguration
         // 结算任务依赖 Scoped AppDbContext / IScheduleQueryService，注册为 Scoped，
         // 由 Hangfire AspNetCoreJobActivator 每次执行时解析（自动开 scope）。
         services.AddScoped<SettlementJob>();
+        services.AddScoped<ISettlementJob>(sp => sp.GetRequiredService<SettlementJob>());
 
         return services;
     }

@@ -78,7 +78,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // ---- Controllers + Swagger ----
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApplicationPartManager(manager =>
+    {
+        // 测试专用控制器仅在 Development 环境注册（生产环境路由表不可达）。
+        if (!builder.Environment.IsDevelopment())
+        {
+            manager.FeatureProviders.Add(new DevelopmentOnlyControllerFeatureProvider(
+                typeof(Agenda.Api.Checkin.TestCheckinController)));
+        }
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
