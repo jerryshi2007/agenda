@@ -1,12 +1,12 @@
 // app/utils/storage-keys.js
-// Storage key constants — 所有 Storage 键名集中定义
+// Storage key constants — 所有 Storage 键名集中定义，禁止散落字符串键
 
 const STORAGE_KEYS = {
   // Auth
-  TOKEN: 'auth_token',
+  AUTH_TOKEN: 'auth_token',
   PRIVACY_CONSENT: 'privacy_consent',
-  USER_INFO: 'user_info',
-  USER_ROLE: 'user_role',
+  USER_PROFILE_CACHE: 'user_profile_cache',
+  FAMILIES_CACHE: 'families_cache',
 
   // Calendar
   CALENDAR_VIEW: 'calendar_view',

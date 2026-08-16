@@ -1,0 +1,31 @@
+<!-- pages/settings/index.wxml -->
+<view class="page-container safe-bottom">
+  <view class="action-list">
+    <view class="action-row" data-id="settings-delete-account" bindtap="onDeleteAccount">
+      <text class="action-label danger">注销账户</text>
+      <text class="action-arrow">&#x203A;</text>
+    </view>
+
+    <!-- 预留扩展区（后续版本：关于、意见反馈、撤销隐私授权） -->
+    <view class="action-row" data-id="settings-about" bindtap="onAbout">
+      <text class="action-label">关于</text>
+      <text class="action-arrow">&#x203A;</text>
+    </view>
+    <view class="action-row" data-id="settings-feedback" bindtap="onFeedback">
+      <text class="action-label">意见反馈</text>
+      <text class="action-arrow">&#x203A;</text>
+    </view>
+  </view>
+</view>
+
+<!-- 注销二次确认弹窗 -->
+<view wx:if="{{showDeleteDialog}}" class="dialog-mask" data-id="settings-delete-dialog">
+  <view class="dialog">
+    <view class="dialog-title">确认注销</view>
+    <view class="dialog-desc">注销后无法撤销，数据保留 30 天后将永久删除。确定继续吗？</view>
+    <view class="dialog-actions">
+      <view class="dialog-btn" data-id="settings-delete-cancel-btn" bindtap="onDeleteCancel">取消</view>
+      <view class="dialog-btn danger {{deleting ? 'disabled' : ''}}" data-id="settings-delete-confirm-btn" bindtap="onDeleteConfirm">确认注销</view>
+    </view>
+  </view>
+</view>

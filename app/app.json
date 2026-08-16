@@ -5,6 +5,9 @@
     "pages/schedule-create/index",
     "pages/schedule-edit/index",
     "pages/mine/index",
+    "pages/profile-edit/index",
+    "pages/settings/index",
+    "pages/deleted-recovery/index",
     "pages/privacy-prompt/index"
   ],
   "window": {
@@ -23,15 +26,11 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "日历",
-        "iconPath": "",
-        "selectedIconPath": ""
+        "text": "日历"
       },
       {
         "pagePath": "pages/mine/index",
-        "text": "我的",
-        "iconPath": "",
-        "selectedIconPath": ""
+        "text": "我的"
       }
     ]
   },

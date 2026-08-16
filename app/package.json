@@ -1,0 +1,24 @@
+{
+  "name": "agenda-miniapp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "家庭日程协作工具 —— 微信小程序前端（认证模块）",
+  "scripts": {
+    "test": "jest",
+    "build": "node scripts/validate.js",
+    "lint": "node scripts/lint.js"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.test.js"
+    ],
+    "clearMocks": true
+  }
+}

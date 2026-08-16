@@ -1,16 +1,67 @@
 <!-- pages/mine/index.wxml -->
-<view class="page-container">
-  <view class="section">
-    <view class="section-title">{{nickname}}</view>
-    <view class="section-desc">角色：{{userRole === 'parent' ? '家长' : '孩子'}}</view>
+<view class="page-container safe-bottom">
+  <!-- 加载态 -->
+  <view wx:if="{{loading}}" class="loading-block" data-id="mine-loading">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载中...</view>
   </view>
 
-  <view class="section" data-id="mine-settings-btn" bindtap="onSettings">
-    <text>设置</text>
-    <text class="arrow">›</text>
-  </view>
+  <block wx:else>
+    <!-- 头像区 -->
+    <view class="profile-card" data-id="mine-avatar-area" bindtap="onAvatarTap">
+      <image wx:if="{{profile.avatarUrl}}" class="profile-avatar" src="{{profile.avatarUrl}}" alt="头像" />
+      <view wx:else class="profile-avatar profile-avatar-placeholder">{{profile.nickname[0] || '用'}}</view>
+      <view class="profile-info">
+        <view class="profile-nickname">{{profile.nickname}}</view>
+        <view class="profile-hint">点击编辑资料</view>
+      </view>
+      <view class="profile-arrow">&#x203A;</view>
+    </view>
 
-  <view class="section" data-id="mine-logout-btn" bindtap="onLogout">
-    <text style="color: #FA5151;">退出登录</text>
-  </view>
+    <!-- 家庭信息区 -->
+    <view class="family-card">
+      <view class="family-header">
+        <view class="family-title">我的家庭</view>
+        <view wx:if="{{families.length >= 2}}" class="family-switch" data-id="mine-switch-family" bindtap="onSwitchFamily">切换</view>
+      </view>
+
+      <!-- 有家庭 -->
+      <view wx:if="{{currentFamily}}" class="family-row"
+            data-id="mine-family-info-{{currentFamily.familyId}}" data-family-id="{{currentFamily.familyId}}" bindtap="onFamilyTap">
+        <view class="family-row-main">
+          <view class="family-name">{{currentFamily.familyName}}</view>
+          <view class="family-meta">
+            {{currentFamily.role === 'parent' ? '家长' : '成员'}} · {{currentFamily.memberCount}} 位成员
+          </view>
+        </view>
+        <view class="family-arrow">&#x203A;</view>
+      </view>
+
+      <!-- 家庭加载失败降级 -->
+      <view wx:elif="{{familiesError}}" class="family-error" data-id="mine-error">
+        家庭信息加载失败，请检查网络后重试
+      </view>
+
+      <!-- 空态 -->
+      <view wx:else class="family-empty" data-id="mine-empty-family">
+        <view class="family-empty-desc">还没有家庭，创建或加入一个吧</view>
+      </view>
+    </view>
+
+    <!-- 操作入口 -->
+    <view class="action-list">
+      <view class="action-row" data-id="mine-create-family" bindtap="onCreateFamily">
+        <text>创建家庭</text>
+        <text class="action-arrow">&#x203A;</text>
+      </view>
+      <view class="action-row" data-id="mine-join-family" bindtap="onJoinFamily">
+        <text>加入家庭</text>
+        <text class="action-arrow">&#x203A;</text>
+      </view>
+      <view class="action-row" data-id="mine-settings" bindtap="onSettings">
+        <text>设置</text>
+        <text class="action-arrow">&#x203A;</text>
+      </view>
+    </view>
+  </block>
 </view>

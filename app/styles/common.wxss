@@ -221,3 +221,25 @@ page {
 .mb-sm { margin-bottom: var(--spacing-sm); }
 .mb-md { margin-bottom: var(--spacing-md); }
 .hidden { display: none !important; }
+
+/* ----- 骨架屏（补充） ----- */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-border-light) 25%, #E8E8E8 50%, var(--color-border-light) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease infinite;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: var(--radius-round);
+  background: linear-gradient(90deg, var(--color-border-light) 25%, #E8E8E8 50%, var(--color-border-light) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease infinite;
+}
+
+/* ----- 底部安全区域工具类 ----- */
+.safe-bottom {
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+}

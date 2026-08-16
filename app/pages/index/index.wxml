@@ -93,3 +93,13 @@
     </view>
   </view>
 </view>
+
+<!-- 隐私政策弹窗（宿主） -->
+<privacy-dialog id="privacy-dialog" show="{{showPrivacyDialog}}"
+  bind:agree="onPrivacyAgree" bind:decline="onPrivacyDecline" />
+
+<!-- 资料收集弹窗（宿主） -->
+<profile-collection id="profile-collection" show="{{showProfileCollection}}"
+  loading="{{profileCollectionLoading}}"
+  bind:submit="onProfileSubmit" bind:skip="onProfileSkip" />
+

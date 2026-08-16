@@ -1,0 +1,25 @@
+<!-- app/components/profile-collection/index.wxml -->
+<view wx:if="{{show}}" class="pc-mask">
+  <view class="pc-card">
+    <view class="pc-title">完善个人资料</view>
+    <view class="pc-subtitle">让家人更好地认出你，可稍后在「我的」中修改</view>
+
+    <button class="pc-avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar"
+            data-id="profile-collection-avatar">
+      <image wx:if="{{avatarUrl}}" class="pc-avatar" src="{{avatarUrl}}" alt="头像预览" />
+      <view wx:else class="pc-avatar pc-avatar-placeholder">选择头像</view>
+    </button>
+
+    <input class="pc-nickname" type="nickname" data-id="profile-collection-nickname-input"
+           placeholder="请输入昵称" value="{{nickname}}" bindinput="onNicknameInput" maxlength="20" />
+
+    <view class="pc-start-btn safe-bottom" data-id="profile-collection-start-btn" bindtap="onStart">
+      开始使用
+    </view>
+
+    <view wx:if="{{loading}}" class="pc-loading" data-id="profile-collection-loading">
+      <view class="loading-spinner"></view>
+      <text>保存中...</text>
+    </view>
+  </view>
+</view>
