@@ -22,6 +22,15 @@ function dateOffset(offsetDays) {
 }
 
 /**
+ * Get a full ISO timestamp offset by N days from now (for timestamptz columns like DeletedAt).
+ * @param {number} offsetDays - positive for future, negative for past
+ * @returns {string} ISO 8601 timestamp
+ */
+function dateTimeOffsetDays(offsetDays) {
+  return new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000).toISOString();
+}
+
+/**
  * Get the next occurrence of a specific day of week.
  * @param {number} dayOfWeek - 0=Sunday, 1=Monday, ..., 6=Saturday
  * @param {string} [fromDate] - Starting date (YYYY-MM-DD), defaults to today
@@ -164,6 +173,7 @@ const AUTH = {
 module.exports = {
   today,
   dateOffset,
+  dateTimeOffsetDays,
   nextDayOfWeek,
   monthRange,
   afterschoolActivity,

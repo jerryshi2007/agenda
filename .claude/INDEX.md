@@ -12,6 +12,7 @@
 | ui-miniapp-standards | design-miniapp, dev-miniapp-tdd | ui-designer |
 | dev-code-quality | arch-planning, dev-code-review, dev-refactoring, dev-dotnet-tdd, dev-vue3-tdd, dev-miniapp-tdd, arch-design, arch-review, openspec-apply-change, dev-sdd | — |
 | dev-contracts | arch-design, arch-review | arch-architect, arch-architect-reviewer, dev-dotnet, dev-miniapp, dev-vue3, test-writer |
+| dev-codegraph | arch-design, arch-review, dev-sdd, dev-dotnet-tdd, dev-vue3-tdd, dev-miniapp-tdd | arch-architect, arch-architect-reviewer |
 | dev-security | dev-debugging, dev-dotnet-tdd, dev-vue3-tdd, dev-miniapp-tdd, dev-code-review, arch-design, arch-review, openspec-apply-change, dev-sdd | — |
 | dev-dotnet-standards | dev-dotnet-tdd, arch-design, arch-review, arch-planning | dev-dotnet |
 | dev-vue3-standards | dev-vue3-tdd, arch-design, arch-review, test-e2e-playwright | dev-vue3 |

@@ -1,0 +1,108 @@
+/* pages/settings/index.wxss */
+@import '../../styles/common.wxss';
+
+.page-container {
+  min-height: 100vh;
+  padding: var(--spacing-lg);
+  background: var(--color-bg-page);
+}
+
+.action-list {
+  background: var(--color-bg-white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  font-size: var(--font-size-md);
+}
+
+.action-row:active {
+  background: var(--color-bg-page);
+}
+
+.action-label {
+  color: var(--color-text-primary);
+}
+
+.action-label.danger {
+  color: var(--color-danger);
+}
+
+.action-arrow {
+  color: var(--color-text-placeholder);
+  font-size: var(--font-size-xl);
+}
+
+.dialog-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-bg-mask);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48rpx;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 600rpx;
+  background: var(--color-bg-white);
+  border-radius: var(--radius-lg);
+  padding: 48rpx 40rpx;
+}
+
+.dialog-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-align: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.dialog-desc {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.dialog-actions {
+  display: flex;
+  gap: var(--spacing-lg);
+}
+
+.dialog-btn {
+  flex: 1;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+
+.dialog-btn.danger {
+  background: var(--color-danger);
+  color: var(--color-text-white);
+}
+
+.dialog-btn.danger:active {
+  background: #E04848;
+}
+
+.dialog-btn.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}

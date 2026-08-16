@@ -1,7 +1,7 @@
 ---
 name: dev-dotnet-tdd
 description: .NET TDD 开发——基于 xUnit + Moq + dotnet CLI 的红绿重构循环。
-rules: [test-standards, dev-security, dev-dotnet-standards, dev-code-quality]
+rules: [test-standards, dev-security, dev-dotnet-standards, dev-code-quality, dev-codegraph]
 ---
 
 # dev-dotnet-tdd · .NET TDD 开发流程
@@ -14,7 +14,7 @@ rules: [test-standards, dev-security, dev-dotnet-standards, dev-code-quality]
 
 1. **Read 规则** — dev-dotnet-standards / test-standards / dev-code-quality（涉及 auth/密钥/输入处理另读 dev-security）
 
-2. **探查项目** — Read CLAUDE.md 了解目录约定，确认测试文件位置（同结构放置），`dotnet test --list-tests` 了解已有风格
+2. **探查项目** — 用 `codegraph_explore`（或 `codegraph explore`）查被测类及其调用关系、定位复用点（见 `dev-codegraph` rule）；Read CLAUDE.md 了解目录约定，确认测试文件位置（同结构放置），`dotnet test --list-tests` 了解已有风格
 
 3. **红——写失败测试**
    - xUnit（`[Fact]`/`[Theory]`）+ Moq

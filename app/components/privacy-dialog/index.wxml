@@ -1,0 +1,27 @@
+<!-- app/components/privacy-dialog/index.wxml -->
+<view wx:if="{{show}}" class="privacy-dialog-mask">
+  <view class="privacy-dialog">
+    <view class="privacy-dialog-title">隐私政策</view>
+    <view class="privacy-dialog-body">
+      <text>欢迎使用家庭日程协作工具。我们仅收集您的微信昵称和头像用于家庭内成员展示，不会将您的信息分享给第三方。</text>
+      <text class="privacy-dialog-link" data-id="privacy-dialog-policy-link" bindtap="onOpenPolicy">查看完整隐私政策</text>
+    </view>
+
+    <checkbox-group class="privacy-dialog-check" data-id="privacy-dialog-checkbox" bindchange="onCheckChange">
+      <label>
+        <checkbox value="agree" checked="{{checked}}" data-id="privacy-dialog-checkbox-input" />
+        <text>我已阅读并同意隐私政策</text>
+      </label>
+    </checkbox-group>
+
+    <view class="privacy-dialog-actions safe-bottom">
+      <view class="privacy-dialog-btn decline" data-id="privacy-dialog-decline-btn" bindtap="onDecline">不同意</view>
+      <view class="privacy-dialog-btn agree {{(!checked || loading) ? 'disabled' : ''}}" data-id="privacy-dialog-agree-btn" bindtap="onAgree">同意并继续</view>
+    </view>
+
+    <view wx:if="{{loading}}" class="privacy-dialog-loading" data-id="privacy-dialog-loading">
+      <view class="loading-spinner"></view>
+      <text>登录中...</text>
+    </view>
+  </view>
+</view>

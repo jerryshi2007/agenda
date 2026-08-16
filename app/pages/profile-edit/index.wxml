@@ -1,0 +1,29 @@
+<!-- pages/profile-edit/index.wxml -->
+<view class="page-container">
+  <view wx:if="{{loading}}" class="loading-block">
+    <view class="loading-spinner"></view>
+  </view>
+
+  <block wx:else>
+    <view class="form-card">
+      <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar"
+              data-id="profile-edit-avatar">
+        <image wx:if="{{avatarUrl}}" class="avatar" src="{{avatarUrl}}" alt="头像预览" />
+        <view wx:else class="avatar avatar-placeholder">选择头像</view>
+      </button>
+
+      <view class="field">
+        <view class="field-label">昵称</view>
+        <input class="field-input" type="nickname" data-id="profile-edit-nickname-input"
+               value="{{nickname}}" bindinput="onNicknameInput" maxlength="20" placeholder="请输入昵称" />
+      </view>
+
+      <view wx:if="{{error}}" class="form-error" data-id="profile-edit-error">{{error}}</view>
+    </view>
+
+    <view class="form-actions safe-bottom">
+      <view class="btn btn-default" data-id="profile-edit-cancel-btn" bindtap="onCancel">取消</view>
+      <view class="btn btn-primary {{saving ? 'disabled' : ''}}" data-id="profile-edit-save-btn" bindtap="onSave">保存</view>
+    </view>
+  </block>
+</view>

@@ -39,10 +39,12 @@ async function seed() {
 
     for (const [id, nickname, avatar, roleStr, openId] of users) {
       const role = roleStr === 'Parent' ? 1 : 2;
+      // Post-migration schema (AlignUserWithAuthContract): Status/DeletedAt/LastLoginAt
+      // replaced the old IsDeleted/UpdatedAt columns.
       await client.query(
-        `INSERT INTO "Users" ("Id", "Nickname", "AvatarUrl", "Role", "OpenId", "IsDeleted", "CreatedAt", "UpdatedAt")
-         VALUES ($1, $2, $3, $4, $5, false, $6, $6)
-         ON CONFLICT ("Id") DO UPDATE SET "Nickname" = $2, "IsDeleted" = false`,
+        `INSERT INTO "Users" ("Id", "Nickname", "AvatarUrl", "Role", "OpenId", "Status", "CreatedAt", "LastLoginAt")
+         VALUES ($1, $2, $3, $4, $5, 0, $6, $6)
+         ON CONFLICT ("Id") DO UPDATE SET "Nickname" = $2, "Status" = 0`,
         [id, nickname, avatar, role, openId, now]
       );
     }

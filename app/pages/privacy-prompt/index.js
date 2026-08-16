@@ -1,25 +1,8 @@
 // pages/privacy-prompt/index.js
-const STORAGE_KEYS = require('../../utils/storage-keys');
+// 隐私政策拒绝后的静态提示页 —— 不调用任何 API（无 wx.login / wx.request）
 
 Page({
-  data: {
-    agreed: false
-  },
-
-  onToggleAgree() {
-    this.setData({ agreed: !this.data.agreed });
-  },
-
-  onConfirm() {
-    if (!this.data.agreed) {
-      wx.showToast({ title: '请先阅读并同意隐私政策', icon: 'none' });
-      return;
-    }
-    wx.setStorageSync(STORAGE_KEYS.PRIVACY_CONSENT, { agreed: true, version: 1, time: Date.now() });
+  onReview() {
     wx.reLaunch({ url: '/pages/index/index' });
-  },
-
-  onReject() {
-    this.setData({ rejected: true });
   }
 });

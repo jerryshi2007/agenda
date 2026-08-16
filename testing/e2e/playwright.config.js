@@ -17,9 +17,6 @@ module.exports = defineConfig({
   ],
   use: {
     baseURL: process.env.API_BASE_URL || 'http://localhost:5000',
-    extraHTTPHeaders: {
-      'Content-Type': 'application/json',
-    },
   },
   // API testing only (no browser projects needed)
   projects: [

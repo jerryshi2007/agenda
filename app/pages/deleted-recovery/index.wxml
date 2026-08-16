@@ -1,0 +1,28 @@
+<!-- pages/deleted-recovery/index.wxml -->
+<view class="page-container safe-bottom">
+  <view wx:if="{{loading}}" class="loading-block" data-id="deleted-recovery-loading">
+    <view class="loading-spinner"></view>
+  </view>
+
+  <block wx:else>
+    <view class="recovery-card">
+      <view class="recovery-icon">&#x1F512;</view>
+      <view class="recovery-title">账户已注销</view>
+      <view class="recovery-countdown" data-id="deleted-recovery-countdown">
+        数据保留至 {{expiresDateStr}}（剩余 {{remainingDays}} 天）
+      </view>
+      <view class="recovery-desc">
+        在保留期内登录可随时恢复账户，恢复后数据完整保留。超过保留期数据将永久删除。
+      </view>
+    </view>
+
+    <view class="recovery-actions">
+      <view class="btn btn-primary" data-id="deleted-recovery-restore-btn" bindtap="onRestore">
+        {{restoring ? '恢复中...' : '恢复账户'}}
+      </view>
+      <view class="btn btn-default" data-id="deleted-recovery-dismiss-btn" bindtap="onDismiss">
+        知道了
+      </view>
+    </view>
+  </block>
+</view>

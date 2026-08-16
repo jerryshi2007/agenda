@@ -2,7 +2,9 @@
   "usingComponents": {
     "month-view": "../../components/month-view/index",
     "week-view": "../../components/week-view/index",
-    "day-view": "../../components/day-view/index"
+    "day-view": "../../components/day-view/index",
+    "privacy-dialog": "../../components/privacy-dialog/index",
+    "profile-collection": "../../components/profile-collection/index"
   },
   "navigationBarTitleText": "日程",
   "enablePullDownRefresh": false,

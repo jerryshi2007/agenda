@@ -5,6 +5,7 @@ const calendarService = require('../../services/calendar');
 const scheduleService = require('../../services/schedule');
 const checkinService = require('../../services/checkin');
 const dateUtils = require('../../utils/date-utils');
+const authService = require('../../services/auth');
 const app = getApp();
 
 Page({
@@ -27,7 +28,12 @@ Page({
     _lastSwipeTime: 0,
 
     // 子组件数据
-    childList: []
+    childList: [],
+
+    // 认证模块弹窗宿主（隐私弹窗 + 资料收集）
+    showPrivacyDialog: false,
+    showProfileCollection: false,
+    profileCollectionLoading: false
   },
 
   onLoad() {
@@ -43,6 +49,12 @@ Page({
   },
 
   onShow() {
+    // 未同意隐私政策前不拉取任何需登录态的数据（避免 401 → wx.login 触发违规），仅展示弹窗
+    if (app.globalData.pendingPrivacyConsent) {
+      this._checkAuthOverlays();
+      return;
+    }
+
     // 每次显示时恢复状态 + 刷新数据
     const state = app.globalData.calendarState;
     const needsRefresh = this.data.currentView !== state.currentView ||
@@ -62,6 +74,7 @@ Page({
     }
     this.setData({ navTitle: this._buildNavTitle() });
     this._updateSelectedLabels();
+    this._checkAuthOverlays();
   },
 
   onHide() {
@@ -409,5 +422,68 @@ Page({
         this.setData({ selectedChildName: child.childName || child.name });
       }
     }
+  },
+
+  /**
+   * 检查是否需要展示认证弹窗（隐私弹窗优先于资料收集）
+   */
+  _checkAuthOverlays() {
+    if (app.globalData.pendingPrivacyConsent) {
+      this.setData({ showPrivacyDialog: true });
+      return;
+    }
+    if (app.globalData.needsProfileCollection) {
+      this.setData({ showProfileCollection: true });
+    }
+  },
+
+  /**
+   * 隐私弹窗「同意并继续」
+   */
+  onPrivacyAgree() {
+    app.onPrivacyAgree().then(() => {
+      this.setData({ showPrivacyDialog: false });
+      this._checkAuthOverlays();
+    }).catch(() => {
+      const dialog = this.selectComponent('#privacy-dialog');
+      if (dialog) dialog.reset();
+    });
+  },
+
+  /**
+   * 隐私弹窗「不同意」
+   */
+  onPrivacyDecline() {
+    app.onPrivacyDecline();
+  },
+
+  /**
+   * 资料收集「提交」：上传头像（如有）-> 更新资料
+   */
+  onProfileSubmit(e) {
+    const { nickname, avatarUrl } = e.detail;
+    this.setData({ profileCollectionLoading: true });
+
+    const uploadPromise = avatarUrl
+      ? authService.uploadAvatar(avatarUrl).then(res => res.url)
+      : Promise.resolve(null);
+
+    uploadPromise.then((url) => {
+      return authService.updateProfile({ nickname, avatarUrl: url || null });
+    }).then(() => {
+      app.globalData.needsProfileCollection = false;
+      this.setData({ profileCollectionLoading: false, showProfileCollection: false });
+    }).catch((err) => {
+      this.setData({ profileCollectionLoading: false });
+      wx.showToast({ title: (err && err.message) || '保存失败，请重试', icon: 'none' });
+    });
+  },
+
+  /**
+   * 资料收集「跳过」：使用默认值，仅清除标记
+   */
+  onProfileSkip() {
+    app.globalData.needsProfileCollection = false;
+    this.setData({ showProfileCollection: false });
   }
 });

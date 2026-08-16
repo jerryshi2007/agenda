@@ -1,0 +1,88 @@
+{
+  "LoginRequest": {
+    "fields": {
+      "code": { "type": "string", "required": true, "minLength": 1, "description": "wx.login 返回的一次性登录凭证，仅可使用一次" }
+    }
+  },
+  "LoginResponse": {
+    "fields": {
+      "jwt": { "type": "string", "required": true, "description": "签发的访问令牌，有效期 7 天" },
+      "userId": { "type": "Guid", "required": true, "description": "用户唯一标识" },
+      "isNewUser": { "type": "boolean", "required": true, "description": "是否为新创建用户（含 30 天到期后重建的用户）" },
+      "needsProfileCollection": { "type": "boolean", "required": true, "description": "是否需要进入昵称头像收集页" },
+      "isDeleted": { "type": "boolean", "required": false, "description": "账户处于 30 天注销缓冲期时为 true" },
+      "remainingDays": { "type": "integer", "required": false, "description": "注销缓冲剩余天数（仅 isDeleted=true 时返回）" }
+    }
+  },
+  "RefreshRequest": {
+    "fields": {
+      "code": { "type": "string", "required": true, "minLength": 1, "description": "wx.login 返回的新一次性登录凭证" }
+    }
+  },
+  "RefreshResponse": {
+    "fields": {
+      "jwt": { "type": "string", "required": true, "description": "续期后的新访问令牌，有效期 7 天" },
+      "userId": { "type": "Guid", "required": true }
+    }
+  },
+  "ProfileResponse": {
+    "fields": {
+      "userId": { "type": "Guid", "required": true },
+      "nickname": { "type": "string", "required": true, "maxLength": 20 },
+      "avatarUrl": { "type": "string", "required": false, "maxLength": 500, "description": "头像 URL，未设置时为 null" },
+      "createdAt": { "type": "DateTimeOffset", "required": true, "description": "账户创建时间，ISO 8601 格式" }
+    }
+  },
+  "UpdateProfileRequest": {
+    "fields": {
+      "nickname": { "type": "string", "required": true, "minLength": 1, "maxLength": 20, "description": "昵称，后端二次校验空/长度/敏感词" },
+      "avatarUrl": { "type": "string", "required": false, "maxLength": 500, "description": "头像 URL，来自头像上传接口返回" }
+    }
+  },
+  "DeletionStatusResponse": {
+    "fields": {
+      "isDeleted": { "type": "boolean", "required": true, "description": "账户是否处于注销缓冲期" },
+      "canDelete": { "type": "boolean", "required": true, "description": "是否满足注销条件（无家庭关联）" },
+      "blockReason": { "type": "string", "required": false, "description": "无法注销的原因错误码（如 FAMILY_STILL_ACTIVE），可注销时为 null" },
+      "expiresAt": { "type": "DateTimeOffset", "required": false, "description": "注销到期时间（仅 isDeleted=true 时返回）" },
+      "remainingDays": { "type": "integer", "required": false, "description": "注销缓冲剩余天数（仅 isDeleted=true 时返回）" }
+    }
+  },
+  "DeletionResponse": {
+    "fields": {
+      "expiresAt": { "type": "DateTimeOffset", "required": true, "description": "注销到期时间（注销时间 + 30 天）" },
+      "remainingDays": { "type": "integer", "required": true, "description": "注销缓冲剩余天数（固定 30）" }
+    }
+  },
+  "RecoverResponse": {
+    "fields": {
+      "jwt": { "type": "string", "required": true, "description": "恢复账户后签发的新访问令牌" },
+      "userId": { "type": "Guid", "required": true }
+    }
+  },
+  "UploadAvatarResponse": {
+    "fields": {
+      "url": { "type": "string", "required": true, "maxLength": 500, "description": "上传后头像的可访问 URL" }
+    }
+  },
+  "UserFamiliesResponse": {
+    "fields": {
+      "families": { "type": "FamilyInfo[]", "required": true, "description": "当前用户关联的家庭列表，无家庭时为空数组" }
+    }
+  },
+  "FamilyInfo": {
+    "fields": {
+      "familyId": { "type": "Guid", "required": true },
+      "familyName": { "type": "string", "required": true },
+      "role": { "type": "string", "required": true, "description": "用户在该家庭中的角色，取值由家庭模块定义（如 parent / child），契约域归 family" },
+      "memberCount": { "type": "integer", "required": true, "description": "家庭成员数量" }
+    }
+  },
+  "ErrorResponse": {
+    "fields": {
+      "error": { "type": "string", "required": true, "description": "错误码，取值见 errors.json" },
+      "message": { "type": "string", "required": true, "description": "用户可读的中文错误提示" },
+      "traceId": { "type": "string", "required": false, "description": "请求追踪 ID（全局异常中间件生成，控制器级错误可能缺省）" }
+    }
+  }
+}

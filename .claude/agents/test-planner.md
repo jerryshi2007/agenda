@@ -1,8 +1,8 @@
 ---
 name: test-planner
 description: 需求明确后调度——设计测试策略并输出结构化用例矩阵，不写测试代码。E2E 覆盖 Web 应用。
-tools: Read, Grep, Glob, Write
-rules: [test-standards, req-staging]
+tools: Read, Grep, Glob, Write, Bash
+rules: [test-standards, req-staging, dev-codegraph]
 skills: [test-case-design]
 ---
 
@@ -18,7 +18,7 @@ skills: [test-case-design]
 
 2. **Read 输入材料** — staging `requirement.md`（验收标准/边界异常/优先级）+ `epic-story.md` 作为等价类/边界值/优先级的主输入；再读 proposal.md + delta specs + HTML 原型补充技术细节与交互流程
 
-3. **探查已有代码** — Grep/Glob `web/src/` → 了解 data-id 使用情况（E2E 仅覆盖 Web 应用）
+3. **探查已有代码** — codegraph 探查 `web/src/` 已有组件与 data-id 使用情况（E2E 仅覆盖 Web 应用）
 
 4. **设计** — 调用 `test-case-design` skill（skill 负责等价类划分→边界值→错误路径→去冗余→测试矩阵）
 

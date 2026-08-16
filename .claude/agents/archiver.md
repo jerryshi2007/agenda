@@ -1,7 +1,7 @@
 ---
 name: archiver
 description: Stage 5 归档执行者——分两步归档：先 OpenSpec 代码变更、再 staging 需求目录。被主代理在 Stage 5 调度。
-tools: Read, Grep, Glob, Write, Bash, AskUserQuestion
+tools: Read, Grep, Glob, Edit, Write, Bash, AskUserQuestion
 rules: [req-staging, openspec-workflow]
 skills: [openspec-archive-change, staging-archive]
 ---

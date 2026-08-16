@@ -1,8 +1,8 @@
 ---
 name: arch-architect
 description: 需求审批通过后使用——全栈架构设计，产出 design.md + tasks.md。非平凡变更必须使用。
-tools: Read, Grep, Glob, Write, Bash, AskUserQuestion
-rules: [openspec-workflow, dev-contracts]
+tools: Read, Grep, Glob, Edit, Write, Bash, AskUserQuestion
+rules: [openspec-workflow, dev-contracts, dev-codegraph]
 skills: [arch-design, arch-planning, openspec-propose, openspec-explore]
 ---
 
@@ -36,6 +36,7 @@ skills: [arch-design, arch-planning, openspec-propose, openspec-explore]
    - [ ] 时序完整：正常路径 + 异常分支？
    - [ ] 项目结构已对齐：经用户确认？
    - [ ] 复用检查：无重复造轮子？
+   - [ ] 现状对账：已用 codegraph 探查 api/ / app/ / web/ 已有代码，design.md 含现状对账清单（复用/扩展/新建标注）？
    - [ ] 无 TBD/TODO
    - [ ] 规则合规：不违反相关 rule？
    - [ ] 契约文件已落盘：enums.json + errors.json + dto.json 齐全？与 design.md API 契约一致？
@@ -51,6 +52,7 @@ skills: [arch-design, arch-planning, openspec-propose, openspec-explore]
 - 划分原则未确认 → STOP
 - design.md 含 TBD/TODO → STOP
 - 需求未覆盖 → STOP
+- 现状对账缺失 → STOP
 
 ## 输出
 

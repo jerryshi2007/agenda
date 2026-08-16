@@ -1,0 +1,93 @@
+/* pages/profile-edit/index.wxss */
+@import '../../styles/common.wxss';
+
+.page-container {
+  min-height: 100vh;
+  background: var(--color-bg-page);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+.form-card {
+  background: var(--color-bg-white);
+  border-radius: var(--radius-lg);
+  padding: 48rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatar-btn {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  line-height: 1;
+}
+
+.avatar-btn::after {
+  border: none;
+}
+
+.avatar {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: var(--radius-round);
+  background: var(--color-bg-page);
+  overflow: hidden;
+}
+
+.avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  border: 2rpx dashed var(--color-border);
+  box-sizing: border-box;
+}
+
+.field {
+  width: 100%;
+  margin-top: var(--spacing-xl);
+}
+
+.field-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.field-input {
+  width: 100%;
+  height: 88rpx;
+  background: var(--color-bg-page);
+  border-radius: var(--radius-md);
+  padding: 0 var(--spacing-lg);
+  font-size: var(--font-size-base);
+  box-sizing: border-box;
+}
+
+.form-error {
+  width: 100%;
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--spacing-lg);
+  margin-top: auto;
+  padding-top: var(--spacing-xl);
+}
+
+.form-actions .btn {
+  flex: 1;
+}
+
+.btn.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}

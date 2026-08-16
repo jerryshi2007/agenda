@@ -1,27 +1,9 @@
 <!-- pages/privacy-prompt/index.wxml -->
 <view class="page-container">
-  <view class="privacy-card">
-    <view class="privacy-title">隐私政策</view>
-    <view class="privacy-body">
-      <text>欢迎使用家庭日程协作工具。</text>
-      <text>我们仅收集您的微信昵称和头像用于家庭内成员展示，不会将您的信息分享给第三方。</text>
-      <text>日程数据仅存储为您家庭内部使用，您随时可以删除账户及全部数据。</text>
-    </view>
-
-    <view wx:if="{{rejected}}" class="privacy-rejected">
-      <text>您已拒绝隐私政策，无法使用本小程序。</text>
-      <view class="btn btn-primary" data-id="privacy-retry-btn" bindtap="onConfirm">重新选择</view>
-    </view>
-
-    <block wx:else>
-      <label class="privacy-check" data-id="privacy-agree-check">
-        <checkbox checked="{{agreed}}" bindtap="onToggleAgree" />
-        <text>我已阅读并同意隐私政策</text>
-      </label>
-      <view class="privacy-actions">
-        <view class="btn btn-default" data-id="privacy-reject-btn" bindtap="onReject">不同意</view>
-        <view class="btn btn-primary {{agreed ? '' : 'disabled'}}" data-id="privacy-confirm-btn" bindtap="onConfirm">同意并开始</view>
-      </view>
-    </block>
+  <view class="prompt-card">
+    <view class="prompt-icon">!</view>
+    <view class="prompt-title">需要同意隐私政策才能使用</view>
+    <view class="prompt-desc">您已拒绝隐私政策。家庭日程协作工具需要获得您的同意才能提供服务。您可以重新查看隐私政策，同意后即可继续使用。</view>
+    <view class="btn btn-primary btn-block" data-id="privacy-prompt-review-btn" bindtap="onReview">重新查看隐私政策</view>
   </view>
 </view>

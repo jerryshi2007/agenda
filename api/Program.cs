@@ -1,10 +1,10 @@
 using System.Text;
-using System.Threading.RateLimiting;
+using Agenda.Api.Infrastructure;
+using Agenda.Api.Infrastructure.Auth;
 using Agenda.Api.Infrastructure.Data;
 using Agenda.Api.Infrastructure.Middleware;
 using Agenda.Api.Shared.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -15,10 +15,27 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ---- Authentication (minimal JWT skeleton) ----
-var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("Jwt:Key configuration is required. Set via environment variable or user secrets.");
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "agenda-api";
+// ---- Auth Module (WeChat / JWT / Profile / Deletion / Storage) ----
+builder.Services.AddAuthModule(builder.Configuration);
+
+// ---- Authentication (JWT Bearer, consistent with JwtService) ----
+var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();
+// 生产密钥通过环境变量 JWT_SECRET_KEY 注入。此处解析逻辑与
+// AuthServiceCollectionExtensions.AddAuthModule 中的 PostConfigure 保持一致，
+// 确保 JwtBearer 签名密钥与 JwtService 签发密钥同源。
+var envSecretKey = builder.Configuration["JWT_SECRET_KEY"];
+if (!string.IsNullOrEmpty(envSecretKey))
+    jwt.SecretKey = envSecretKey;
+if (string.IsNullOrEmpty(jwt.SecretKey))
+    throw new InvalidOperationException("Jwt:SecretKey configuration is required. Set via environment variable JWT_SECRET_KEY or user secrets.");
+
+var signingKeys = new List<SecurityKey>
+{
+    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.SecretKey))
+};
+signingKeys.AddRange(jwt.LegacySecretKeys
+    .Where(k => !string.IsNullOrEmpty(k))
+    .Select(k => new SymmetricSecurityKey(Encoding.UTF8.GetBytes(k))));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -26,20 +43,32 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
+            ValidIssuer = jwt.Issuer,
             ValidateAudience = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtIssuer,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            IssuerSigningKeys = signingKeys,
+            ClockSkew = TimeSpan.FromSeconds(30),
+            NameClaimType = "userId"
         };
         options.Events = new JwtBearerEvents
         {
+            // 尚未过期但剩余有效期不足 PreExpiryWindow 时拒绝，触发客户端提前续期。
+            // 语义与 JwtService.ValidateToken 保持一致。
+            OnTokenValidated = context =>
+            {
+                var remaining = context.SecurityToken.ValidTo - DateTime.UtcNow;
+                if (remaining >= TimeSpan.Zero && remaining < jwt.PreExpiryWindow)
+                    context.Fail("token expiring soon");
+                return Task.CompletedTask;
+            },
             OnChallenge = context =>
             {
                 context.HandleResponse();
                 context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
-                return context.Response.WriteAsync("{\"error\":\"TOKEN_INVALID\"}");
+                return context.Response.WriteAsJsonAsync(
+                    ErrorResponse.From(ErrorCodes.TokenInvalid, context.HttpContext.TraceIdentifier));
             }
         };
     });
@@ -57,15 +86,15 @@ builder.Services.AddSwaggerGen(c =>
 // ---- Schedule Module ----
 builder.Services.AddScheduleModule();
 
-// ---- Rate Limiting (7.4) ----
-builder.Services.AddRateLimiter(options =>
+// ---- CORS ----
+var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
+builder.Services.AddCors(options =>
 {
-    options.AddFixedWindowLimiter("fixed", o =>
+    options.AddDefaultPolicy(policy =>
     {
-        o.PermitLimit = 30;
-        o.Window = TimeSpan.FromMinutes(1);
-        o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        o.QueueLimit = 0;
+        policy.WithOrigins(corsOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
 });
 
@@ -73,8 +102,8 @@ var app = builder.Build();
 
 // ---- Middleware Pipeline ----
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<RateLimitingMiddleware>();
 
-// ---- Health Check (minimal, for Docker healthcheck) ----
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTimeOffset.UtcNow }));
 
 if (app.Environment.IsDevelopment())
@@ -83,9 +112,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseRateLimiter();
 app.MapControllers();
 
 // ---- Auto-migrate (Development only) ----

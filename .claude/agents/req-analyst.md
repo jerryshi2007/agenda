@@ -1,7 +1,7 @@
 ---
 name: req-analyst
 description: 需求探索与梳理——把模糊需求梳理成结构化需求文档，标记 confirmed 后交还主代理。产品阶段第一个 agent。
-tools: Read, Grep, Glob, Write, Bash, AskUserQuestion
+tools: Read, Grep, Glob, Edit, Write, Bash, AskUserQuestion
 rules: [req-staging]
 skills: [req-brainstorming]
 ---

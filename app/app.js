@@ -1,24 +1,31 @@
 // app.js
-// 小程序主入口 —— 全局状态管理 + 生命周期
+// 小程序主入口 —— 全局状态管理 + 生命周期 + 隐私检查 + 静默登录串联
 
 const STORAGE_KEYS = require('./utils/storage-keys');
+const privacy = require('./utils/privacy');
+const crypto = require('./utils/crypto');
+const authService = require('./services/auth');
+const { ErrorCodes } = require('./contracts/auth');
 
 App({
   globalData: {
-    // 用户信息
+    // 认证模块
     userId: null,
-    userRole: null, // 'parent' | 'child'
-    currentFamilyId: null,
+    userProfile: null,
+    families: [],
+    needsProfileCollection: false,
+    pendingPrivacyConsent: false,
+    pendingDeletedRecovery: null, // { remainingDays } 注销缓冲剩余天数
 
-    // 日历状态
+    // 日程模块（保留）
+    userRole: null,
+    currentFamilyId: null,
     calendarState: {
       currentView: 'week',    // 'month' | 'week' | 'day'
       currentDate: null,      // 当前浏览日期
       selectedChildId: null,  // 筛选的孩子 ID
       selectedScheduleTypes: [] // 筛选的日程类型
     },
-
-    // 家庭数据
     familyList: [],
     childList: [],
 
@@ -28,45 +35,112 @@ App({
   },
 
   onLaunch(options) {
-    // 获取系统信息
     const systemInfo = wx.getSystemInfoSync();
     this.globalData.systemInfo = systemInfo;
     this.globalData.statusBarHeight = systemInfo.statusBarHeight;
 
-    // 恢复用户登录态
-    this._restoreSession();
-
     // 恢复日历状态
     this._restoreCalendarState();
 
-    // 检查隐私政策
-    this._checkPrivacyConsent();
+    // 隐私检查 -> 登录
+    this._bootstrapLogin();
   },
 
-  onShow(options) {
-    // 从后台恢复日历状态
+  onShow() {
     this._restoreCalendarState();
   },
 
   onHide() {
-    // 持久化日历状态
     this._persistCalendarState();
   },
 
   /**
-   * 恢复用户会话
+   * 隐私政策检查：未同意/版本变更则标记待弹窗，已同意则静默登录
    */
-  _restoreSession() {
-    const token = wx.getStorageSync(STORAGE_KEYS.TOKEN);
-    if (token) {
-      const userInfo = wx.getStorageSync(STORAGE_KEYS.USER_INFO);
-      const role = wx.getStorageSync(STORAGE_KEYS.USER_ROLE);
-      const familyId = wx.getStorageSync(STORAGE_KEYS.CURRENT_FAMILY_ID);
-      if (userInfo) {
-        this.globalData.userId = userInfo.userId;
-        this.globalData.userRole = role || userInfo.role || 'parent';
-        this.globalData.currentFamilyId = familyId;
-      }
+  _bootstrapLogin() {
+    const { consented, needsReshow } = privacy.checkConsent();
+    if (needsReshow) {
+      this.globalData.pendingPrivacyConsent = true;
+      return Promise.resolve();
+    }
+    // 静默登录完成后通知当前页刷新认证弹窗（覆盖「老用户昵称仍为默认值」的
+    // needsProfileCollection 场景：登录是异步的，onShow 早于登录完成触发）
+    return this.doLogin().then(() => this._notifyCurrentPage());
+  },
+
+  /**
+   * 隐私弹窗「同意并继续」：记录同意 -> 静默登录
+   */
+  onPrivacyAgree() {
+    privacy.recordConsent();
+    this.globalData.pendingPrivacyConsent = false;
+    return this.doLogin();
+  },
+
+  /**
+   * 隐私弹窗「不同意」：跳转静态提示页
+   */
+  onPrivacyDecline() {
+    wx.reLaunch({ url: '/pages/privacy-prompt/index' });
+  },
+
+  /**
+   * 静默登录：wx.login -> auth.login(code) -> 存 JWT -> 更新全局态
+   * code 已使用（CODE_INVALID）时重新 wx.login 最多 1 次
+   */
+  doLogin(retried = false) {
+    return new Promise((resolve, reject) => {
+      wx.login({
+        success: (loginRes) => {
+          if (!loginRes.code) {
+            wx.showToast({ title: '登录失败，请检查网络后重试', icon: 'none' });
+            reject({ error: 'LOGIN_FAILED' });
+            return;
+          }
+          authService.login(loginRes.code).then((res) => {
+            this.setLoginData(res.jwt, res.userId);
+
+            if (res.isDeleted) {
+              this.globalData.pendingDeletedRecovery = { remainingDays: res.remainingDays || 0 };
+              wx.reLaunch({ url: '/pages/deleted-recovery/index' });
+            } else {
+              this.globalData.needsProfileCollection = !!res.needsProfileCollection;
+            }
+            resolve(res);
+          }).catch((err) => {
+            if (err && err.error === ErrorCodes.CODE_INVALID && !retried) {
+              this.doLogin(true).then(resolve).catch(reject);
+              return;
+            }
+            wx.showToast({ title: (err && err.message) || '登录失败，请重试', icon: 'none' });
+            reject(err);
+          });
+        },
+        fail: () => {
+          wx.showToast({ title: '登录失败，请检查网络后重试', icon: 'none' });
+          reject({ error: 'LOGIN_FAILED' });
+        }
+      });
+    });
+  },
+
+  /**
+   * 设置登录态（供 doLogin 与 T19 续期流程调用）
+   */
+  setLoginData(jwt, userId) {
+    wx.setStorageSync(STORAGE_KEYS.AUTH_TOKEN, crypto.encrypt(jwt));
+    this.globalData.userId = userId;
+  },
+
+  /**
+   * 登录态就绪后通知当前页面刷新认证弹窗（隐私弹窗 / 资料收集）
+   * 仅 index 页实现了 _checkAuthOverlays，其余页面安全跳过
+   */
+  _notifyCurrentPage() {
+    const pages = getCurrentPages();
+    const current = pages[pages.length - 1];
+    if (current && typeof current._checkAuthOverlays === 'function') {
+      current._checkAuthOverlays();
     }
   },
 
@@ -101,17 +175,6 @@ App({
   },
 
   /**
-   * 隐私政策检查
-   */
-  _checkPrivacyConsent() {
-    const consent = wx.getStorageSync(STORAGE_KEYS.PRIVACY_CONSENT);
-    if (!consent || !consent.agreed) {
-      // 跳转隐私政策页
-      wx.reLaunch({ url: '/pages/privacy-prompt/index' });
-    }
-  },
-
-  /**
    * 获取今日日期字符串
    */
   _todayStr() {
@@ -130,23 +193,14 @@ App({
     this._persistCalendarState();
   },
 
-  /**
-   * 获取当前用户角色
-   */
   getUserRole() {
     return this.globalData.userRole;
   },
 
-  /**
-   * 是否为家长
-   */
   isParent() {
     return this.globalData.userRole === 'parent';
   },
 
-  /**
-   * 获取家庭 ID
-   */
   getCurrentFamilyId() {
     return this.globalData.currentFamilyId;
   }

@@ -1,7 +1,7 @@
 ---
 name: arch-design
 description: 全栈架构设计——覆盖 .NET 后端分层/API 契约 + Vue 3 前端组件树/路由/状态管理，产出 design.md + ADR。
-rules: [dev-dotnet-standards, dev-vue3-standards, design-ui-standards, dev-code-quality, dev-security, openspec-workflow, dev-contracts]
+rules: [dev-dotnet-standards, dev-vue3-standards, design-ui-standards, dev-code-quality, dev-security, openspec-workflow, dev-contracts, dev-codegraph]
 ---
 
 # arch-design · 全栈架构设计
@@ -12,14 +12,14 @@ rules: [dev-dotnet-standards, dev-vue3-standards, design-ui-standards, dev-code-
 
 ## 流程
 
-### 1. Read 规则（7 条）
-dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quality / dev-security / openspec-workflow / dev-contracts
+### 1. Read 规则（8 条）
+dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quality / dev-security / openspec-workflow / dev-contracts / dev-codegraph
 
 ### 2. 理解需求
 读 proposal.md + delta specs → 提取功能/非功能需求 + 跨切面关注点
 
-### 3. 现状分析
-探查 api/ + app/（小程序）+ web/（Web 应用）已有代码 → 标注可复用/扩展/新建。不推翻现有模式，增量设计。
+### 3. 现状分析（现状对账 gate）
+用 `codegraph_explore`（或 `codegraph explore`）探查 api/ + app/（小程序）+ web/（Web 应用）已有代码 → 产出「现状对账清单」：列出已有实体/服务/组件/模块，逐个标注本次变更是复用/扩展/新建。该清单 MUST 写入 design.md（见 `dev-codegraph` rule），不推翻现有模式，增量设计。
 
 ### 4. 确定划分原则（DDD 限界上下文）
 - 从 spec 识别聚合根（哪些实体一起变、一起保证一致性？）

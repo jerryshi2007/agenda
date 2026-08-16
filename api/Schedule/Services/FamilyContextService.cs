@@ -28,7 +28,7 @@ public class FamilyContextService : IFamilyContextService
         var membership = await _db.FamilyMembers
             .AsNoTracking()
             .Include(fm => fm.Family)
-            .Where(fm => fm.UserId == userId && !fm.User.IsDeleted)
+            .Where(fm => fm.UserId == userId && fm.User.Status == UserStatus.Active)
             .FirstOrDefaultAsync(ct);
 
         if (membership == null)

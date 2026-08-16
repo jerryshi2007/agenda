@@ -1,0 +1,59 @@
+/* pages/deleted-recovery/index.wxss */
+@import '../../styles/common.wxss';
+
+.page-container {
+  min-height: 100vh;
+  background: var(--color-bg-page);
+  padding: 48rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.recovery-card {
+  background: var(--color-bg-white);
+  border-radius: var(--radius-lg);
+  padding: 64rpx 48rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.recovery-icon {
+  font-size: 96rpx;
+  margin-bottom: var(--spacing-lg);
+}
+
+.recovery-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.recovery-countdown {
+  font-size: var(--font-size-base);
+  color: var(--color-danger);
+  background: var(--color-danger-light);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.recovery-desc {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.recovery-actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding-top: var(--spacing-xl);
+}
+
+.recovery-actions .btn {
+  width: 100%;
+}
