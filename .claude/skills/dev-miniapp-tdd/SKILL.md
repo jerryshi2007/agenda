@@ -1,7 +1,7 @@
 ---
 name: dev-miniapp-tdd
 description: 微信小程序 TDD 开发——基于 Jest + miniprogram-simulate + miniprogram-automator 的红绿重构循环。
-rules: [dev-miniapp-standards, test-standards, dev-code-quality, ui-miniapp-standards, dev-security]
+rules: [dev-miniapp-standards, test-standards, dev-code-quality, ui-miniapp-standards, dev-security, dev-codegraph]
 ---
 
 # dev-miniapp-tdd · 小程序 TDD 开发流程
@@ -14,7 +14,7 @@ rules: [dev-miniapp-standards, test-standards, dev-code-quality, ui-miniapp-stan
 
 1. **Read 规则** — dev-miniapp-standards / test-standards / dev-code-quality / ui-miniapp-standards（涉及 auth/输入处理另读 dev-security）
 
-2. **探查项目** — Read CLAUDE.md 了解目录约定，确认测试文件位置（`__tests__/` 下，与源码同结构），`npm test` 了解已有测试风格
+2. **探查项目** — 用 `codegraph_explore`（或 `codegraph explore`）查被测组件/服务及其调用关系、定位复用点（见 `dev-codegraph` rule）；Read CLAUDE.md 了解目录约定，确认测试文件位置（`__tests__/` 下，与源码同结构），`npm test` 了解已有测试风格
 
 3. **红——写失败测试**
    - Jest 28+ 作为测试框架

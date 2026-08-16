@@ -1,7 +1,7 @@
 ---
 name: dev-sdd
 description: 有实现计划且任务相互独立时使用——逐任务 dispatch 子代理实现、每任务 review、修复循环、最终全分支 review
-rules: [dev-code-quality, dev-security, openspec-workflow]
+rules: [dev-code-quality, dev-security, openspec-workflow, dev-codegraph]
 ---
 
 # dev-sdd · 子代理驱动开发

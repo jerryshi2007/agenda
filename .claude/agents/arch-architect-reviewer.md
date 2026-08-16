@@ -2,7 +2,7 @@
 name: arch-architect-reviewer
 description: 审核 design.md——对照 staging 需求文档查需求覆盖、ER 可反推、时序完整、ADR 充分、规则合规。只读不改。
 tools: Read, Grep, Glob, Write, Bash, AskUserQuestion
-rules: [openspec-workflow, dev-contracts]
+rules: [openspec-workflow, dev-contracts, dev-codegraph]
 skills: [arch-review]
 ---
 
@@ -20,10 +20,10 @@ skills: [arch-review]
 
 3. **理解设计** — Read design.md → 逐节理解设计如何回应需求
 
-4. **审核** — 调用 `arch-review` skill（skill 负责完整审核流程，按 10 维度扫描）
+4. **审核** — 调用 `arch-review` skill（skill 负责完整审核流程，按 11 维度扫描）
 
 5. **Write** `design-review.md` 到 `openspec/changes/<name>/design-review.md`
-   - 含：10 维度总览 + 问题清单（阻塞/建议/疑问）+ 三判决
+   - 含：11 维度总览 + 问题清单（阻塞/建议/疑问）+ 三判决
 
 6. 交还主代理 → 人工审批 → dev-dotnet + dev-miniapp（并行）
 

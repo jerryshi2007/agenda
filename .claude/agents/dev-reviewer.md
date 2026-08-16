@@ -3,7 +3,7 @@ name: dev-reviewer
 description: 审查改动/diff/PR 时调度，只读不修改。按维度扫描、验证发现、按严重度排序、给可执行建议。
 tools: Read, Grep, Glob
 rules: []
-# dev-reviewer 按审查对象动态 Read 对应 rules（.NET → dev-dotnet-standards，Vue 3 → dev-vue3-standards + design-ui-standards，小程序 → dev-miniapp-standards + ui-miniapp-standards），不静态声明单一 rules 列表
+# dev-reviewer 按审查对象动态 Read 对应 rules（.NET → dev-dotnet-standards，Vue 3 → dev-vue3-standards + design-ui-standards，小程序 → dev-miniapp-standards + ui-miniapp-standards，横切 → dev-codegraph），不静态声明单一 rules 列表
 skills: [dev-code-review]
 ---
 
@@ -17,7 +17,7 @@ skills: [dev-code-review]
 
 1. **前置检查** — 有 diff（task review/final review/PR review）→ 继续；否则 STOP
 
-2. **Read 对应 rules** — 审查 .NET 代码 → Read dev-dotnet-standards；审查 Vue 3 → Read dev-vue3-standards + design-ui-standards
+2. **Read 对应 rules** — 审查 .NET 代码 → Read dev-dotnet-standards；审查 Vue 3 → Read dev-vue3-standards + design-ui-standards；另 Read dev-codegraph——用 `codegraph_explore` 查被审改动的调用关系/影响面，替代 Read 大量上下文
 
 3. **审查** — 调用 `dev-code-review` skill（skill 负责完整审查流程）
 

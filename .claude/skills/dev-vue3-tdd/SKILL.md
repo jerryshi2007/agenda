@@ -1,7 +1,7 @@
 ---
 name: dev-vue3-tdd
 description: Vue 3 TDD 开发——基于 Vitest + Vue Test Utils + pnpm CLI 的红绿重构循环。
-rules: [dev-vue3-standards, test-standards, dev-code-quality, design-ui-standards, dev-security]
+rules: [dev-vue3-standards, test-standards, dev-code-quality, design-ui-standards, dev-security, dev-codegraph]
 ---
 
 # dev-vue3-tdd · Vue 3 TDD 开发流程
@@ -14,7 +14,7 @@ rules: [dev-vue3-standards, test-standards, dev-code-quality, design-ui-standard
 
 1. **Read 规则** — dev-vue3-standards / test-standards / dev-code-quality / design-ui-standards（涉及 auth/输入处理另读 dev-security）
 
-2. **探查项目** — Read CLAUDE.md 了解目录约定，确认测试文件位置（`__tests__/` 下，与源码同结构），`pnpm test run` 了解已有测试风格
+2. **探查项目** — 用 `codegraph_explore`（或 `codegraph explore`）查被测组件/composable 及其调用关系、定位复用点（见 `dev-codegraph` rule）；Read CLAUDE.md 了解目录约定，确认测试文件位置（`__tests__/` 下，与源码同结构），`pnpm test run` 了解已有测试风格
 
 3. **红——写失败测试**
    - Vitest + `@vue/test-utils` + jsdom
