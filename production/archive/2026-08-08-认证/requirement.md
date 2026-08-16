@@ -1,4 +1,4 @@
-<!-- STAGING-STATUS: in-progress -->
+<!-- STAGING-STATUS: done -->
 <!-- CONFIRMED: 2026-08-08 -->
 
 # 认证与账户模块 · 需求文档（结构化补充）
