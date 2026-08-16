@@ -17,8 +17,8 @@
 |------|:--:|------|
 | Stage 1 产品 | ✅ done | — |
 | Stage 2 设计 | ✅ done | add-checkin-module |
-| Stage 3 研发 | 🔄 in-progress | add-checkin-module |
-| Stage 4 测试 | ⬜ pending | — |
+| Stage 3 研发 | ✅ done | add-checkin-module |
+| Stage 4 测试 | 🔄 in-progress | — |
 | Stage 5 归档 | ⬜ pending | add-checkin-module |
 
 ## 关联文档
