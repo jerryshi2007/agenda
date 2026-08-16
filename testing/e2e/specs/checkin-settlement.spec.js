@@ -20,10 +20,10 @@ const { test, expect } = require('@playwright/test');
 const crypto = require('crypto');
 const { healthCheck, getCheckinWindow, cancelInstance, triggerSettlement } = require('../helpers/api-client');
 const { AUTH } = require('../helpers/data-factory');
-const { CheckinStatus, CheckinReason } = require('../helpers/contracts');
+const { CheckinStatus } = require('../helpers/contracts');
 const { beijingToday, beijingYesterday } = require('../helpers/checkin-time');
 const checkinDb = require('../helpers/checkin-db');
-const { FIXTURES, seedFixture, cleanupFixture } = require('../helpers/checkin-fixtures');
+const { FIXTURES, CheckinReason, seedFixture, cleanupFixture } = require('../helpers/checkin-fixtures');
 
 const apiIds = [];
 const dbIds = [];
