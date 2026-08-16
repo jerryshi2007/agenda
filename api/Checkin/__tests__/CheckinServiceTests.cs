@@ -321,6 +321,29 @@ public class CheckinServiceTests
     }
 
     [Fact]
+    public async Task CheckinAsync_PersistsUtcAndRespondsBeijingTime()
+    {
+        var (db, _, svc) = await CreateAsync(ScheduleType.DailyRoutine, new TimeOnly(7, 0), new TimeOnly(8, 0));
+
+        var result = await svc.CheckinAsync(ScheduleId, Today, UserId, ServerNow);
+
+        // 持久化值 MUST 为 UTC（offset 0），且与 serverTime 同一时刻（Npgsql 10 拒绝非 UTC offset 写 timestamptz）。
+        var record = await db.Checkins.SingleAsync(c => c.ScheduleId == ScheduleId && c.Date == Today);
+        Assert.Equal(TimeSpan.Zero, record.CheckinAt.Offset);
+        Assert.Equal(TimeSpan.Zero, record.CreatedAt.Offset);
+        Assert.Equal(ServerNow.UtcDateTime, record.CheckinAt.UtcDateTime);
+
+        // 响应值 MUST 序列化为北京时间（+08:00），客户端直接展示。
+        Assert.Equal(TimeSpan.FromHours(8), result.CheckinAt.Offset);
+        Assert.Equal(ServerNow, result.CheckinAt);
+
+        // 幂等路径同样返回北京时间（ToResponse 边界转回）。
+        var second = await svc.CheckinAsync(ScheduleId, Today, UserId, ServerNow);
+        Assert.True(second.AlreadyCheckedIn);
+        Assert.Equal(TimeSpan.FromHours(8), second.CheckinAt.Offset);
+    }
+
+    [Fact]
     public async Task CheckinAsync_AlreadyCheckedIn_ReturnsIdempotent()
     {
         var (db, _, svc) = await CreateAsync(ScheduleType.DailyRoutine, new TimeOnly(7, 0), new TimeOnly(8, 0));

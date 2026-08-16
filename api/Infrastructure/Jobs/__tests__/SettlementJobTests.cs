@@ -109,6 +109,25 @@ public class SettlementJobTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_PersistsUtcTimestamps()
+    {
+        var (db, _, job) = CreateJob();
+        var routine = NewSchedule(ScheduleType.DailyRoutine, ChildId);
+        await SeedScheduleAsync(db, routine, withTimeSlot: true, checkedIn: false);
+
+        await job.ExecuteAsync(CancellationToken.None);
+
+        // 结算记录 SettledAt MUST 为 UTC（offset 0）。
+        var settlement = await db.CheckinSettlements.SingleAsync();
+        Assert.Equal(TimeSpan.Zero, settlement.SettledAt.Offset);
+
+        // streak 记录 UpdatedAt MUST 为 UTC（offset 0）。
+        var streaks = await db.Streaks.ToListAsync();
+        Assert.NotEmpty(streaks);
+        Assert.All(streaks, s => Assert.Equal(TimeSpan.Zero, s.UpdatedAt.Offset));
+    }
+
+    [Fact]
     public async Task ExecuteAsync_SkipsCheckedInInstance()
     {
         var (db, _, job) = CreateJob();

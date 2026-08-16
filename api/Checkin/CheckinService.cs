@@ -60,9 +60,9 @@ public class CheckinService : ICheckinService
             ScheduleId = scheduleId,
             Date = date,
             UserId = userId,
-            CheckinAt = serverTime,
+            CheckinAt = serverTime.ToUniversalTime(),
             Source = source,
-            CreatedAt = serverTime
+            CreatedAt = serverTime.ToUniversalTime()
         };
 
         _db.Checkins.Add(checkin);
@@ -86,7 +86,7 @@ public class CheckinService : ICheckinService
             CheckinId = checkin.Id,
             ScheduleId = scheduleId,
             Date = date,
-            CheckinAt = checkin.CheckinAt,
+            CheckinAt = checkin.CheckinAt.ToOffset(TimeSpan.FromHours(8)),
             Source = checkin.Source.ToString(),
             AlreadyCheckedIn = null
         };
@@ -288,7 +288,7 @@ public class CheckinService : ICheckinService
             CheckinId = checkin.Id,
             ScheduleId = scheduleId,
             Date = date,
-            CheckinAt = checkin.CheckinAt,
+            CheckinAt = checkin.CheckinAt.ToOffset(TimeSpan.FromHours(8)),
             Source = checkin.Source.ToString(),
             AlreadyCheckedIn = alreadyCheckedIn ? true : null
         };

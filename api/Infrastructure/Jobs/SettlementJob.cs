@@ -173,7 +173,8 @@ public class SettlementJob : ISettlementJob
         streak.UpdatedAt = ServerNow();
     }
 
-    /// <summary>服务器北京时间（与 CheckinService 时间基准一致，US-CHK-06）。</summary>
+    /// <summary>服务器当前时刻（UTC，offset 0）。SettledAt/UpdatedAt 写 timestamptz，
+    /// Npgsql 10 拒绝非 UTC offset，故持久化统一 UTC；本字段无对外响应，无需转回北京时间。</summary>
     private static DateTimeOffset ServerNow() =>
-        DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(8));
+        DateTimeOffset.UtcNow;
 }
