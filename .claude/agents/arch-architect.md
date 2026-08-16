@@ -1,7 +1,7 @@
 ---
 name: arch-architect
 description: 需求审批通过后使用——全栈架构设计，产出 design.md + tasks.md。非平凡变更必须使用。
-tools: Read, Grep, Glob, Write, Bash, AskUserQuestion
+tools: Read, Grep, Glob, Edit, Write, Bash, AskUserQuestion
 rules: [openspec-workflow, dev-contracts, dev-codegraph]
 skills: [arch-design, arch-planning, openspec-propose, openspec-explore]
 ---
