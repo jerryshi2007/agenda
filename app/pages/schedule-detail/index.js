@@ -4,6 +4,7 @@
 const scheduleService = require('../../services/schedule');
 const checkinService = require('../../services/checkin');
 const dateUtils = require('../../utils/date-utils');
+const { CheckinStatus, Reason } = require('../../contracts/checkin');
 const app = getApp();
 
 const TYPE_LABELS = {
@@ -12,18 +13,23 @@ const TYPE_LABELS = {
   'HomeworkTask': '作业任务'
 };
 
-const STATUS_TEXT = {
-  'incomplete': '未完成',
-  'Incomplete': '未完成',
-  'completed': '已完成',
-  'Completed': '已完成',
-  'cancelled': 'Cancelled',
-  'Cancelled': '已取消',
-  'overdue': '已逾期',
-  'Overdue': '已逾期',
-  'ended': '已结束',
-  'Ended': '已结束'
+// 状态中文标签（fallback；窗口返回的 statusLabel 为权威值）
+const STATUS_LABELS = {
+  [CheckinStatus.Incomplete]: '未完成',
+  [CheckinStatus.Completed]: '已完成',
+  [CheckinStatus.Cancelled]: '已取消',
+  [CheckinStatus.Ended]: '已结束',
+  [CheckinStatus.Overdue]: '逾期未完成'
 };
+
+// 终态集合：仅展示状态文本，无打卡/撤销按钮
+const TERMINAL_STATUSES = [
+  CheckinStatus.Ended,
+  CheckinStatus.Overdue,
+  CheckinStatus.Cancelled
+];
+
+const PRESCHOOL_MODE = 'preschool';
 
 Page({
   data: {
@@ -35,7 +41,14 @@ Page({
     stripeClass: 'activity',
     typeLabel: '',
     statusClass: 'pending',
-    statusText: '未完成',
+    statusLabel: '未完成',
+    checkinStatus: CheckinStatus.Incomplete,
+    isCompleted: false,
+    isEnded: false,
+    isIncomplete: true,
+    isOverdue: false,
+    isCancelled: false,
+    isTerminal: false,
     targetDateText: '',
 
     // Operation permissions
@@ -46,9 +59,12 @@ Page({
     canUndo: false,
     canRestore: false,
 
-    // Checkin countdown
-    countdownActive: false,
+    // Checkin state
+    isEarly: false,
+    isPreschoolMode: false,
     countdownText: '',
+    checkinLoading: false,
+    checkinError: false,
 
     // Dialogs
     showDeleteDialog: false,
@@ -61,14 +77,11 @@ Page({
     isDeleted: false,
 
     // Time
-    timeText: '',
-
-    // Timer ref
-    _countdownTimer: null
+    timeText: ''
   },
 
   onLoad(options) {
-    const { scheduleId, date } = options;
+    const { scheduleId, date, displayMode } = options;
     if (!scheduleId) {
       wx.showToast({ title: '缺少日程信息', icon: 'none' });
       wx.navigateBack();
@@ -76,29 +89,28 @@ Page({
     }
 
     const today = dateUtils.formatDate(new Date());
+    const mode = displayMode || app.globalData.displayMode;
     this.setData({
       scheduleId: scheduleId,
       targetDate: date || today,
-      targetDateText: date ? dateUtils.formatDateChinese(date) : ''
+      targetDateText: date ? dateUtils.formatDateChinese(date) : '',
+      isPreschoolMode: mode === PRESCHOOL_MODE
     });
 
     this._loadDetail();
+  },
+
+  onShow() {
+    if (!this.data.scheduleId) return;
     this._loadCheckinWindow();
   },
 
   onHide() {
-    // 清除倒计时定时器
-    if (this.data._countdownTimer) {
-      clearInterval(this.data._countdownTimer);
-      this.data._countdownTimer = null;
-    }
+    this._stopCountdown();
   },
 
   onUnload() {
-    if (this.data._countdownTimer) {
-      clearInterval(this.data._countdownTimer);
-      this.data._countdownTimer = null;
-    }
+    this._stopCountdown();
   },
 
   /**
@@ -117,23 +129,6 @@ Page({
         else if (scheduleType === 'DailyRoutine') stripeClass = 'routine';
         else if (scheduleType === 'HomeworkTask') stripeClass = 'homework';
 
-        let statusClass = 'pending';
-        let statusText = '未完成';
-        const istatus = d.instanceStatus || '';
-        if (istatus === 'completed' || istatus === 'Completed') {
-          statusClass = 'done';
-          statusText = '已完成';
-        } else if (istatus === 'cancelled' || istatus === 'Cancelled') {
-          statusClass = 'cancelled';
-          statusText = '已取消';
-        } else if (istatus === 'overdue' || istatus === 'Overdue') {
-          statusClass = 'overdue';
-          statusText = '已逾期';
-        } else if (istatus === 'ended' || istatus === 'Ended') {
-          statusClass = 'overdue';
-          statusText = '已结束';
-        }
-
         // 时间文本
         let timeText = '';
         if (!isHomework && d.timeSlots && d.timeSlots.length > 0) {
@@ -149,8 +144,6 @@ Page({
           isHomework: isHomework,
           stripeClass: stripeClass,
           typeLabel: TYPE_LABELS[scheduleType] || '',
-          statusClass: statusClass,
-          statusText: statusText,
           timeText: timeText,
           canEdit: d.canEdit || false,
           canCancel: d.canCancel || false,
@@ -171,69 +164,132 @@ Page({
   },
 
   /**
-   * 查询打卡窗口状态
+   * 查询打卡窗口状态（权威状态来源，onShow 时刷新）
    */
   _loadCheckinWindow() {
     checkinService.getWindow(this.data.scheduleId, this.data.targetDate)
       .then(res => {
-        const w = res.data || {};
-        this.setData({
-          canCheckin: w.canCheckin || false,
-          canUndo: w.canUndo || false
-        });
-
-        // 如果在打卡窗口前，启动倒计时
-        if (w.canCheckin && w.waitSeconds > 0) {
-          this._startCountdown(w.waitSeconds);
-        }
+        this._applyCheckinWindow(res.data || {});
       })
       .catch(() => {
-        // checkin module 可能不可用，容错
-        const istatus = (this.data.schedule.instanceStatus || '').toLowerCase();
+        // 窗口查询失败：不臆测按钮，展示错误态 + 停倒计时
+        this._stopCountdown();
         this.setData({
-          canCheckin: !this.data.isDeleted && istatus !== 'completed' && istatus !== 'cancelled',
-          canUndo: istatus === 'completed'
+          checkinError: true,
+          canCheckin: false,
+          canUndo: false,
+          isEarly: false
         });
       });
   },
 
   /**
-   * 打卡倒计时
+   * 应用打卡窗口状态 → 按钮状态机 + 倒计时
+   */
+  _applyCheckinWindow(w) {
+    const canCheckin = !!w.canCheckin;
+    const canUndo = !!w.canUndo;
+    const reason = w.reason || null;
+    const remainingSeconds = w.remainingSeconds || 0;
+    const isEarly = reason === Reason.Early;
+
+    this._setStatus(w.status, w.statusLabel);
+    this.setData({
+      canCheckin: canCheckin,
+      canUndo: canUndo,
+      isEarly: isEarly,
+      checkinError: false
+    });
+
+    if (isEarly && remainingSeconds > 0) {
+      this._startCountdown(remainingSeconds);
+    } else {
+      this._stopCountdown();
+    }
+  },
+
+  /**
+   * 状态归一化 + 派生布尔标志（供 WXML 条件渲染）
+   */
+  _setStatus(status, label) {
+    const normalized = (status || CheckinStatus.Incomplete).toLowerCase();
+    const isCompleted = normalized === CheckinStatus.Completed;
+    const isCancelled = normalized === CheckinStatus.Cancelled;
+    const isEnded = normalized === CheckinStatus.Ended;
+    const isOverdue = normalized === CheckinStatus.Overdue;
+    const isIncomplete = normalized === CheckinStatus.Incomplete;
+    const isTerminal = TERMINAL_STATUSES.indexOf(normalized) !== -1;
+
+    let statusClass = 'pending';
+    if (isCompleted) statusClass = 'done';
+    else if (isCancelled) statusClass = 'cancelled';
+    else if (isOverdue || isEnded) statusClass = 'overdue';
+
+    this.setData({
+      checkinStatus: normalized,
+      statusLabel: label || STATUS_LABELS[normalized] || STATUS_LABELS[CheckinStatus.Incomplete],
+      statusClass: statusClass,
+      isCompleted: isCompleted,
+      isCancelled: isCancelled,
+      isEnded: isEnded,
+      isOverdue: isOverdue,
+      isIncomplete: isIncomplete,
+      isTerminal: isTerminal
+    });
+  },
+
+  /**
+   * 启动打卡倒计时（每 30s 递减，归零后重新查询窗口）
    */
   _startCountdown(seconds) {
-    this.setData({ countdownActive: true });
-    const updateCountdown = () => {
-      if (seconds <= 0) {
-        clearInterval(this.data._countdownTimer);
-        this.setData({ countdownActive: false, countdownText: '' });
+    this._stopCountdown();
+    this._remainingSeconds = seconds;
+    this.setData({ countdownText: this._formatCountdown(seconds) });
+
+    this._countdownTimer = setInterval(() => {
+      this._remainingSeconds -= 30;
+      if (this._remainingSeconds <= 0) {
+        this._stopCountdown();
+        this._loadCheckinWindow();
         return;
       }
-      const m = Math.floor(seconds / 60);
-      const s = seconds % 60;
-      this.setData({ countdownText: `${m}:${String(s).padStart(2, '0')}` });
-      seconds--;
-    };
-    updateCountdown();
-    this.data._countdownTimer = setInterval(updateCountdown, 1000);
+      this.setData({ countdownText: this._formatCountdown(this._remainingSeconds) });
+    }, 30000);
+  },
+
+  /**
+   * 停止倒计时（仅管理定时器；countdownText 由 _applyCheckinWindow 维护）
+   */
+  _stopCountdown() {
+    if (this._countdownTimer) {
+      clearInterval(this._countdownTimer);
+      this._countdownTimer = null;
+    }
+    this._remainingSeconds = 0;
+  },
+
+  /**
+   * 秒数 → 「N 分钟」展示文本（向下取整，最少 1 分钟）
+   */
+  _formatCountdown(seconds) {
+    const minutes = Math.max(1, Math.ceil(seconds / 60));
+    return `${minutes} 分钟`;
   },
 
   /**
    * 打卡
    */
   onCheckin() {
-    wx.showLoading({ title: '打卡中...' });
+    if (this.data.checkinLoading) return;
+    this.setData({ checkinLoading: true });
     checkinService.checkin(this.data.scheduleId, this.data.targetDate)
       .then(() => {
-        wx.hideLoading();
+        this.setData({ checkinLoading: false });
         wx.showToast({ title: '打卡成功', icon: 'success' });
-        // 刷新详情
-        setTimeout(() => {
-          this._loadDetail();
-          this._loadCheckinWindow();
-        }, 800);
+        this._loadCheckinWindow();
       })
       .catch(err => {
-        wx.hideLoading();
+        this.setData({ checkinLoading: false });
         wx.showToast({ title: err.message || '打卡失败', icon: 'none' });
       });
   },
@@ -242,20 +298,26 @@ Page({
    * 撤销打卡
    */
   onUndo() {
-    wx.showLoading({ title: '撤销中...' });
+    if (this.data.checkinLoading) return;
+    this.setData({ checkinLoading: true });
     checkinService.undo(this.data.scheduleId, this.data.targetDate)
       .then(() => {
-        wx.hideLoading();
+        this.setData({ checkinLoading: false });
         wx.showToast({ title: '已撤销打卡', icon: 'success' });
-        setTimeout(() => {
-          this._loadDetail();
-          this._loadCheckinWindow();
-        }, 800);
+        this._loadCheckinWindow();
       })
       .catch(err => {
-        wx.hideLoading();
+        this.setData({ checkinLoading: false });
         wx.showToast({ title: err.message || '撤销失败', icon: 'none' });
       });
+  },
+
+  /**
+   * 打卡窗口加载失败后重试
+   */
+  onRetryCheckin() {
+    this.setData({ checkinError: false });
+    this._loadCheckinWindow();
   },
 
   /**
@@ -354,7 +416,7 @@ Page({
   },
 
   /**
-   * 重试
+   * 重试（整页）
    */
   onRetry() {
     this._loadDetail();

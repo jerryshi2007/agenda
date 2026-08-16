@@ -86,6 +86,23 @@ describe('WXML data-id 契约', () => {
     ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
   });
 
+  test('schedule-detail 页面含打卡状态机全部必需 data-id', () => {
+    const wxml = readFile('pages/schedule-detail/index.wxml');
+    [
+      'schedule-detail-checkin-btn',
+      'schedule-detail-checkin-btn-disabled',
+      'schedule-detail-checkin-countdown',
+      'schedule-detail-undo-btn',
+      'schedule-detail-checkin-loading',
+      'schedule-detail-checkin-error',
+      'schedule-detail-status-completed',
+      'schedule-detail-status-ended',
+      'schedule-detail-status-incomplete',
+      'schedule-detail-status-overdue',
+      'schedule-detail-status-cancelled'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+  });
+
   test('隐私政策拒绝页不包含任何 API 调用（无 wx.login / wx.request）', () => {
     const js = readFile('pages/privacy-prompt/index.js');
     expect(js).not.toContain('wx.login(');

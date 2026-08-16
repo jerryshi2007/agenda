@@ -32,12 +32,16 @@
     <!-- 打卡状态区 -->
     <view class="detail-status">
       <view class="detail-status-icon status-icon-{{statusClass}}">
-        <text wx:if="{{schedule.instanceStatus === 'completed' || schedule.instanceStatus === 'Completed'}}">&#x2713;</text>
-        <text wx:elif="{{schedule.instanceStatus === 'cancelled' || schedule.instanceStatus === 'Cancelled'}}">&#x2014;</text>
-        <text wx:elif="{{schedule.instanceStatus === 'overdue' || schedule.instanceStatus === 'Overdue'}}">&#x2717;</text>
+        <text wx:if="{{isCompleted}}">&#x2713;</text>
+        <text wx:elif="{{isCancelled}}">&#x2014;</text>
+        <text wx:elif="{{isOverdue || isEnded}}">&#x2717;</text>
         <text wx:else>&#x25CB;</text>
       </view>
-      <text class="detail-status-text status-text-{{statusClass}}">{{statusText}}</text>
+      <text wx:if="{{isCompleted}}" class="detail-status-text status-text-done" data-id="schedule-detail-status-completed">{{statusLabel}}</text>
+      <text wx:elif="{{isEnded}}" class="detail-status-text status-text-overdue" data-id="schedule-detail-status-ended">{{statusLabel}}</text>
+      <text wx:elif="{{isOverdue}}" class="detail-status-text status-text-overdue" data-id="schedule-detail-status-overdue">{{statusLabel}}</text>
+      <text wx:elif="{{isCancelled}}" class="detail-status-text status-text-cancelled" data-id="schedule-detail-status-cancelled">{{statusLabel}}</text>
+      <text wx:else class="detail-status-text status-text-pending" data-id="schedule-detail-status-incomplete">{{statusLabel}}</text>
     </view>
 
     <scroll-view scroll-y enable-flex class="detail-body">
@@ -108,21 +112,29 @@
 
     <!-- 操作按钮区 -->
     <view class="detail-actions safe-area-bottom">
-      <!-- 打卡按钮：4 种状态 -->
-      <!-- 可点击打卡 -->
-      <view wx:if="{{canCheckin && !countdownActive}}" class="btn btn-primary btn-block"
-            data-id="schedule-detail-checkin-btn" bindtap="onCheckin">打卡确认</view>
+      <!-- 打卡按钮状态机：loading / error / 可打卡 / 倒计时 / 可撤销 -->
+      <!-- 打卡请求进行中 -->
+      <view wx:if="{{checkinLoading}}" class="btn btn-block checkin-btn-loading"
+            data-id="schedule-detail-checkin-loading">处理中...</view>
 
-      <!-- 灰色倒计时 -->
-      <view wx:if="{{canCheckin && countdownActive}}" class="btn btn-block"
-            style="background:var(--color-border-light);color:var(--color-text-placeholder);"
-            data-id="schedule-detail-checkin-btn-disabled">
-        {{countdownText}}后可打卡
+      <!-- 打卡窗口加载失败（可重试） -->
+      <view wx:elif="{{checkinError}}" class="checkin-error" data-id="schedule-detail-checkin-error">
+        <text class="checkin-error-text">打卡状态加载失败</text>
+        <view class="btn btn-default btn-sm" bindtap="onRetryCheckin">重试</view>
       </view>
 
-      <!-- 可撤销 -->
-      <view wx:if="{{canUndo}}" class="btn btn-block"
-            style="background:var(--color-bg-page);color:var(--color-text-primary);border:2rpx solid var(--color-border);"
+      <!-- 可点击打卡 -->
+      <view wx:elif="{{canCheckin && !isEarly}}" class="btn btn-primary btn-block"
+            data-id="schedule-detail-checkin-btn" bindtap="onCheckin">打卡确认</view>
+
+      <!-- 灰色倒计时（提前窗口未开放） -->
+      <view wx:elif="{{isEarly}}" class="btn btn-block checkin-btn-disabled"
+            data-id="schedule-detail-checkin-btn-disabled">
+        <text data-id="schedule-detail-checkin-countdown">{{countdownText}}后可打卡</text>
+      </view>
+
+      <!-- 可撤销（学龄前模式除外） -->
+      <view wx:elif="{{canUndo && !isPreschoolMode}}" class="btn btn-block checkin-btn-undo"
             data-id="schedule-detail-undo-btn" bindtap="onUndo">撤销打卡</view>
 
       <!-- 编辑按钮（仅家长） -->

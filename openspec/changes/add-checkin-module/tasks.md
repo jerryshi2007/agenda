@@ -213,17 +213,17 @@
 
 > `services/checkin.js` 已存在 stub，方法名 `getWindow/checkin/undo/getRecords` 统一保留（前端内部实现非契约），仅需对齐端点路径。
 
-- [ ] **7.1** `services/checkin.js` — getWindow
+- [x] **7.1** `services/checkin.js` — getWindow
   路径：`app/services/checkin.js`
   方法：`getWindow(scheduleId, date)` → `GET /api/v1/checkin/window/{scheduleId}/{date}`
   返回：窗口状态响应 JSON
   错误处理：复用 `services/api.js` 统一拦截器（401 续期 / 网络错误 Toast）
 
-- [ ] **7.2** `services/checkin.js` — checkin
+- [x] **7.2** `services/checkin.js` — checkin
   方法：`checkin(scheduleId, date)` → `POST /api/v1/checkin`
   处理幂等响应：`alreadyCheckedIn: true` 时同样视为成功
 
-- [ ] **7.3** `services/checkin.js` — undo
+- [x] **7.3** `services/checkin.js` — undo
   方法：`undo(scheduleId, date)` → `DELETE /api/v1/checkin/{scheduleId}/{date}`（路径参数形式）
   错误映射：`TERMINAL_STATE` → "已结算，不可撤销"；`NOT_CHECKED_IN` → "无打卡记录"
 
@@ -233,12 +233,12 @@
 
 **预估工时**：0.5d | **依赖**：任务 7 完成、`pages/schedule-detail/` 页面存在
 
-- [ ] **8.1** 窗口状态查询
+- [x] **8.1** 窗口状态查询
   位置：`pages/schedule-detail/index.js` — `onShow()` / `onLoad()`
   实现：从 URL 参数获取 `scheduleId` + `date` → 调用 `getWindow` → 更新 data
   验证：页面打开后按钮状态与 API 返回一致
 
-- [ ] **8.2** 按钮状态机
+- [x] **8.2** 按钮状态机
   实现规则：
   | 条件 | 按钮显示 | 可点击 |
   |------|---------|:--:|
@@ -248,12 +248,12 @@
   | status in {ended, overdue, cancelled} | 仅状态文本 | — |
   验证：每种状态的 UI 表现正确
 
-- [ ] **8.3** 展示模式控制
+- [x] **8.3** 展示模式控制
   学龄前模式：不显示撤销按钮（`module-display-mode.md` 决策 #6）
   小学/高年级模式：canUndo=true 时显示撤销按钮
   实现：从全局状态或页面参数读取展示模式 → 条件渲染
 
-- [ ] **8.4** 倒计时逻辑 + 生命周期管理
+- [x] **8.4** 倒计时逻辑 + 生命周期管理
   实现：`setInterval` 每 30s 递减 `remainingSeconds`，归零后重新调用 `getWindow` 刷新
   **生命周期管理**（遵循 `dev-miniapp-standards`）：
   - `onShow()`：重新调 `GET /checkin/window` 获取最新状态，若 `remainingSeconds > 0` 则 `setInterval` 启动倒计时
@@ -261,19 +261,19 @@
   - `onUnload()`：`clearInterval(this._countdownTimer)`
   验证：切后台再回前台，状态刷新且倒计时重启；离开页面后无定时器泄漏
 
-- [ ] **8.5** 打卡按钮点击
+- [x] **8.5** 打卡按钮点击
   `onCheckinTap()` → 调用 `checkin` → Toast "打卡成功" → 刷新窗口 → 按钮切换为"撤销打卡"
 
-- [ ] **8.6** 撤销按钮点击
+- [x] **8.6** 撤销按钮点击
   `onUndoTap()` → 调用 `undo` → Toast "已撤销" → 刷新窗口 → 按钮切换为"打卡确认"
 
-- [ ] **8.7** WXML 条件渲染
+- [x] **8.7** WXML 条件渲染
   `wx:if="{{canCheckin && !isEarly}}"` → 可点击打卡按钮
   `wx:if="{{isEarly}}"` → 灰色倒计时按钮
   `wx:if="{{canUndo && !isPreschoolMode}}"` → 撤销按钮
   `wx:if="{{isTerminal}}"` → 仅状态文本
 
-- [ ] **8.8** data-id 属性
+- [x] **8.8** data-id 属性
   按设计文档 data-id 速查表添加完整标识（页面目录为 `schedule-detail`，前缀 `schedule-detail-*`）：
 
   | 元素 | data-id |

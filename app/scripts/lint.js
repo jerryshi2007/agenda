@@ -18,6 +18,12 @@ const AUTH_ERROR_CODES = [
   'NOT_DELETED', 'EXPIRED', 'TOKEN_INVALID', 'FILE_TOO_LARGE',
   'RATE_LIMITED', 'WECHAT_API_ERROR', 'WECHAT_API_TIMEOUT', 'INTERNAL_ERROR'
 ];
+// 仅收录打卡域专属错误码；SCHEDULE_NOT_FOUND / NOT_FAMILY_MEMBER 属跨域共享错误，
+// 日程模块（无 contracts 契约文件）已按字符串硬编码使用，故不在此清单内。
+const CHECKIN_ERROR_CODES = [
+  'CHECKIN_WINDOW_CLOSED', 'TERMINAL_STATE', 'NOT_CHECKED_IN',
+  'WINDOW_CLOSED', 'SCHEDULE_CANCELLED'
+];
 
 function walk(dir, out = []) {
   for (const name of fs.readdirSync(dir)) {
@@ -49,12 +55,18 @@ for (const f of files) {
 
   if (!isJs) continue;
 
-  // 1) 手写认证错误码字符串字面量（跳过契约镜像本身）
+  // 1) 手写错误码字符串字面量（跳过契约镜像本身）
   if (r.startsWith('services/') || r.startsWith('pages/')) {
     for (const code of AUTH_ERROR_CODES) {
       const re = new RegExp(`['"\`]${code}['"\`]`);
       if (re.test(content)) {
         errors.push(`${r}: 手写错误码字符串 "${code}"，应引用 app/contracts/auth.js`);
+      }
+    }
+    for (const code of CHECKIN_ERROR_CODES) {
+      const re = new RegExp(`['"\`]${code}['"\`]`);
+      if (re.test(content)) {
+        errors.push(`${r}: 手写错误码字符串 "${code}"，应引用 app/contracts/checkin.js`);
       }
     }
   }
