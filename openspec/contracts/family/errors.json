@@ -3,7 +3,7 @@
     "httpStatus": 400,
     "message": "不能移除自己，请使用退出功能"
   },
-  "DISOLVED_EXPIRED": {
+  "DISSOLVED_EXPIRED": {
     "httpStatus": 410,
     "message": "数据已过期删除，无法恢复"
   },
@@ -38,6 +38,10 @@
   "INVALID_INVITATION_CODE": {
     "httpStatus": 400,
     "message": "邀请码无效，请检查后重试"
+  },
+  "INVITATION_CODE_GENERATION_FAILED": {
+    "httpStatus": 503,
+    "message": "邀请码生成冲突，请稍后重试"
   },
   "INVALID_TRANSFER_TARGET": {
     "httpStatus": 400,

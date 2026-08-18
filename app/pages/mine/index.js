@@ -62,19 +62,19 @@ Page({
 
   onFamilyTap(e) {
     const familyId = e.currentTarget.dataset.familyId;
-    wx.showToast({ title: '家庭成员管理开发中', icon: 'none' });
+    wx.navigateTo({ url: '/pages/family-members/index?familyId=' + familyId });
   },
 
   onSwitchFamily() {
-    wx.showToast({ title: '家庭切换开发中', icon: 'none' });
+    wx.navigateTo({ url: '/pages/family-switch/index' });
   },
 
   onCreateFamily() {
-    wx.showToast({ title: '创建家庭开发中', icon: 'none' });
+    wx.navigateTo({ url: '/pages/family-create/index' });
   },
 
   onJoinFamily() {
-    wx.showToast({ title: '加入家庭开发中', icon: 'none' });
+    wx.navigateTo({ url: '/pages/family-join/index' });
   },
 
   onSettings() {

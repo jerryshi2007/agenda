@@ -1,0 +1,82 @@
+<!-- pages/family-members/index.wxml -->
+<view class="page-container safe-bottom">
+  <view wx:if="{{loading}}" class="loading-block">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <block wx:else>
+    <view wx:if="{{error}}" class="error-state">
+      <view class="error-state__icon">&#x26A0;&#xFE0F;</view>
+      <view class="error-state__title">{{errorMessage || '网络异常'}}</view>
+      <button class="btn-primary" data-id="family-members-retry-btn" bindtap="onRetry">重试</button>
+    </view>
+
+    <block wx:else>
+      <view class="family-header">
+        <view class="family-name">{{familyName}}</view>
+        <view class="family-meta">{{activeMemberCount}}/{{maxMemberCount}} 位成员</view>
+      </view>
+
+      <view class="action-bar">
+        <view class="action-btn" data-id="family-members-invite-btn" bindtap="onInvite">
+          <text class="action-icon">&#x2795;</text>
+          <text>邀请成员</text>
+        </view>
+        <view class="action-btn" data-id="family-members-invite-list-btn" bindtap="onInviteList">
+          <text class="action-icon">&#x1F4CB;</text>
+          <text>邀请记录</text>
+        </view>
+      </view>
+
+      <!-- 家长分组 -->
+      <view class="member-section">
+        <view class="section-title">家长</view>
+        <view wx:for="{{parents}}" wx:key="memberId"
+              class="member-item {{item.isDeactivated ? 'member-item--deactivated' : ''}}"
+              data-id="family-members-row-{{item.memberId}}"
+              data-member-id="{{item.memberId}}"
+              data-role="{{item.role}}"
+              bindtap="onMemberAction">
+          <view class="member-avatar">{{item.nickname[0] || '家'}}</view>
+          <view class="member-info">
+            <view class="member-name">
+              {{item.nickname}}
+              <text wx:if="{{item.isCreator}}" class="creator-tag">创建者</text>
+            </view>
+            <view class="member-meta">{{item.isDeactivated ? '已注销' : '家长'}}</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 孩子分组 -->
+      <view class="member-section">
+        <view class="section-title">孩子</view>
+        <view wx:for="{{children}}" wx:key="memberId"
+              class="member-item {{item.isDeactivated ? 'member-item--deactivated' : ''}}"
+              data-id="family-members-row-{{item.memberId}}"
+              data-member-id="{{item.memberId}}"
+              data-role="{{item.role}}"
+              bindtap="onMemberAction">
+          <view class="member-avatar member-avatar--child">{{item.childName[0] || item.nickname[0] || '孩'}}</view>
+          <view class="member-info">
+            <view class="member-name">{{item.childName || item.nickname}}</view>
+            <view class="member-meta">
+              {{item.isDeactivated ? '已注销' : '展示模式：' + (item.displayMode === 'Preschool' ? '学龄前' : (item.displayMode === 'Primary' ? '小学' : '高年级'))}}
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{parents.length === 0 && children.length === 0}}" class="empty-state">
+        <view class="empty-state__text">暂无成员</view>
+      </view>
+
+      <!-- 退出/解散按钮（Task 16） -->
+      <view class="danger-actions">
+        <button class="btn-secondary btn-block" data-id="family-members-leave-btn" bindtap="onLeaveFamily">退出家庭</button>
+        <button class="btn-danger btn-block" data-id="family-members-disband-btn" bindtap="onDisbandFamily">解散家庭</button>
+      </view>
+    </block>
+  </block>
+</view>

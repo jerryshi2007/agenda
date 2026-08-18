@@ -1,4 +1,4 @@
-using Agenda.Api.Auth.Dtos;
+using Agenda.Api.Family.Dtos;
 
 namespace Agenda.Api.Auth;
 

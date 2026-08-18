@@ -1,0 +1,74 @@
+<!-- pages/family-invite-list/index.wxml -->
+<view class="page-container safe-bottom">
+  <view wx:if="{{loading}}" class="loading-block">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <block wx:else>
+    <!-- 错误态 -->
+    <view wx:if="{{error}}" class="error-state">
+      <view class="error-state__icon">&#x26A0;&#xFE0F;</view>
+      <view class="error-state__title">{{errorMessage || '网络异常'}}</view>
+      <button class="btn-primary" data-id="invite-list-retry-btn" bindtap="onRetry">重试</button>
+    </view>
+
+    <block wx:else>
+      <!-- 待使用 -->
+      <view wx:if="{{groups.pending.length > 0}}" class="invite-section">
+        <view class="section-title">待使用（{{groups.pending.length}}）</view>
+        <view wx:for="{{groups.pending}}" wx:key="id" class="invite-item" data-id="invite-list-row-{{item.id}}">
+          <view class="invite-item-main">
+            <view class="invite-code">{{item.code}}</view>
+            <view class="invite-meta">到期 {{item.expiresAt}}</view>
+          </view>
+          <view class="invite-status status-pending">待使用</view>
+          <view class="invite-action" data-id="invite-list-revoke-btn-{{item.id}}" data-code-id="{{item.id}}" bindtap="onRevoke">撤销</view>
+        </view>
+      </view>
+
+      <!-- 已使用 -->
+      <view wx:if="{{groups.used.length > 0}}" class="invite-section">
+        <view class="section-title">已使用</view>
+        <view wx:for="{{groups.used}}" wx:key="id" class="invite-item invite-item--used">
+          <view class="invite-item-main">
+            <view class="invite-code">{{item.code}}</view>
+            <view class="invite-meta">已使用</view>
+          </view>
+          <view class="invite-status status-used">已使用</view>
+        </view>
+      </view>
+
+      <!-- 已撤销 -->
+      <view wx:if="{{groups.redeemed.length > 0}}" class="invite-section">
+        <view class="section-title">已撤销</view>
+        <view wx:for="{{groups.redeemed}}" wx:key="id" class="invite-item invite-item--used">
+          <view class="invite-item-main">
+            <view class="invite-code">{{item.code}}</view>
+            <view class="invite-meta">已撤销</view>
+          </view>
+          <view class="invite-status status-redeemed">已撤销</view>
+        </view>
+      </view>
+
+      <!-- 已过期 -->
+      <view wx:if="{{groups.expired.length > 0}}" class="invite-section">
+        <view class="section-title">已过期</view>
+        <view wx:for="{{groups.expired}}" wx:key="id" class="invite-item invite-item--used">
+          <view class="invite-item-main">
+            <view class="invite-code">{{item.code}}</view>
+            <view class="invite-meta">已过期</view>
+          </view>
+          <view class="invite-status status-expired">已过期</view>
+        </view>
+      </view>
+
+      <!-- 空态 -->
+      <view wx:if="{{groups.pending.length === 0 && groups.used.length === 0 && groups.redeemed.length === 0 && groups.expired.length === 0}}"
+            class="empty-state">
+        <view class="empty-state__icon">&#x1F4ED;</view>
+        <view class="empty-state__text">暂无邀请记录</view>
+      </view>
+    </block>
+  </block>
+</view>

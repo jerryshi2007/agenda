@@ -1,5 +1,7 @@
+using Agenda.Api.Auth;
 using Agenda.Api.Auth.Dtos;
 using Agenda.Api.Auth.Validators;
+using Agenda.Api.Family.Dtos;
 using Agenda.Api.Shared.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
@@ -77,6 +79,6 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> GetMyFamilies(CancellationToken ct)
     {
         var families = await _familyQueryService.GetUserFamiliesAsync(User.GetUserId(), ct);
-        return Ok(new UserFamiliesResponse { Families = families });
+        return Ok(new GetMyFamiliesResponse { Families = families });
     }
 }

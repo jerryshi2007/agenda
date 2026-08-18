@@ -27,6 +27,21 @@ function getToken() {
   return cipher ? crypto.decrypt(cipher) : null;
 }
 
+/**
+ * 读取当前家庭 ID（从本地 Storage）—— 供 X-Family-Id Header 注入使用
+ * 表示"用户当前操作的家庭上下文"，由前端维护；familyId 参数（路径中）与上下文不一致时
+ * 以前者为准（familyId 参数显式覆盖上下文）。
+ * 无当前家庭则返回 null（不注入 X-Family-Id Header）。
+ * @returns {string|null}
+ */
+function _currentFamilyId() {
+  if (typeof wx !== 'undefined' && wx.getStorageSync) {
+    const v = wx.getStorageSync(STORAGE_KEYS.CURRENT_FAMILY_ID);
+    return v || null;
+  }
+  return null;
+}
+
 function setToken(token) {
   wx.setStorageSync(STORAGE_KEYS.AUTH_TOKEN, crypto.encrypt(token));
 }
@@ -139,6 +154,7 @@ function request(options) {
   const url = options.url;
   const data = options.data;
   const skipAuth = options.skipAuth === true;
+  const skipFamilyHeader = options.skipFamilyHeader === true;
   const retry401 = options.retry401 !== false;
 
   // 隐私政策未同意前拒绝一切需登录态请求（不触发 401 → wx.login 续期，规避审核红线）
@@ -147,8 +163,13 @@ function request(options) {
   }
 
   const token = skipAuth ? null : getToken();
-  const header = { 'Content-Type': 'application/json' };
+  const familyId = skipFamilyHeader ? null : _currentFamilyId();
+  const header = Object.assign(
+    { 'Content-Type': 'application/json' },
+    options.headers || {}
+  );
   if (token) header.Authorization = `Bearer ${token}`;
+  if (familyId) header['X-Family-Id'] = familyId;
 
   const config = {
     url: BASE_URL + url,

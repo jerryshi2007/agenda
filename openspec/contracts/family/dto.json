@@ -67,14 +67,6 @@
       }
     }
   },
-  "TransferCreatorRequest": {
-    "fields": {
-      "newCreatorMemberId": {
-        "type": "Guid",
-        "required": true
-      }
-    }
-  },
   "FamilyInfo": {
     "fields": {
       "familyId": {

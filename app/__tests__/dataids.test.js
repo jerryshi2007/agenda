@@ -64,6 +64,9 @@ describe('WXML data-id 契约', () => {
     ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
     // 动态列表项：data-id 包含唯一 familyId
     expect(wxml).toContain('data-id="mine-family-info-{{currentFamily.familyId}}"');
+    // 回归防护：role 枚举值为 PascalCase，WXML 比对必须是 'Parent'（H2 修复）
+    expect(wxml).toContain("role === 'Parent'");
+    expect(wxml).not.toContain("role === 'parent'");
   });
 
   test('settings 页面含注销相关 data-id', () => {
@@ -107,5 +110,106 @@ describe('WXML data-id 契约', () => {
     const js = readFile('pages/privacy-prompt/index.js');
     expect(js).not.toContain('wx.login(');
     expect(js).not.toContain('wx.request(');
+  });
+
+  test('family-welcome 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-welcome/index.wxml');
+    [
+      'welcome-create-btn',
+      'welcome-join-btn',
+      'welcome-retry-btn'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+  });
+
+  test('family-create 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-create/index.wxml');
+    [
+      'create-family-name-input',
+      'create-family-role-parent',
+      'create-family-role-child',
+      'create-family-submit-btn'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    // 回归防护：role-mask 死链模式必须被移除
+    expect(wxml).not.toContain('create-family-role-mask');
+    expect(wxml).not.toContain('create-family-role-picker');
+  });
+
+  test('family-join 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-join/index.wxml');
+    [
+      'join-family-code-input',
+      'join-family-submit-btn',
+      'join-family-back-btn'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+  });
+
+  test('family-invite 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-invite/index.wxml');
+    [
+      'invite-member-parent-card',
+      'invite-member-child-card',
+      'invite-member-child-name',
+      'invite-member-mode-picker',
+      'invite-member-generate-btn',
+      'invite-code-display',
+      'invite-code-copy-btn',
+      'invite-member-share-btn',
+      'invite-code-regenerate-btn'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    // 动态展示模式项
+    expect(wxml).toContain('data-id="invite-member-mode-{{item.mode === \'Preschool\' ? \'preschool\' : (item.mode === \'Primary\' ? \'primary\' : \'senior\')}}"');
+  });
+
+  test('family-invite-list 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-invite-list/index.wxml');
+    [
+      'invite-list-retry-btn'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    // 动态邀请行
+    expect(wxml).toContain('data-id="invite-list-row-{{item.id}}"');
+    expect(wxml).toContain('data-id="invite-list-revoke-btn-{{item.id}}"');
+  });
+
+  test('family-members 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-members/index.wxml');
+    [
+      'family-members-invite-btn',
+      'family-members-invite-list-btn',
+      'family-members-retry-btn',
+      'family-members-leave-btn',
+      'family-members-disband-btn'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    // 动态成员行
+    expect(wxml).toContain('data-id="family-members-row-{{item.memberId}}"');
+  });
+
+  test('family-display-mode 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-display-mode/index.wxml');
+    [
+      'family-display-mode-error',
+      'family-display-mode-success',
+      'family-display-mode-save-btn'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    // 动态模式卡（含 {{item.mode}} 模板）
+    expect(wxml).toContain('data-id="family-display-mode-card-{{item.mode}}"');
+  });
+
+  test('family-switch 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-switch/index.wxml');
+    [
+      'family-switch-retry-btn'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    // 动态家庭行
+    expect(wxml).toContain('data-id="family-switch-row-{{item.familyId}}"');
+  });
+
+  test('family-restore 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-restore/index.wxml');
+    [
+      'family-restore-btn',
+      'family-restore-skip-btn',
+      'family-restore-error',
+      'family-restore-success'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
   });
 });

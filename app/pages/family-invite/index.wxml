@@ -1,0 +1,82 @@
+<!-- pages/family-invite/index.wxml -->
+<view class="page-container safe-bottom">
+  <view wx:if="{{!codeVisible}}" class="invite-page">
+    <!-- 邀请类型选择 -->
+    <view class="invite-type-card" data-id="invite-member-parent-card" bindtap="onSelectType" data-role="Parent">
+      <view class="invite-type-header">
+        <view class="invite-type-icon invite-type-icon--parent">&#x1F468;</view>
+        <view class="invite-type-info">
+          <view class="invite-type-title">邀请家长</view>
+          <view class="invite-type-desc">生成 6 位邀请码，发送给对方</view>
+        </view>
+        <view wx:if="{{targetRole === 'Parent'}}" class="invite-type-check">&#x2713;</view>
+      </view>
+    </view>
+
+    <view class="invite-type-card" data-id="invite-member-child-card" bindtap="onSelectType" data-role="Child">
+      <view class="invite-type-header">
+        <view class="invite-type-icon invite-type-icon--child">&#x1F466;</view>
+        <view class="invite-type-info">
+          <view class="invite-type-title">邀请孩子</view>
+          <view class="invite-type-desc">需指定孩子姓名和展示模式</view>
+        </view>
+        <view wx:if="{{targetRole === 'Child'}}" class="invite-type-check">&#x2713;</view>
+      </view>
+
+      <!-- 孩子表单（仅在 Child 时展开） -->
+      <view wx:if="{{childFormVisible}}" class="invite-child-form">
+        <view class="form-item">
+          <view class="form-item__label">孩子姓名</view>
+          <input class="form-item__input" type="text" maxlength="20"
+                 placeholder="请输入孩子姓名"
+                 value="{{childName}}" bindinput="onChildNameInput"
+                 data-id="invite-member-child-name" />
+        </view>
+        <view class="form-item" data-id="invite-member-mode-picker">
+          <view class="form-item__label">展示模式</view>
+          <view class="form-item__value mode-picker">
+            <view wx:for="{{displayModes}}" wx:key="mode"
+                  class="mode-option {{targetDisplayMode === item.mode ? 'selected' : ''}}"
+                  data-id="invite-member-mode-{{item.mode === 'Preschool' ? 'preschool' : (item.mode === 'Primary' ? 'primary' : 'senior')}}"
+                  data-mode="{{item.mode}}"
+                  bindtap="onSelectDisplayMode">
+              {{item.label}}
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{error}}" class="error-text">{{error}}</view>
+
+    <view class="submit-wrap">
+      <button class="btn-primary btn-block btn-lg"
+              data-id="invite-member-generate-btn"
+              bindtap="onSubmit"
+              disabled="{{!valid || submitting}}">
+        {{submitting ? '生成中...' : '生成邀请码'}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 邀请码展示 -->
+  <view wx:else class="invite-code-page">
+    <view class="invite-code-title">邀请码</view>
+    <view class="invite-code-display" data-id="invite-code-display">
+      <text wx:for="{{code}}" wx:key="*this" class="code-digit-large">{{item}}</text>
+    </view>
+    <view class="invite-code-expire">有效期至 {{expiresAt}}</view>
+
+    <view class="submit-wrap">
+      <button class="btn-primary btn-block btn-lg"
+              data-id="invite-code-copy-btn"
+              bindtap="onCopyCode">复制邀请码</button>
+      <button class="btn-secondary btn-block btn-lg"
+              open-type="share"
+              data-id="invite-member-share-btn">分享给朋友</button>
+      <button class="btn-secondary btn-block btn-lg"
+              data-id="invite-code-regenerate-btn"
+              bindtap="onRegenerate">重新生成</button>
+    </view>
+  </view>
+</view>

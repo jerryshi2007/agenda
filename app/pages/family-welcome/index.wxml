@@ -1,0 +1,27 @@
+<!-- pages/family-welcome/index.wxml -->
+<view class="page-container safe-bottom">
+  <!-- 加载态 -->
+  <view wx:if="{{loading}}" class="loading-block">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 错误态 -->
+  <view wx:elif="{{error}}" class="error-state">
+    <view class="error-state__icon">&#x26A0;&#xFE0F;</view>
+    <view class="error-state__title">网络连接失败</view>
+    <view class="error-state__desc">无法检查家庭状态，请检查网络后重试</view>
+    <button class="btn-primary" data-id="welcome-retry-btn" bindtap="onRetry">重试</button>
+  </view>
+
+  <!-- 引导态 -->
+  <view wx:else class="welcome-page">
+    <view class="welcome-illust">&#x1F46A;</view>
+    <view class="welcome-title">欢迎使用家庭日程</view>
+    <view class="welcome-desc">创建或加入一个家庭，开启协作日程管理</view>
+    <view class="welcome-actions">
+      <button class="btn-primary btn-block btn-lg" data-id="welcome-create-btn" bindtap="onCreateFamily">创建家庭</button>
+      <button class="btn-secondary btn-block btn-lg" data-id="welcome-join-btn" bindtap="onJoinFamily">加入家庭</button>
+    </view>
+  </view>
+</view>
