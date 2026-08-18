@@ -28,7 +28,7 @@
 | 打卡 | ✅ | ✅ | ✅ | ✅ | ✅ | add-checkin-module (archived) |
 | 家庭 | ✅ | ✅ | ✅ | ✅ | ✅ | add-family-module (archived) |
 | 模板 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
-| 展示模式 | ✅ | ✅ | ⬜ | ⬜ | ⬜ | add-display-mode-module |
+| 展示模式 | ✅ | ✅ | ✅ | ⬜ | ⬜ | add-display-mode-module |
 
 - **日程管理**：全流程完成（五阶段 done），OpenSpec 已归档
 - **认证**：全流程完成（五阶段 done），OpenSpec 已归档

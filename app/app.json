@@ -17,7 +17,11 @@
     "pages/family-members/index",
     "pages/family-display-mode/index",
     "pages/family-switch/index",
-    "pages/family-restore/index"
+    "pages/family-restore/index",
+    "pages/child-today/index",
+    "pages/child-week/index",
+    "pages/child-month/index",
+    "pages/child-mine/index"
   ],
   "window": {
     "navigationBarBackgroundColor": "#FFFFFF",

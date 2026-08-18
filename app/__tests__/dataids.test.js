@@ -219,4 +219,79 @@ describe('WXML data-id 契约', () => {
       'family-restore-success'
     ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
   });
+
+  test('child-today 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/child-today/index.wxml');
+    [
+      'child-today-progress',
+      'child-today-list',
+      'child-today-empty',
+      'child-today-error',
+      'child-today-loading',
+      'child-today-retry-btn',
+      'child-today-nav-today',
+      'child-today-nav-week',
+      'child-today-nav-month',
+      'child-today-nav-mine'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    expect(wxml).toContain('data-id="child-today-item-{{item.scheduleId}}"');
+    expect(wxml).toContain('data-id="child-today-checkin-btn-{{item.scheduleId}}"');
+    // L1：撤销按钮 data-id（已完成项的 undo 入口，与打卡按钮成对）
+    expect(wxml).toContain('data-id="child-today-undo-btn-{{item.scheduleId}}"');
+  });
+
+  test('child-week 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/child-week/index.wxml');
+    [
+      'child-week-loading',
+      'child-week-error',
+      'child-week-grid',
+      'child-week-retry-btn',
+      'child-week-nav-today',
+      'child-week-nav-week',
+      'child-week-nav-month',
+      'child-week-nav-mine'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    expect(wxml).toContain('data-id="child-week-day-{{day.date}}"');
+  });
+
+  test('child-month 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/child-month/index.wxml');
+    [
+      'child-month-loading',
+      'child-month-error',
+      'child-month-grid',
+      'child-month-retry-btn',
+      'child-month-nav-today',
+      'child-month-nav-week',
+      'child-month-nav-month',
+      'child-month-nav-mine'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    expect(wxml).toContain('data-id="child-month-day-{{cell.date}}"');
+  });
+
+  test('child-mine 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/child-mine/index.wxml');
+    [
+      'child-mine-name',
+      'child-mine-progress',
+      'child-mine-progress-text',
+      'child-mine-progress-bar-fill',
+      'child-mine-loading',
+      'child-mine-error',
+      'child-mine-nav-today',
+      'child-mine-nav-week',
+      'child-mine-nav-month',
+      'child-mine-nav-mine'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+  });
+
+  test('child-mine 页面不包含家长端管理功能入口（小学模式边界）', () => {
+    const wxml = readFile('pages/child-mine/index.wxml');
+    expect(wxml).not.toContain('family-switch');
+    expect(wxml).not.toContain('family-create');
+    expect(wxml).not.toContain('family-join');
+    expect(wxml).not.toContain('settings');
+    expect(wxml).not.toContain('profile-edit');
+  });
 });

@@ -1,0 +1,54 @@
+<!-- pages/child-month/index.wxml
+     孩子月只读视图（小学模式）—— 月日历 + 有日程的日期显示色点 -->
+
+<view class="page-container safe-bottom">
+  <!-- 视图切换器（孩子端 4 视图互跳） -->
+  <view class="child-view-switcher">
+    <view class="child-view-switcher-item" data-id="child-month-nav-today" bindtap="onSwitchToToday">今日</view>
+    <view class="child-view-switcher-item" data-id="child-month-nav-week" bindtap="onSwitchToWeek">本周</view>
+    <view class="child-view-switcher-item active" data-id="child-month-nav-month">本月</view>
+    <view class="child-view-switcher-item" data-id="child-month-nav-mine" bindtap="onSwitchToMine">我的</view>
+  </view>
+
+  <!-- 加载态 -->
+  <view wx:if="{{loading && cells.length === 0}}" class="loading-block" data-id="child-month-loading">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载本月日程中...</view>
+  </view>
+
+  <!-- 错误态 -->
+  <view wx:elif="{{error}}" class="error-state" data-id="child-month-error">
+    <view class="error-state-title">加载失败</view>
+    <view class="error-state-desc">网络连接失败，请检查网络设置</view>
+    <view class="btn btn-primary btn-sm" data-id="child-month-retry-btn" bindtap="onRetry">重试</view>
+  </view>
+
+  <block wx:else>
+    <!-- 星期头 -->
+    <view class="child-month-header">
+      <text class="child-month-header-cell">一</text>
+      <text class="child-month-header-cell">二</text>
+      <text class="child-month-header-cell">三</text>
+      <text class="child-month-header-cell">四</text>
+      <text class="child-month-header-cell">五</text>
+      <text class="child-month-header-cell child-month-header-weekend">六</text>
+      <text class="child-month-header-cell child-month-header-weekend">日</text>
+    </view>
+
+    <!-- 月网格 -->
+    <view class="child-month-grid" data-id="child-month-grid">
+      <view wx:for="{{cells}}" wx:key="date" wx:for-item="cell"
+            class="child-month-cell {{!cell.isCurrentMonth ? 'child-month-cell-other' : ''}} {{cell.isToday ? 'child-month-cell-today' : ''}} {{cell.isWeekend && cell.isCurrentMonth ? 'child-month-cell-weekend' : ''}}"
+            data-id="child-month-day-{{cell.date}}"
+            data-date="{{cell.date}}"
+            data-current="{{cell.isCurrentMonth}}"
+            bindtap="onDayTap">
+        <text class="child-month-day {{cell.isToday ? 'child-month-day-today' : ''}}">{{cell.day}}</text>
+        <view wx:if="{{cell.dots.length > 0}}" class="child-month-dots">
+          <view wx:for="{{cell.dots}}" wx:for-item="dot" wx:key="scheduleType"
+                class="child-month-dot child-month-dot-{{dot.typeClass}}"></view>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

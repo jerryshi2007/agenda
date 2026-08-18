@@ -1,0 +1,87 @@
+<!-- pages/child-today/index.wxml
+     孩子今日只读视图（小学模式）—— 顶部完成进度 + 日程列表 + 空态/错误态/加载态 -->
+
+<view class="page-container safe-bottom">
+  <!-- 视图切换器（孩子端 4 视图互跳） -->
+  <view class="child-view-switcher">
+    <view class="child-view-switcher-item active" data-id="child-today-nav-today">今日</view>
+    <view class="child-view-switcher-item" data-id="child-today-nav-week" bindtap="onSwitchToWeek">本周</view>
+    <view class="child-view-switcher-item" data-id="child-today-nav-month" bindtap="onSwitchToMonth">本月</view>
+    <view class="child-view-switcher-item" data-id="child-today-nav-mine" bindtap="onSwitchToMine">我的</view>
+  </view>
+
+  <!-- 加载态 -->
+  <view wx:if="{{loading}}" class="loading-block" data-id="child-today-loading">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载今日日程中...</view>
+  </view>
+
+  <!-- 错误态 -->
+  <view wx:elif="{{error}}" class="error-state" data-id="child-today-error">
+    <view class="error-state-title">加载失败</view>
+    <view class="error-state-desc">网络连接失败，请检查网络设置</view>
+    <view class="btn btn-primary btn-sm" data-id="child-today-retry-btn" bindtap="onRetry">重试</view>
+  </view>
+
+  <block wx:else>
+    <!-- 顶部进度 -->
+    <view class="child-progress" data-id="child-today-progress">
+      <view class="child-progress-text">{{progressText}}</view>
+      <view class="child-progress-bar">
+        <view class="child-progress-bar-fill" style="width: {{completionPercentage}}%;"></view>
+      </view>
+    </view>
+
+    <!-- 列表 -->
+    <view wx:if="{{!isEmpty}}" class="child-list" data-id="child-today-list">
+      <view wx:for="{{items}}" wx:key="scheduleId" wx:for-item="item"
+            class="child-item child-item-{{item.typeClass}}"
+            data-id="child-today-item-{{item.scheduleId}}">
+        <!-- 类型色条 -->
+        <view class="child-item-stripe child-item-stripe-{{item.typeClass}}"></view>
+
+        <view class="child-item-body">
+          <!-- 顶部行：类型图标 + 名称 + 状态 -->
+          <view class="child-item-top">
+            <text class="child-item-type-tag tag tag-{{item.typeClass}}">{{item.typeLabel}}</text>
+            <text class="child-item-name">{{item.name}}</text>
+            <text wx:if="{{item.status === 'completed' || item.status === 'Completed'}}"
+                  class="child-item-status-done" data-id="child-today-status-done-{{item.scheduleId}}">&#x2713;</text>
+          </view>
+          <!-- 时间行 -->
+          <view wx:if="{{item.startTime && item.endTime}}" class="child-item-time">
+            {{item.startTime}} - {{item.endTime}}
+          </view>
+          <view wx:elif="{{item.dueDate}}" class="child-item-time">
+            截止 {{item.dueDate}}
+          </view>
+        </view>
+
+        <!-- 打卡/撤销按钮 -->
+        <view wx:if="{{item.status === 'incomplete' || item.status === 'Incomplete'}}"
+              class="child-item-checkin-btn"
+              data-id="child-today-checkin-btn-{{item.scheduleId}}"
+              data-schedule-id="{{item.scheduleId}}"
+              data-instance-date="{{item.instanceDate}}"
+              data-status="{{item.status}}"
+              catchtap="onCheckinTap">打卡</view>
+        <view wx:elif="{{item.status === 'completed' || item.status === 'Completed'}}"
+              class="child-item-checkin-btn child-item-checkin-btn-done"
+              data-id="child-today-undo-btn-{{item.scheduleId}}"
+              data-schedule-id="{{item.scheduleId}}"
+              data-instance-date="{{item.instanceDate}}"
+              data-status="{{item.status}}"
+              catchtap="onCheckinTap">撤销</view>
+      </view>
+    </view>
+
+    <!-- 空态 -->
+    <view wx:else class="empty-state" data-id="child-today-empty">
+      <view class="empty-state-icon">
+        <text style="font-size:96rpx;">&#x1F4C5;</text>
+      </view>
+      <view class="empty-state-title">今天还没有日程</view>
+      <view class="empty-state-desc">去「周」或「月」视图查看更多吧</view>
+    </view>
+  </block>
+</view>

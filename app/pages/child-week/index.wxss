@@ -1,0 +1,113 @@
+/* pages/child-week/index.wxss
+   孩子周只读视图（小学模式） */
+
+@import '../../styles/common.wxss';
+
+.page-container {
+  min-height: 100vh;
+  background: var(--color-bg-page);
+}
+
+/* 视图切换器 */
+.child-view-switcher {
+  display: flex;
+  background: var(--color-bg-white);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 2rpx solid var(--color-border-light);
+}
+
+.child-view-switcher-item {
+  flex: 1;
+  text-align: center;
+  padding: var(--spacing-sm) 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.child-view-switcher-item.active {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+/* 星期头 */
+.child-week-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: var(--color-bg-white);
+  padding: var(--spacing-md) 0;
+  border-bottom: 2rpx solid var(--color-border-light);
+}
+
+.child-week-header-cell {
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.child-week-header-weekend {
+  color: var(--color-text-primary);
+}
+
+/* 7 天网格 */
+.child-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: var(--color-bg-white);
+  padding: var(--spacing-md) 0;
+}
+
+.child-week-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-md) 0;
+  border-right: 2rpx solid var(--color-border-light);
+}
+
+.child-week-cell:last-child {
+  border-right: none;
+}
+
+.child-week-cell-weekend {
+  background: var(--color-bg-page);
+}
+
+.child-week-cell-today {
+  background: var(--color-primary-light);
+}
+
+.child-week-day {
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.child-week-day-today {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.child-week-dots {
+  display: flex;
+  flex-direction: row;
+  gap: 4rpx;
+  height: 12rpx;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 60rpx;
+}
+
+.child-week-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: var(--radius-round);
+}
+
+.child-week-dot-activity { background: var(--color-type-activity); }
+.child-week-dot-routine { background: var(--color-type-routine); }
+.child-week-dot-homework { background: var(--color-type-homework); }

@@ -86,5 +86,9 @@
   "CHILD_ACCESS_DENIED": {
     "httpStatus": 403,
     "message": "你只能查看自己的日程"
+  },
+  "CHILD_ONLY_ENDPOINT": {
+    "httpStatus": 403,
+    "message": "仅孩子角色可访问"
   }
 }

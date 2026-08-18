@@ -1,5 +1,6 @@
 using Agenda.Api.Auth;
 using Agenda.Api.Auth.Dtos;
+using Agenda.Api.Auth.Services;
 using Agenda.Api.Auth.Validators;
 using Agenda.Api.Infrastructure.Auth;
 using Agenda.Api.Infrastructure.Services;
@@ -26,6 +27,7 @@ public static class AuthServiceCollectionExtensions
         services.AddHttpClient<IWeChatService, WeChatService>(client =>
             client.Timeout = TimeSpan.FromSeconds(5));
         services.AddSingleton<IJwtService, JwtService>();
+        services.AddScoped<ITokenService, TokenService>();
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IFamilyQueryService, EmptyFamilyQueryService>();
