@@ -196,6 +196,37 @@ staging 是 SDLC 外层容器，OpenSpec 管理 Stage 2 设计、Stage 3 研发�
 | **核心文件** | requirement.md, epic-story.md, STATUS.md | proposal.md, design.md, tasks.md, specs/ |
 | **受众** | 产品 + 设计 + 研发 + 测试 + 归档全角色 | 研发角色（架构师+开发者） |
 
+## Stage 4 平台分支
+
+Stage 4 测试流水线按项目类型分两条路径，主代理进入 Stage 4 前 MUST 判断项目类型并选择正确分支。
+
+### Web 应用（存在 `web/` 目录）
+
+```
+test-planner → test-writer → test-reviewer → test-runner → 人审批
+```
+
+- test-writer 产出 Playwright E2E 脚本（Page Object + spec）
+- test-runner 多浏览器执行 + 失败分类（真实 bug / 环境问题 / 脚本错误 / flaky）
+- 产物：`testing/e2e/specs/*.spec.ts` + `testing/e2e/reports/test-report.md`
+
+### 微信小程序（存在 `app/` 目录，无 `web/`）
+
+```
+test-planner → 已有测试评估 → 按需补充后端(dev-dotnet)/前端(dev-miniapp) → test-reviewer → 主代理执行测试 → 人审批
+```
+
+- test-writer 和 test-runner **不适用**（仅 Web 应用的 Playwright E2E）
+- 前端测试走 Jest + miniprogram-simulate（dev-miniapp-tdd skill）
+- 后端测试走 xUnit（dev-dotnet-tdd skill）
+- 主代理 MUST 负责最终执行 `dotnet test api/` + `cd app && npx jest` 并生成测试报告
+
+### 主代理调度约束
+
+1. **进入 Stage 4 前 MUST 先 Glob 扫描已有测试**：`api/**/__tests__/` 和 `app/__tests__/`（小程序）或 `testing/e2e/`（Web），将已有覆盖结论写入 test-planner 提示词
+2. **禁止跳过 test-planner**：即使已有测试覆盖充分，仍需 test-planner 产出测试计划（含已有覆盖评估 + 缺口分析）
+3. **测试执行后 MUST 产出 test-report.md**：无论用哪个 agent 执行，最终报告放入 `openspec/changes/<name>/test-report.md`
+
 ## 示例
 
 - ✅ "登录接口在密码连续错误 5 次后锁定账号 15 分钟，并返回 HTTP 429 + 错误码 ACCOUNT_LOCKED"

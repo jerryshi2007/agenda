@@ -16,7 +16,7 @@
 | dev-security | dev-debugging, dev-dotnet-tdd, dev-vue3-tdd, dev-miniapp-tdd, dev-code-review, arch-design, arch-review, openspec-apply-change, dev-sdd | — |
 | dev-dotnet-standards | dev-dotnet-tdd, arch-design, arch-review, arch-planning | dev-dotnet |
 | dev-vue3-standards | dev-vue3-tdd, arch-design, arch-review, test-e2e-playwright | dev-vue3 |
-| dev-miniapp-standards | dev-miniapp-tdd, arch-planning | dev-miniapp |
+| dev-miniapp-standards | dev-miniapp-tdd, arch-planning | dev-miniapp, test-planner |
 | dev-refactor | dev-refactoring | — |
 | test-standards | test-case-design, test-e2e-playwright, dev-dotnet-tdd, dev-vue3-tdd, dev-miniapp-tdd | test-planner, test-reviewer, test-runner |
 | git-commit | — | （横切，CLAUDE.md 引用，主代理提交时遵循） |
