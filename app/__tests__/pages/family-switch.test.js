@@ -60,6 +60,7 @@ describe('family-switch 页面', () => {
     ctx.onLoad();
     await flush();
     ctx.onSelectFamily({ currentTarget: { dataset: { familyId: 'f2' } } });
+    await flush();
     expect(wx.setStorageSync).toHaveBeenCalledWith(STORAGE_KEYS.CURRENT_FAMILY_ID, 'f2');
   });
 
@@ -72,6 +73,7 @@ describe('family-switch 页面', () => {
     ctx.onLoad();
     await flush();
     ctx.onSelectFamily({ currentTarget: { dataset: { familyId: 'f2' } } });
+    await flush();
     expect(wx.reLaunch).toHaveBeenCalled();
   });
 
@@ -129,5 +131,42 @@ describe('family-switch 页面', () => {
     ctx.onRetry();
     await flush();
     expect(ctx.data.error).toBe(false);
+  });
+
+  // TC-FSW-05：点击已退出家庭时提示"你已不在该家庭中"并自动从列表移除
+  test('TC-FSW-05：onSelectFamily 时若该家庭已不在列表中，提示并从列表移除', async () => {
+    // 初次加载：列表中包含 A 和 B
+    family.getMyFamilies.mockResolvedValueOnce({ families: [
+      { familyId: 'f-current', familyName: '当前家', role: 'Parent', memberCount: 3 },
+      { familyId: 'f-removed', familyName: '已退出家', role: 'Parent', memberCount: 2 }
+    ] });
+    const ctx = setup();
+    ctx.onLoad();
+    await flush();
+    expect(ctx.data.families.length).toBe(2);
+    // 模拟用户在两次拉取之间被从 f-removed 家庭移除
+    family.getMyFamilies.mockResolvedValueOnce({ families: [
+      { familyId: 'f-current', familyName: '当前家', role: 'Parent', memberCount: 3 }
+    ] });
+    ctx.onSelectFamily({ currentTarget: { dataset: { familyId: 'f-removed' } } });
+    await flush();
+    expect(ctx.data.errorMessage).toBe('你已不在该家庭中');
+    expect(ctx.data.families.find(f => f.familyId === 'f-removed')).toBeUndefined();
+    expect(wx.reLaunch).not.toHaveBeenCalled();
+    expect(wx.setStorageSync).not.toHaveBeenCalledWith(STORAGE_KEYS.CURRENT_FAMILY_ID, 'f-removed');
+  });
+
+  test('TC-FSW-05：onSelectFamily 时若仍在该家庭中，校验通过后 reLaunch', async () => {
+    family.getMyFamilies.mockResolvedValue({ families: [
+      { familyId: 'f-current', familyName: '当前家', role: 'Parent', memberCount: 3 },
+      { familyId: 'f2', familyName: '家2', role: 'Parent', memberCount: 2 }
+    ] });
+    const ctx = setup();
+    ctx.onLoad();
+    await flush();
+    ctx.onSelectFamily({ currentTarget: { dataset: { familyId: 'f2' } } });
+    await flush();
+    expect(wx.setStorageSync).toHaveBeenCalledWith(STORAGE_KEYS.CURRENT_FAMILY_ID, 'f2');
+    expect(wx.reLaunch).toHaveBeenCalled();
   });
 });

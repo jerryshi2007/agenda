@@ -67,6 +67,8 @@ describe('WXML data-id 契约', () => {
     // 回归防护：role 枚举值为 PascalCase，WXML 比对必须是 'Parent'（H2 修复）
     expect(wxml).toContain("role === 'Parent'");
     expect(wxml).not.toContain("role === 'parent'");
+    // 回归防护：单家庭时隐藏切换入口由 WXML wx:if 表达式控制（TC-FSW-04）
+    expect(wxml).toContain('wx:if="{{families.length >= 2}}"');
   });
 
   test('settings 页面含注销相关 data-id', () => {
@@ -119,6 +121,9 @@ describe('WXML data-id 契约', () => {
       'welcome-join-btn',
       'welcome-retry-btn'
     ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    // TC-FW-04：分享卡片确认页 data-id
+    expect(wxml).toContain('data-id="welcome-share-accept-btn"');
+    expect(wxml).toContain('data-id="welcome-share-decline-btn"');
   });
 
   test('family-create 页面含全部必需 data-id', () => {
@@ -181,6 +186,8 @@ describe('WXML data-id 契约', () => {
     ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
     // 动态成员行
     expect(wxml).toContain('data-id="family-members-row-{{item.memberId}}"');
+    // 回归防护：成员名取 childName || nickname（TC-FM-09，防误改为纯 nickname）
+    expect(wxml).toContain('{{item.childName || item.nickname}}');
   });
 
   test('family-display-mode 页面含全部必需 data-id', () => {

@@ -138,4 +138,33 @@ describe('mine 页面', () => {
     ctx.onJoinFamily();
     expect(wx.navigateTo).toHaveBeenCalledWith({ url: '/pages/family-join/index' });
   });
+
+  // TC-FSW-04：单家庭时隐藏"切换家庭"入口
+  test('TC-FSW-04：单家庭时 switchFamily 应为不可见（WXML 用 wx:if families.length >= 2 控制）', async () => {
+    auth.getProfile.mockResolvedValue({ nickname: '小明' });
+    auth.getMyFamilies.mockResolvedValue({
+      families: [{ familyId: 'f1', familyName: '我的家', role: 'Parent', memberCount: 3 }]
+    });
+    const ctx = setup();
+    ctx.onShow();
+    await flush();
+    // 数据契约：WXML 表达式为 wx:if="{{families.length >= 2}}"
+    const shouldShowSwitch = ctx.data.families.length >= 2;
+    expect(shouldShowSwitch).toBe(false);
+  });
+
+  test('TC-FSW-04：2+ 家庭时 switchFamily 入口可见', async () => {
+    auth.getProfile.mockResolvedValue({ nickname: '小明' });
+    auth.getMyFamilies.mockResolvedValue({
+      families: [
+        { familyId: 'f1', familyName: '家1', role: 'Parent', memberCount: 3 },
+        { familyId: 'f2', familyName: '家2', role: 'Parent', memberCount: 2 }
+      ]
+    });
+    const ctx = setup();
+    ctx.onShow();
+    await flush();
+    const shouldShowSwitch = ctx.data.families.length >= 2;
+    expect(shouldShowSwitch).toBe(true);
+  });
 });

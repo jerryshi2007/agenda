@@ -176,6 +176,32 @@ public class InvitationCodeServiceTests
     }
 
     [Fact]
+    public async Task GenerateAsync_AllRetriesCollide_ThrowsInvitationCodeGenerationFailed()
+    {
+        // 强制随机源始终返回下标 0（即永远生成 "222222"），让 10 次重试全部碰撞。
+        var db = CreateDbContext();
+        var (family, creator) = await SeedFamilyAsync(db);
+        // 预先占用码 "222222"，使每次生成尝试都撞库。
+        db.InvitationCodes.Add(new DomainInvitationCode
+        {
+            Id = Guid.NewGuid(),
+            Code = "222222",
+            FamilyId = Guid.NewGuid(),
+            TargetRole = UserRole.Parent,
+            CreatorId = Guid.NewGuid(),
+            CreatedAt = Now(),
+            ExpiresAt = Now().AddHours(24),
+            Status = InvitationCodeStatus.Pending
+        });
+        await db.SaveChangesAsync();
+        var svc = new InvitationCodeService(db, _ => 0);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(
+            () => svc.GenerateAsync(family.Id, creator.Id, new GenerateInviteCodeRequest { TargetRole = UserRole.Parent }, Now()));
+        Assert.Equal(ErrorCodes.InvitationCodeGenerationFailed, ex.ErrorCode);
+    }
+
+    [Fact]
     public async Task GenerateAsync_CreatesValidInvitationCodeStatusPending()
     {
         var db = CreateDbContext();

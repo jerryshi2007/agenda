@@ -64,10 +64,12 @@ Page({
   },
 
   _selfMemberId() {
-    // 在 parents 中通过 userId 匹配
+    // 在 parents 或 children 中通过 userId 匹配
     if (app && app.globalData && app.globalData.userId) {
       const me = (this.data.parents || []).find(m => m.userId === app.globalData.userId);
       if (me) return me.memberId;
+      const child = (this.data.children || []).find(m => m.userId === app.globalData.userId);
+      if (child) return child.memberId;
     }
     return '';
   },

@@ -124,4 +124,33 @@ describe('family-join 页面', () => {
     await ctx.onSubmit();
     expect(ctx.data.error).toBe('其他错误');
   });
+
+  // TC-FS-05：未登录/无 token 时 family-join 错误处理
+  test('TC-FS-05：onLoad 时 storage 无 AUTH_TOKEN，标记 notLoggedIn=true 并展示提示', () => {
+    // 默认 beforeEach 已 mock getStorageSync 返回 null（无 token）
+    const ctx = setup();
+    ctx.onLoad({});
+    expect(ctx.data.notLoggedIn).toBe(true);
+    expect(ctx.data.error).toBe('请先登录后再加入家庭');
+  });
+
+  test('TC-FS-05：未登录态下 onSubmit 不调 joinByCode API', async () => {
+    const ctx = setup();
+    ctx.onLoad({});
+    ctx.onCodeInput({ detail: { value: '234567' } });
+    await ctx.onSubmit();
+    expect(family.joinByCode).not.toHaveBeenCalled();
+    expect(ctx.data.error).toBe('请先登录后再加入家庭');
+  });
+
+  test('TC-FS-05：有 token 时 onLoad 标记 notLoggedIn=false 允许正常提交', async () => {
+    wx.getStorageSync.mockImplementation((k) => k === STORAGE_KEYS.AUTH_TOKEN ? 'jwt-xxx' : null);
+    family.joinByCode.mockResolvedValue({ familyId: 'f-joined' });
+    const ctx = setup();
+    ctx.onLoad({});
+    expect(ctx.data.notLoggedIn).toBe(false);
+    ctx.onCodeInput({ detail: { value: '234567' } });
+    await ctx.onSubmit();
+    expect(family.joinByCode).toHaveBeenCalledWith('234567');
+  });
 });

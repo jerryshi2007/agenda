@@ -1,5 +1,6 @@
 // pages/family-join/index.js
 // 加入家庭页 —— 输入 6 位邀请码（仅 2-9），提交 joinByCode，成功跳日历
+// TC-FS-05：未登录/无 token 时不调 API，直接展示错误提示
 
 const familyService = require('../../services/family');
 const STORAGE_KEYS = require('../../utils/storage-keys');
@@ -14,7 +15,8 @@ Page({
     codeLength: 0,
     valid: false,
     submitting: false,
-    error: ''
+    error: '',
+    notLoggedIn: false
   },
 
   onLoad(query) {
@@ -25,6 +27,16 @@ Page({
       codeLength: inviteCode.length,
       valid: this._isValidCode(inviteCode)
     });
+    // TC-FS-05：未登录态检测（无 token 即未登录）
+    this._checkLoginState();
+  },
+
+  _checkLoginState() {
+    if (typeof wx === 'undefined' || !wx.getStorageSync) return;
+    const token = wx.getStorageSync(STORAGE_KEYS.AUTH_TOKEN);
+    if (!token) {
+      this.setData({ notLoggedIn: true, error: '请先登录后再加入家庭' });
+    }
   },
 
   onCodeInput(e) {
@@ -48,6 +60,11 @@ Page({
 
   onSubmit() {
     if (this.data.submitting) return Promise.resolve();
+    // TC-FS-05：未登录态拦截
+    if (this.data.notLoggedIn) {
+      this.setData({ error: '请先登录后再加入家庭' });
+      return Promise.resolve();
+    }
     if (!this._isValidCode(this.data.code)) {
       this.setData({ error: ErrorMessages.INVALID_INVITATION_CODE });
       return Promise.resolve();

@@ -165,4 +165,92 @@ describe('family-members 页面', () => {
     await flush();
     expect(ctx.data.error).toBe(false);
   });
+
+  // TC-FM-11：点击自己不显示"移除成员/转让创建者"菜单
+  test('TC-FM-11：onMemberAction 点击自己时不应弹菜单（menu 应为空）', () => {
+    family.getMembers.mockResolvedValue({
+      familyName: '我的家',
+      creatorId: 'm-self',
+      parents: [
+        { memberId: 'm-self', userId: 'u-self', role: 'Parent', nickname: '我', isCreator: true, isDeleted: false, displayMode: 'Primary' }
+      ],
+      children: [],
+      activeMemberCount: 1,
+      maxMemberCount: 10
+    });
+    const ctx = setup({ app: getApp_() });
+    ctx.onLoad();
+    return flush().then(() => {
+      ctx.onMemberAction({ currentTarget: { dataset: { memberId: 'm-self', role: 'Parent' } } });
+      expect(wx.showActionSheet).not.toHaveBeenCalled();
+    });
+  });
+
+  test('TC-FM-11：onMemberAction 点击自己（孩子）时不应弹菜单', () => {
+    family.getMembers.mockResolvedValue({
+      familyName: '我的家',
+      creatorId: 'm-other',
+      parents: [
+        { memberId: 'm-other', userId: 'u-other', role: 'Parent', nickname: '妈', isCreator: true, isDeleted: false, displayMode: 'Primary' }
+      ],
+      children: [
+        { memberId: 'c-self', userId: 'u-self', role: 'Child', childName: '我', nickname: '我', isCreator: false, isDeleted: false, displayMode: 'Primary' }
+      ],
+      activeMemberCount: 2,
+      maxMemberCount: 10
+    });
+    const ctx = setup({ app: { globalData: { currentFamilyId: 'f-current', userId: 'u-self' } } });
+    ctx.onLoad();
+    return flush().then(() => {
+      ctx.onMemberAction({ currentTarget: { dataset: { memberId: 'c-self', role: 'Child' } } });
+      expect(wx.showActionSheet).not.toHaveBeenCalled();
+    });
+  });
+
+  // TC-FM-09：成员列表 children 项使用 childName 而非 nickname
+  test('TC-FM-09：children 渲染应取 childName 字段（覆盖家庭内自定义姓名）', async () => {
+    family.getMembers.mockResolvedValue({
+      familyName: '我的家',
+      creatorId: 'm-self',
+      parents: [],
+      children: [
+        // API 返回 childName="小明", nickname="阳光少年" — WXML 必须展示 childName
+        { memberId: 'c1', userId: 'u-child', role: 'Child', childName: '小明', nickname: '阳光少年', isCreator: false, isDeleted: false, displayMode: 'Primary' }
+      ],
+      activeMemberCount: 1,
+      maxMemberCount: 10
+    });
+    const ctx = setup({ app: getApp_() });
+    ctx.onLoad();
+    await flush();
+    // 数据契约：渲染字段应优先取 childName（覆盖家庭内的姓名）
+    const child = ctx.data.children[0];
+    expect(child.childName).toBe('小明');
+    expect(child.nickname).toBe('阳光少年');
+    // 模拟 WXML 表达式：{{item.childName || item.nickname}}
+    const displayName = child.childName || child.nickname;
+    expect(displayName).toBe('小明');
+  });
+
+  // TC-FM-12：onDisbandFamily 名称不匹配时展示 FAMILY_NAME_MISMATCH
+  test('TC-FM-12：onDisbandFamily 输入名称不匹配时显示 ErrorMessages.FAMILY_NAME_MISMATCH', async () => {
+    wx.showModal.mockImplementation(({ success }) => success({ confirm: true, content: '错的名字' }));
+    family.dissolveFamily.mockResolvedValue({ dissolved: true });
+    const ctx = setup({ app: getApp_() });
+    ctx.setData({ familyName: '我的家' });
+    await ctx.onDisbandFamily('我的家');
+    expect(wx.showToast).toHaveBeenCalledWith(
+      expect.objectContaining({ title: ErrorMessages.FAMILY_NAME_MISMATCH, icon: 'none' })
+    );
+    // 名称不匹配时不应调 dissolveFamily
+    expect(family.dissolveFamily).not.toHaveBeenCalled();
+  });
+
+  test('TC-FM-12：onDisbandFamily 名称不匹配时弹 toast 但不 reLaunch', async () => {
+    wx.showModal.mockImplementation(({ success }) => success({ confirm: true, content: '错名' }));
+    const ctx = setup({ app: getApp_() });
+    ctx.setData({ familyName: '我的家' });
+    await ctx.onDisbandFamily('我的家');
+    expect(wx.reLaunch).not.toHaveBeenCalled();
+  });
 });

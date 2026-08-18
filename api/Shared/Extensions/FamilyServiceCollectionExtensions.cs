@@ -37,6 +37,13 @@ public static class FamilyServiceCollectionExtensions
         services.AddScoped<IValidator<SetDisplayModeRequest>, SetDisplayModeRequestValidator>();
         services.AddScoped<IValidator<DissolveFamilyRequest>, DissolveFamilyRequestValidator>();
 
+        // 注册家庭清理后台任务：每日凌晨 4 点执行（与 DeletionCleanupService 错开）。
+        // 注册模式与 AuthServiceCollectionExtensions 中的 DeletionCleanupService 一致：
+        // Singleton + HostedService + 同实例通过 IFamilyCleanupService 暴露给测试。
+        services.AddSingleton<FamilyCleanupService>();
+        services.AddSingleton<IFamilyCleanupService>(sp => sp.GetRequiredService<FamilyCleanupService>());
+        services.AddHostedService(sp => sp.GetRequiredService<FamilyCleanupService>());
+
         return services;
     }
 }

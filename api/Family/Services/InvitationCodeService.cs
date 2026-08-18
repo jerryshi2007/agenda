@@ -35,10 +35,20 @@ public class InvitationCodeService : IInvitationCodeService
     public const int MaxCollisionRetries = 10;
 
     private readonly AppDbContext _db;
+    private readonly Func<int, int> _randomIndex;
 
-    public InvitationCodeService(AppDbContext db)
+    public InvitationCodeService(AppDbContext db) : this(db, RandomNumberGenerator.GetInt32)
+    {
+    }
+
+    /// <summary>
+    /// 允许测试注入可控随机源：参数为字符集长度（maxExclusive），返回值用作下标。
+    /// 默认使用 <see cref="RandomNumberGenerator.GetInt32(int)"/> 提供密码学强度随机性。
+    /// </summary>
+    public InvitationCodeService(AppDbContext db, Func<int, int> randomIndex)
     {
         _db = db;
+        _randomIndex = randomIndex;
     }
 
     public async Task<GenerateInviteCodeResponse> GenerateAsync(
@@ -191,12 +201,13 @@ public class InvitationCodeService : IInvitationCodeService
         throw new DomainException(ErrorCodes.InvitationCodeGenerationFailed);
     }
 
-    private static string NewCode()
+    private string NewCode()
     {
         // 使用密码学随机数生成邀请码，避免可预测码导致撞库/枚举。
+        // 实例字段 _randomIndex 在测试中可注入为可控下标函数。
         Span<char> buffer = stackalloc char[6];
         for (int i = 0; i < buffer.Length; i++)
-            buffer[i] = CodeCharset[RandomNumberGenerator.GetInt32(CodeCharset.Length)];
+            buffer[i] = CodeCharset[_randomIndex(CodeCharset.Length)];
         return new string(buffer);
     }
 

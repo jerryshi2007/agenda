@@ -15,6 +15,8 @@ beforeEach(() => {
   wx = installWxMock();
   jest.resetAllMocks();
   wx.getStorageSync.mockImplementation((k) => k === STORAGE_KEYS.CURRENT_FAMILY_ID ? 'f-current' : null);
+  // 默认 getMyFamilies 返回空（目标家庭不在用户列表中 → 不触发 invalidFamily 标记）
+  family.getMyFamilies.mockResolvedValue({ families: [] });
 });
 
 const flush = () => new Promise(resolve => setImmediate(resolve));
@@ -33,16 +35,13 @@ describe('family-restore 页面', () => {
     expect(ctx.data.familyName).toBe('我的家');
   });
 
-  test('onLoad 计算剩余天数（基于 dissolveExpiresAt）', () => {
-    const now = new Date('2026-08-18T00:00:00Z').getTime();
+  test('onLoad 计算剩余天数（基于 dissolveExpiresAt，注入固定时间）', () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-08-18T00:00:00Z'));
     const expires = '2026-08-21T00:00:00Z';
     const ctx = setup({ familyId: 'f1', familyName: '家', dissolveExpiresAt: expires });
     ctx.onLoad({ familyId: 'f1', familyName: '家', dissolveExpiresAt: expires });
-    // 实际天数取决于系统时间，但应 >= 0 且 <= 30
-    const days = ctx.data.daysLeft;
-    expect(typeof days).toBe('number');
-    expect(days).toBeGreaterThanOrEqual(0);
-    expect(days).toBeLessThanOrEqual(30);
+    expect(ctx.data.daysLeft).toBe(3);
+    jest.useRealTimers();
   });
 
   test('onRestore 调 familyService.restoreFamily', async () => {
@@ -63,6 +62,14 @@ describe('family-restore 页面', () => {
 
   test('onRestore 失败时设置 errorMessage（来自 contracts）', async () => {
     family.restoreFamily.mockRejectedValue({ message: ErrorMessages.DISSOLVED_EXPIRED });
+    const ctx = setup();
+    ctx.onLoad({ familyId: 'f1', familyName: '家' });
+    await ctx.onRestore();
+    expect(ctx.data.errorMessage).toBe('数据已过期删除，无法恢复');
+  });
+
+  test('onRestore 失败且 err 无 message 时回退到 ErrorMessages.DISSOLVED_EXPIRED', async () => {
+    family.restoreFamily.mockRejectedValue({ error: 'DISSOLVED_EXPIRED' });
     const ctx = setup();
     ctx.onLoad({ familyId: 'f1', familyName: '家' });
     await ctx.onRestore();
@@ -101,5 +108,40 @@ describe('family-restore 页面', () => {
     const ctx = setup();
     ctx.onLoad({ familyId: 'f1', familyName: '家' });
     expect(ctx.data.daysLeft).toBe(0);
+  });
+
+  // TC-FMS-04：访问未解散家庭（query.familyId 指向 Normal 家庭）时给出错误占位
+  test('TC-FMS-04：query.familyId 仍在用户家庭列表中时，标记 invalidFamily=true 并设置 ErrorMessages.FAMILY_NOT_DISSOLVED', async () => {
+    // 模拟 getMyFamilies 返回该家庭（说明仍为 Normal 状态，未解散）
+    family.getMyFamilies.mockResolvedValueOnce({ families: [
+      { familyId: 'f-active', familyName: '我的家', role: 'Parent', memberCount: 3 }
+    ] });
+    const ctx = setup();
+    ctx.onLoad({ familyId: 'f-active', familyName: '我的家' });
+    await flush();
+    expect(ctx.data.invalidFamily).toBe(true);
+    expect(ctx.data.errorMessage).toBe(ErrorMessages.FAMILY_NOT_DISSOLVED);
+  });
+
+  test('TC-FMS-04：query.familyId 不在用户家庭列表中时（已解散），invalidFamily=false 保持正常流程', async () => {
+    family.getMyFamilies.mockResolvedValueOnce({ families: [] });
+    const ctx = setup();
+    ctx.onLoad({ familyId: 'f-dissolved', familyName: '已解散家' });
+    await flush();
+    expect(ctx.data.invalidFamily).toBe(false);
+    expect(ctx.data.errorMessage).toBe('');
+  });
+
+  test('TC-FMS-04：invalidFamily=true 时 onRestore 不调 API，直接设置错误信息', async () => {
+    family.getMyFamilies.mockResolvedValueOnce({ families: [
+      { familyId: 'f-active', familyName: '我的家', role: 'Parent', memberCount: 3 }
+    ] });
+    family.restoreFamily.mockResolvedValue({ familyId: 'f-active', status: 'Normal' });
+    const ctx = setup();
+    ctx.onLoad({ familyId: 'f-active', familyName: '我的家' });
+    await flush();
+    await ctx.onRestore();
+    expect(family.restoreFamily).not.toHaveBeenCalled();
+    expect(ctx.data.errorMessage).toBe(ErrorMessages.FAMILY_NOT_DISSOLVED);
   });
 });
