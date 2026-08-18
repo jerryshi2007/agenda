@@ -2,7 +2,7 @@ namespace Agenda.Api.Infrastructure;
 
 /// <summary>
 /// 错误码与中文提示、HTTP 状态码映射。
-/// 从 openspec/contracts/auth/errors.json 生成，禁止在 Controller/Service 中硬编码字符串字面量。
+/// 从 openspec/contracts/{auth,checkin,family}/errors.json 生成，禁止在 Controller/Service 中硬编码字符串字面量。
 /// </summary>
 public static class ErrorCodes
 {
@@ -31,6 +31,28 @@ public static class ErrorCodes
     public const string NotFamilyMember = "NOT_FAMILY_MEMBER";
     public const string ScheduleNotFound = "SCHEDULE_NOT_FOUND";
 
+    // ---- Family module（从 openspec/contracts/family/errors.json 生成）----
+    public const string FamilyNotFound = "FAMILY_NOT_FOUND";
+    public const string FamilyAlreadyDissolved = "FAMILY_ALREADY_DISSOLVED";
+    public const string FamilyNotDissolved = "FAMILY_NOT_DISSOLVED";
+    public const string DissolvedExpired = "DISSOLVED_EXPIRED";
+    public const string FamilyNameMismatch = "FAMILY_NAME_MISMATCH";
+    public const string FamilyNameInvalidLength = "FAMILY_NAME_INVALID_LENGTH";
+    public const string FamilyMemberLimitExceeded = "FAMILY_MEMBER_LIMIT_EXCEEDED";
+    public const string FamilyCreatorCannotExit = "FAMILY_CREATOR_CANNOT_EXIT";
+    public const string LastParentCannotExit = "LAST_PARENT_CANNOT_EXIT";
+    public const string CannotRemoveSelf = "CANNOT_REMOVE_SELF";
+    public const string MemberNotFound = "MEMBER_NOT_FOUND";
+    public const string UserAlreadyInFamily = "USER_ALREADY_IN_FAMILY";
+    public const string PermissionDenied = "PERMISSION_DENIED";
+    public const string InvalidTransferTarget = "INVALID_TRANSFER_TARGET";
+    public const string InvalidInvitationCode = "INVALID_INVITATION_CODE";
+    public const string InvitationCodeExpired = "INVITATION_CODE_EXPIRED";
+    public const string InvitationCodeUsed = "INVITATION_CODE_USED";
+    public const string InvitationCodeRedeemed = "INVITATION_CODE_REDEEMED";
+    public const string InvitationCannotRevoke = "INVITATION_CANNOT_REVOKE";
+    public const string InvitationCodeGenerationFailed = "INVITATION_CODE_GENERATION_FAILED";
+
     private static readonly IReadOnlyDictionary<string, string> Messages = new Dictionary<string, string>
     {
         [CodeInvalid] = "微信登录凭证无效，请重试",
@@ -54,7 +76,27 @@ public static class ErrorCodes
         [WindowClosed] = "撤销窗口已关闭，无法撤销",
         [ScheduleCancelled] = "该日程已取消或排除，无法打卡",
         [NotFamilyMember] = "你不是该日程所属家庭的成员，无权操作",
-        [ScheduleNotFound] = "日程不存在"
+        [ScheduleNotFound] = "日程不存在",
+        [FamilyNotFound] = "家庭不存在",
+        [FamilyAlreadyDissolved] = "家庭已解散",
+        [FamilyNotDissolved] = "家庭未解散",
+        [DissolvedExpired] = "数据已过期删除，无法恢复",
+        [FamilyNameMismatch] = "家庭名称不匹配，请重新输入",
+        [FamilyNameInvalidLength] = "家庭名称需要 2-20 个字符",
+        [FamilyMemberLimitExceeded] = "家庭已满（10 人），无法加入",
+        [FamilyCreatorCannotExit] = "创建者无法退出，请先解散家庭",
+        [LastParentCannotExit] = "请先将孩子移除或转让家庭给其他家长，才能退出",
+        [CannotRemoveSelf] = "不能移除自己，请使用退出功能",
+        [MemberNotFound] = "成员不存在",
+        [UserAlreadyInFamily] = "你已是该家庭成员",
+        [PermissionDenied] = "无权限执行此操作",
+        [InvalidTransferTarget] = "只能转让给家长角色成员",
+        [InvalidInvitationCode] = "邀请码无效，请检查后重试",
+        [InvitationCodeExpired] = "邀请码已失效，请联系家长重新获取",
+        [InvitationCodeUsed] = "邀请码已被使用",
+        [InvitationCodeRedeemed] = "邀请码已被撤销",
+        [InvitationCannotRevoke] = "邀请码已使用，无法撤销",
+        [InvitationCodeGenerationFailed] = "邀请码生成冲突，请稍后重试"
     };
 
     private static readonly IReadOnlyDictionary<string, int> HttpStatuses = new Dictionary<string, int>
@@ -80,7 +122,27 @@ public static class ErrorCodes
         [WindowClosed] = 400,
         [ScheduleCancelled] = 400,
         [NotFamilyMember] = 403,
-        [ScheduleNotFound] = 404
+        [ScheduleNotFound] = 404,
+        [FamilyNotFound] = 404,
+        [FamilyAlreadyDissolved] = 400,
+        [FamilyNotDissolved] = 400,
+        [DissolvedExpired] = 410,
+        [FamilyNameMismatch] = 400,
+        [FamilyNameInvalidLength] = 400,
+        [FamilyMemberLimitExceeded] = 403,
+        [FamilyCreatorCannotExit] = 403,
+        [LastParentCannotExit] = 403,
+        [CannotRemoveSelf] = 400,
+        [MemberNotFound] = 404,
+        [UserAlreadyInFamily] = 400,
+        [PermissionDenied] = 403,
+        [InvalidTransferTarget] = 400,
+        [InvalidInvitationCode] = 400,
+        [InvitationCodeExpired] = 400,
+        [InvitationCodeUsed] = 400,
+        [InvitationCodeRedeemed] = 400,
+        [InvitationCannotRevoke] = 400,
+        [InvitationCodeGenerationFailed] = 503
     };
 
     public static string Message(string code) =>

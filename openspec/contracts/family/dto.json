@@ -1,0 +1,274 @@
+{
+  "CreateFamilyRequest": {
+    "fields": {
+      "name": {
+        "type": "string",
+        "required": true,
+        "minLength": 2,
+        "maxLength": 20
+      },
+      "role": {
+        "type": "UserRole",
+        "required": true
+      }
+    }
+  },
+  "UpdateFamilyNameRequest": {
+    "fields": {
+      "name": {
+        "type": "string",
+        "required": true,
+        "minLength": 2,
+        "maxLength": 20
+      }
+    }
+  },
+  "GenerateInviteCodeRequest": {
+    "fields": {
+      "targetRole": {
+        "type": "UserRole",
+        "required": true
+      },
+      "targetChildName": {
+        "type": "string",
+        "required": false,
+        "maxLength": 20
+      },
+      "targetDisplayMode": {
+        "type": "DisplayMode",
+        "required": false
+      }
+    }
+  },
+  "JoinByCodeRequest": {
+    "fields": {
+      "code": {
+        "type": "string",
+        "required": true,
+        "minLength": 6,
+        "maxLength": 6,
+        "pattern": "^[2-9]{6}$"
+      }
+    }
+  },
+  "SetDisplayModeRequest": {
+    "fields": {
+      "displayMode": {
+        "type": "DisplayMode",
+        "required": true
+      }
+    }
+  },
+  "DissolveFamilyRequest": {
+    "fields": {
+      "familyName": {
+        "type": "string",
+        "required": true
+      }
+    }
+  },
+  "FamilyInfo": {
+    "fields": {
+      "familyId": {
+        "type": "Guid",
+        "required": true
+      },
+      "familyName": {
+        "type": "string",
+        "required": true
+      },
+      "role": {
+        "type": "UserRole",
+        "required": true
+      },
+      "memberCount": {
+        "type": "integer",
+        "required": true
+      },
+      "lastActiveAt": {
+        "type": "DateTimeOffset",
+        "required": true
+      }
+    }
+  },
+  "FamilyMemberInfo": {
+    "fields": {
+      "memberId": {
+        "type": "Guid",
+        "required": true
+      },
+      "userId": {
+        "type": "Guid",
+        "required": true
+      },
+      "role": {
+        "type": "UserRole",
+        "required": true
+      },
+      "childName": {
+        "type": "string",
+        "required": false
+      },
+      "displayMode": {
+        "type": "DisplayMode",
+        "required": true
+      },
+      "isDeleted": {
+        "type": "boolean",
+        "required": true
+      },
+      "joinedAt": {
+        "type": "DateTimeOffset",
+        "required": true
+      },
+      "avatarUrl": {
+        "type": "string",
+        "required": false
+      },
+      "nickname": {
+        "type": "string",
+        "required": true
+      },
+      "isCreator": {
+        "type": "boolean",
+        "required": true
+      }
+    }
+  },
+  "InvitationCodeInfo": {
+    "fields": {
+      "id": {
+        "type": "Guid",
+        "required": true
+      },
+      "code": {
+        "type": "string",
+        "required": true
+      },
+      "targetRole": {
+        "type": "UserRole",
+        "required": true
+      },
+      "targetChildName": {
+        "type": "string",
+        "required": false
+      },
+      "status": {
+        "type": "InvitationCodeStatus",
+        "required": true
+      },
+      "createdAt": {
+        "type": "DateTimeOffset",
+        "required": true
+      },
+      "expiresAt": {
+        "type": "DateTimeOffset",
+        "required": true
+      },
+      "canRevoke": {
+        "type": "boolean",
+        "required": true
+      }
+    }
+  },
+  "GetMyFamiliesResponse": {
+    "fields": {
+      "families": {
+        "type": "FamilyInfo[]",
+        "required": true
+      }
+    }
+  },
+  "GetMembersResponse": {
+    "fields": {
+      "familyName": {
+        "type": "string",
+        "required": true
+      },
+      "creatorId": {
+        "type": "Guid",
+        "required": true
+      },
+      "parents": {
+        "type": "FamilyMemberInfo[]",
+        "required": true
+      },
+      "children": {
+        "type": "FamilyMemberInfo[]",
+        "required": true
+      },
+      "activeMemberCount": {
+        "type": "integer",
+        "required": true
+      },
+      "maxMemberCount": {
+        "type": "integer",
+        "required": true
+      }
+    }
+  },
+  "CreateFamilyResponse": {
+    "fields": {
+      "familyId": {
+        "type": "Guid",
+        "required": true
+      }
+    }
+  },
+  "GenerateInviteCodeResponse": {
+    "fields": {
+      "code": {
+        "type": "string",
+        "required": true
+      },
+      "expiresAt": {
+        "type": "DateTimeOffset",
+        "required": true
+      }
+    }
+  },
+  "GetShareInfoResponse": {
+    "fields": {
+      "familyName": {
+        "type": "string",
+        "required": true
+      },
+      "inviterName": {
+        "type": "string",
+        "required": true
+      },
+      "targetRole": {
+        "type": "UserRole",
+        "required": true
+      },
+      "inviteCode": {
+        "type": "string",
+        "required": true
+      },
+      "isValid": {
+        "type": "boolean",
+        "required": true
+      }
+    }
+  },
+  "RestoreFamilyResponse": {
+    "fields": {
+      "restored": {
+        "type": "boolean",
+        "required": true
+      }
+    }
+  },
+  "ExitFamilyResponse": {
+    "fields": {
+      "exited": {
+        "type": "boolean",
+        "required": true
+      },
+      "hasOtherFamilies": {
+        "type": "boolean",
+        "required": true
+      }
+    }
+  }
+}

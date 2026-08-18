@@ -37,8 +37,8 @@ public class ScheduleServiceTests
         var userId = Guid.NewGuid();
         var familyId = Guid.NewGuid();
         db.Users.Add(new User { Id = userId, Nickname = "TestParent", Role = UserRole.Parent, OpenId = "test-openid" });
-        db.Families.Add(new Family { Id = familyId, Name = "TestFamily" });
-        db.FamilyMembers.Add(new FamilyMember
+        db.Families.Add(new DomainFamily { Id = familyId, Name = "TestFamily" });
+        db.FamilyMembers.Add(new DomainFamilyMember
         {
             Id = Guid.NewGuid(),
             FamilyId = familyId,

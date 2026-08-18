@@ -8,7 +8,16 @@
     "pages/profile-edit/index",
     "pages/settings/index",
     "pages/deleted-recovery/index",
-    "pages/privacy-prompt/index"
+    "pages/privacy-prompt/index",
+    "pages/family-welcome/index",
+    "pages/family-create/index",
+    "pages/family-join/index",
+    "pages/family-invite/index",
+    "pages/family-invite-list/index",
+    "pages/family-members/index",
+    "pages/family-display-mode/index",
+    "pages/family-switch/index",
+    "pages/family-restore/index"
   ],
   "window": {
     "navigationBarBackgroundColor": "#FFFFFF",

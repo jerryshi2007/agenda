@@ -1,6 +1,7 @@
 using Agenda.Api.Auth.Dtos;
-using Agenda.Api.Domain.Entities;
 using Agenda.Api.Domain.Enums;
+using Agenda.Api.Family.Dtos;
+using Agenda.Api.Domain.Entities;
 using Agenda.Api.Infrastructure;
 using Agenda.Api.Infrastructure.Auth;
 using Agenda.Api.Infrastructure.Data;
@@ -48,7 +49,7 @@ public class AuthServiceTests
         var families = hasFamily
             ? new List<FamilyInfo>
             {
-                new() { FamilyId = Guid.NewGuid(), FamilyName = "我家", Role = "Parent", MemberCount = 2 }
+                new() { FamilyId = Guid.NewGuid(), FamilyName = "我家", Role = UserRole.Parent, MemberCount = 2 }
             }
             : new List<FamilyInfo>();
         mock.Setup(f => f.GetUserFamiliesAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))

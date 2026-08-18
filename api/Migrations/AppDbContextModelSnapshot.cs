@@ -125,12 +125,25 @@ namespace Agenda.Api.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("DissolvedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatorId");
 
                     b.ToTable("Families");
                 });
@@ -141,8 +154,25 @@ namespace Agenda.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ChildName")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DisplayMode")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(2);
+
                     b.Property<Guid>("FamilyId")
                         .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<DateTimeOffset>("JoinedAt")
                         .HasColumnType("timestamp with time zone");
@@ -161,6 +191,55 @@ namespace Agenda.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("FamilyMembers");
+                });
+
+            modelBuilder.Entity("Agenda.Api.Domain.Entities.InvitationCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("character(6)")
+                        .IsFixedLength();
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TargetChildName")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int?>("TargetDisplayMode")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TargetRole")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("CreatorId");
+
+                    b.HasIndex("FamilyId");
+
+                    b.ToTable("InvitationCodes");
                 });
 
             modelBuilder.Entity("Agenda.Api.Domain.Entities.Schedule", b =>
@@ -400,7 +479,7 @@ namespace Agenda.Api.Migrations
             modelBuilder.Entity("Agenda.Api.Domain.Entities.FamilyMember", b =>
                 {
                     b.HasOne("Agenda.Api.Domain.Entities.Family", "Family")
-                        .WithMany()
+                        .WithMany("Members")
                         .HasForeignKey("FamilyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -414,6 +493,25 @@ namespace Agenda.Api.Migrations
                     b.Navigation("Family");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Agenda.Api.Domain.Entities.InvitationCode", b =>
+                {
+                    b.HasOne("Agenda.Api.Domain.Entities.User", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Agenda.Api.Domain.Entities.Family", "Family")
+                        .WithMany("InvitationCodes")
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Creator");
+
+                    b.Navigation("Family");
                 });
 
             modelBuilder.Entity("Agenda.Api.Domain.Entities.Schedule", b =>
@@ -446,6 +544,13 @@ namespace Agenda.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Schedule");
+                });
+
+            modelBuilder.Entity("Agenda.Api.Domain.Entities.Family", b =>
+                {
+                    b.Navigation("InvitationCodes");
+
+                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("Agenda.Api.Domain.Entities.Schedule", b =>

@@ -8,8 +8,9 @@ public class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     public DbSet<User> Users => Set<User>();
-    public DbSet<Family> Families => Set<Family>();
-    public DbSet<FamilyMember> FamilyMembers => Set<FamilyMember>();
+    public DbSet<DomainFamily> Families => Set<DomainFamily>();
+    public DbSet<DomainFamilyMember> FamilyMembers => Set<DomainFamilyMember>();
+    public DbSet<DomainInvitationCode> InvitationCodes => Set<DomainInvitationCode>();
     public DbSet<Domain.Entities.Schedule> Schedules => Set<Domain.Entities.Schedule>();
     public DbSet<TimeSlot> TimeSlots => Set<TimeSlot>();
     public DbSet<Cancellation> Cancellations => Set<Cancellation>();

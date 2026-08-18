@@ -1,0 +1,37 @@
+<!-- pages/family-join/index.wxml -->
+<view class="page-container safe-bottom">
+  <view class="join-page">
+    <view class="invite-code-section">
+      <view class="invite-code-title">请输入家长告知的 6 位邀请码</view>
+      <view class="code-input-group">
+        <view wx:for="{{[0,1,2,3,4,5]}}" wx:key="*this" class="code-digit {{codeLength > index ? 'filled' : ''}} {{error ? 'error' : ''}}">
+          <text wx:if="{{codeLength > index}}">{{code[index]}}</text>
+        </view>
+      </view>
+      <input class="code-hidden-input"
+             type="number"
+             maxlength="6"
+             value="{{code}}"
+             bindinput="onCodeInput"
+             data-id="join-family-code-input"
+             placeholder="点击输入" />
+      <view class="code-hint">仅使用数字 2-9（避免 0/1 混淆）</view>
+    </view>
+
+    <view wx:if="{{error}}" class="error-text">{{error}}</view>
+
+    <view class="submit-wrap">
+      <button class="btn-primary btn-block btn-lg"
+              data-id="join-family-submit-btn"
+              bindtap="onSubmit"
+              disabled="{{!valid || submitting}}">
+        {{submitting ? '加入中...' : '加入家庭'}}
+      </button>
+      <button class="btn-secondary btn-block btn-lg"
+              data-id="join-family-back-btn"
+              bindtap="onBack">
+        返回
+      </button>
+    </view>
+  </view>
+</view>

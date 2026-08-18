@@ -1,0 +1,54 @@
+<!-- pages/family-welcome/index.wxml -->
+<view class="page-container safe-bottom">
+  <!-- 加载态 -->
+  <view wx:if="{{loading}}" class="loading-block">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 错误态 -->
+  <view wx:elif="{{error}}" class="error-state">
+    <view class="error-state__icon">&#x26A0;&#xFE0F;</view>
+    <view class="error-state__title">网络连接失败</view>
+    <view class="error-state__desc">无法检查家庭状态，请检查网络后重试</view>
+    <button class="btn-primary" data-id="welcome-retry-btn" bindtap="onRetry">重试</button>
+  </view>
+
+  <!-- 分享卡片确认页（TC-FW-04 端到端：分享邀请卡预填后展示确认页） -->
+  <block wx:elif="{{pendingShare}}">
+    <view wx:if="{{shareInfo}}" class="share-confirm">
+      <view class="share-confirm__illust">&#x1F4E8;</view>
+      <view class="share-confirm__title">你被邀请加入家庭</view>
+      <view class="share-confirm__family">{{shareInfo.familyName}}</view>
+      <view wx:if="{{shareInfo.targetChildName}}" class="share-confirm__meta">
+        孩子姓名：{{shareInfo.targetChildName}}
+      </view>
+      <view wx:if="{{shareInfo.targetDisplayMode}}" class="share-confirm__meta">
+        展示模式：{{shareInfo.targetDisplayMode}}
+      </view>
+      <view class="share-confirm__hint">确认后将以该身份加入家庭</view>
+      <view class="share-confirm__actions">
+        <button class="btn-primary btn-block" data-id="welcome-share-accept-btn" bindtap="onAcceptShare">确认加入</button>
+        <button class="btn-secondary btn-block" data-id="welcome-share-decline-btn" bindtap="onDeclineShare">暂不加入</button>
+      </view>
+    </view>
+
+    <view wx:else class="error-state">
+      <view class="error-state__icon">&#x26A0;&#xFE0F;</view>
+      <view class="error-state__title">邀请信息加载失败</view>
+      <view class="error-state__desc">{{shareError}}</view>
+      <button class="btn-primary" data-id="welcome-retry-btn" bindtap="onRetry">返回</button>
+    </view>
+  </block>
+
+  <!-- 引导态 -->
+  <view wx:else class="welcome-page">
+    <view class="welcome-illust">&#x1F46A;</view>
+    <view class="welcome-title">欢迎使用家庭日程</view>
+    <view class="welcome-desc">创建或加入一个家庭，开启协作日程管理</view>
+    <view class="welcome-actions">
+      <button class="btn-primary btn-block btn-lg" data-id="welcome-create-btn" bindtap="onCreateFamily">创建家庭</button>
+      <button class="btn-secondary btn-block btn-lg" data-id="welcome-join-btn" bindtap="onJoinFamily">加入家庭</button>
+    </view>
+  </view>
+</view>

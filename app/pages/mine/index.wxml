@@ -31,7 +31,7 @@
         <view class="family-row-main">
           <view class="family-name">{{currentFamily.familyName}}</view>
           <view class="family-meta">
-            {{currentFamily.role === 'parent' ? '家长' : '成员'}} · {{currentFamily.memberCount}} 位成员
+            {{currentFamily.role === 'Parent' ? '家长' : '成员'}} · {{currentFamily.memberCount}} 位成员
           </view>
         </view>
         <view class="family-arrow">&#x203A;</view>

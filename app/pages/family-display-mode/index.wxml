@@ -1,0 +1,50 @@
+<!-- pages/family-display-mode/index.wxml -->
+<view class="page-container safe-bottom">
+  <view class="header">
+    <view class="header__title">展示模式</view>
+    <view class="header__subtitle" wx:if="{{childName}}">为 {{childName}} 选择展示模式</view>
+    <view class="header__subtitle" wx:else>选择适合的展示模式</view>
+  </view>
+
+  <view class="mode-list">
+    <view wx:for="{{displayModes}}" wx:key="mode"
+          class="mode-card {{item.mode === selectedMode ? 'mode-card--selected' : ''}}"
+          data-id="family-display-mode-card-{{item.mode}}"
+          data-mode="{{item.mode}}"
+          bindtap="onSelectMode">
+      <view class="mode-card__icon mode-card__icon--{{item.mode.toLowerCase()}}">
+        <text wx:if="{{item.mode === 'Preschool'}}">&#x1F476;</text>
+        <text wx:elif="{{item.mode === 'Primary'}}">&#x1F466;</text>
+        <text wx:else>&#x1F467;</text>
+      </view>
+      <view class="mode-card__info">
+        <view class="mode-card__label">{{item.label}}</view>
+        <view class="mode-card__desc">
+          <text wx:if="{{item.mode === 'Preschool'}}">3-6 岁 · 大色块 · 卡通图标 · 简单交互</text>
+          <text wx:elif="{{item.mode === 'Primary'}}">6-10 岁 · 标准布局 · 任务管理</text>
+          <text wx:else>10-14 岁 · 完整信息 · 自定义日程</text>
+        </view>
+      </view>
+      <view class="mode-card__check" wx:if="{{item.mode === selectedMode}}">
+        <text>&#x2713;</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{errorMessage}}" class="error-message" data-id="family-display-mode-error">
+    {{errorMessage}}
+  </view>
+
+  <view wx:if="{{success}}" class="success-message" data-id="family-display-mode-success">
+    已保存
+  </view>
+
+  <view class="footer safe-bottom-pad">
+    <button class="btn-save {{disabled ? 'btn-save--disabled' : ''}}"
+            data-id="family-display-mode-save-btn"
+            bindtap="onSave"
+            disabled="{{disabled || saving}}">
+      {{saving ? '保存中...' : '保存'}}
+    </button>
+  </view>
+</view>

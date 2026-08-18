@@ -100,6 +100,9 @@ builder.Services.AddScheduleModule();
 // ---- Checkin Module ----
 builder.Services.AddCheckinModule();
 
+// ---- Family Module ----
+builder.Services.AddFamilyModule();
+
 // ---- Checkin Settlement (Hangfire) ----
 builder.Services.AddHangfireModule(builder.Configuration);
 

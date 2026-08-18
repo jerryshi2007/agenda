@@ -1,0 +1,42 @@
+<!-- pages/family-restore/index.wxml -->
+<view class="page-container safe-bottom">
+  <view class="header">
+    <view class="header__icon">&#x1F494;</view>
+    <view class="header__title">{{familyName || '家庭'}} 已解散</view>
+    <view class="header__subtitle" wx:if="{{daysLeft > 0}}">数据将在 {{daysLeft}} 天后永久删除</view>
+    <view class="header__subtitle header__subtitle--expired" wx:else>数据已过期，无法恢复</view>
+  </view>
+
+  <view class="info-block">
+    <view class="info-row">
+      <text class="info-row__label">解散时间</text>
+      <text class="info-row__value">{{dissolveExpiresAt || '—'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-row__label">恢复截止</text>
+      <text class="info-row__value">剩余 {{daysLeft}} 天</text>
+    </view>
+  </view>
+
+  <view wx:if="{{errorMessage}}" class="error-message" data-id="family-restore-error">
+    {{errorMessage}}
+  </view>
+
+  <view wx:if="{{success}}" class="success-message" data-id="family-restore-success">
+    家庭已恢复，3 秒后跳转到首页
+  </view>
+
+  <view class="footer">
+    <button class="btn-primary"
+            data-id="family-restore-btn"
+            bindtap="onRestore"
+            disabled="{{restoring || success || daysLeft <= 0}}">
+      {{restoring ? '恢复中...' : '恢复家庭'}}
+    </button>
+    <button class="btn-secondary"
+            data-id="family-restore-skip-btn"
+            bindtap="onSkip">
+      不恢复
+    </button>
+  </view>
+</view>

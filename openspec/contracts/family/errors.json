@@ -1,0 +1,86 @@
+{
+  "CANNOT_REMOVE_SELF": {
+    "httpStatus": 400,
+    "message": "不能移除自己，请使用退出功能"
+  },
+  "DISSOLVED_EXPIRED": {
+    "httpStatus": 410,
+    "message": "数据已过期删除，无法恢复"
+  },
+  "FAMILY_ALREADY_DISSOLVED": {
+    "httpStatus": 400,
+    "message": "家庭已解散"
+  },
+  "FAMILY_CREATOR_CANNOT_EXIT": {
+    "httpStatus": 403,
+    "message": "创建者无法退出，请先解散家庭"
+  },
+  "FAMILY_MEMBER_LIMIT_EXCEEDED": {
+    "httpStatus": 403,
+    "message": "家庭已满（10 人），无法加入"
+  },
+  "FAMILY_NAME_INVALID_LENGTH": {
+    "httpStatus": 400,
+    "message": "家庭名称需要 2-20 个字符"
+  },
+  "FAMILY_NAME_MISMATCH": {
+    "httpStatus": 400,
+    "message": "家庭名称不匹配，请重新输入"
+  },
+  "FAMILY_NOT_DISSOLVED": {
+    "httpStatus": 400,
+    "message": "家庭未解散"
+  },
+  "FAMILY_NOT_FOUND": {
+    "httpStatus": 404,
+    "message": "家庭不存在"
+  },
+  "INVALID_INVITATION_CODE": {
+    "httpStatus": 400,
+    "message": "邀请码无效，请检查后重试"
+  },
+  "INVITATION_CODE_GENERATION_FAILED": {
+    "httpStatus": 503,
+    "message": "邀请码生成冲突，请稍后重试"
+  },
+  "INVALID_TRANSFER_TARGET": {
+    "httpStatus": 400,
+    "message": "只能转让给家长角色成员"
+  },
+  "INVITATION_CANNOT_REVOKE": {
+    "httpStatus": 400,
+    "message": "邀请码已使用，无法撤销"
+  },
+  "INVITATION_CODE_EXPIRED": {
+    "httpStatus": 400,
+    "message": "邀请码已失效，请联系家长重新获取"
+  },
+  "INVITATION_CODE_REDEEMED": {
+    "httpStatus": 400,
+    "message": "邀请码已被撤销"
+  },
+  "INVITATION_CODE_USED": {
+    "httpStatus": 400,
+    "message": "邀请码已被使用"
+  },
+  "LAST_PARENT_CANNOT_EXIT": {
+    "httpStatus": 403,
+    "message": "请先将孩子移除或转让家庭给其他家长，才能退出"
+  },
+  "MEMBER_NOT_FOUND": {
+    "httpStatus": 404,
+    "message": "成员不存在"
+  },
+  "NOT_FAMILY_MEMBER": {
+    "httpStatus": 403,
+    "message": "你不是该家庭成员"
+  },
+  "PERMISSION_DENIED": {
+    "httpStatus": 403,
+    "message": "无权限执行此操作"
+  },
+  "USER_ALREADY_IN_FAMILY": {
+    "httpStatus": 400,
+    "message": "你已是该家庭成员"
+  }
+}

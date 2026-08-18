@@ -1,0 +1,228 @@
+/* pages/family-members/index.wxss */
+
+.page-container {
+  min-height: 100vh;
+  padding: 0 32rpx 32rpx;
+  background: var(--weui-BG-0, #EDEDED);
+}
+
+.safe-bottom {
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+}
+
+.loading-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 200rpx 0;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #E5E5E5;
+  border-top-color: #07C160;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 24rpx;
+  color: #888;
+  font-size: 28rpx;
+}
+
+/* 错误态 */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 200rpx 0;
+}
+
+.error-state__icon {
+  font-size: 96rpx;
+}
+
+.error-state__title {
+  margin-top: 24rpx;
+  color: #555;
+  font-size: 28rpx;
+  margin-bottom: 32rpx;
+}
+
+/* 按钮基础 */
+.btn-primary {
+  background: #07C160;
+  color: #FFF;
+  border: none;
+  border-radius: 8rpx;
+  padding: 20rpx 48rpx;
+  font-size: 30rpx;
+}
+
+.btn-primary:active {
+  opacity: 0.85;
+}
+
+.btn-secondary {
+  background: #FFF;
+  color: #555;
+  border: 1rpx solid #DDD;
+  border-radius: 8rpx;
+  padding: 20rpx 48rpx;
+  font-size: 30rpx;
+  margin: 0 16rpx 16rpx;
+}
+
+.btn-danger {
+  background: #FA5151;
+  color: #FFF;
+  border: none;
+  border-radius: 8rpx;
+  padding: 20rpx 48rpx;
+  font-size: 30rpx;
+}
+
+.btn-block {
+  display: block;
+  width: 100%;
+  margin-bottom: 16rpx;
+}
+
+/* 家庭头部 */
+.family-header {
+  padding: 32rpx 0 24rpx;
+}
+
+.family-name {
+  font-size: 40rpx;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.family-meta {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* 操作栏 */
+.action-bar {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 24rpx 0;
+  background: #FFF;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #07C160;
+}
+
+.action-btn:active {
+  background: #F5F5F5;
+}
+
+.action-icon {
+  font-size: 32rpx;
+}
+
+/* 成员分组 */
+.member-section {
+  background: #FFF;
+  border-radius: 12rpx;
+  margin-bottom: 24rpx;
+  overflow: hidden;
+}
+
+.section-title {
+  padding: 24rpx 32rpx 16rpx;
+  font-size: 26rpx;
+  color: rgba(0, 0, 0, 0.5);
+  font-weight: 500;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 32rpx;
+  border-top: 1rpx solid #F0F0F0;
+}
+
+.member-item--deactivated {
+  opacity: 0.4;
+}
+
+.member-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: #07C160;
+  color: #FFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  margin-right: 24rpx;
+}
+
+.member-avatar--child {
+  background: #FFB74D;
+}
+
+.member-info {
+  flex: 1;
+}
+
+.member-name {
+  font-size: 32rpx;
+  color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.creator-tag {
+  background: #FFE0B2;
+  color: #E65100;
+  font-size: 20rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
+}
+
+.member-meta {
+  margin-top: 4rpx;
+  font-size: 24rpx;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* 空态 */
+.empty-state {
+  display: flex;
+  justify-content: center;
+  padding: 80rpx 0;
+}
+
+.empty-state__text {
+  color: rgba(0, 0, 0, 0.3);
+  font-size: 28rpx;
+}
+
+/* 危险操作区 */
+.danger-actions {
+  margin-top: 48rpx;
+  padding: 0 16rpx;
+}
