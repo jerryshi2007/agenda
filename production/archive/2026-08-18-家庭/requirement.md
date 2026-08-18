@@ -1,4 +1,4 @@
-<!-- STAGING-STATUS: in-progress -->
+<!-- STAGING-STATUS: done -->
 <!-- CONFIRMED: 2026-08-18 -->
 
 # 家庭管理模块 · 需求文档
