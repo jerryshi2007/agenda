@@ -75,7 +75,9 @@ STATUS.md MUST 包含 Stage 进度表，追踪 SDLC 五阶段的细粒度进度�
 | Stage 5 归档 | ⬜ pending | add-auth-module |
 ```
 
-**状态取值**：`⬜ pending`（未开始）/ `🔄 in-progress`（进行中）/ `✅ done`（已完成）/ `⛔ blocked`（阻塞）。
+**状态取值**：
+- `⬜ pending`（未开始）/ `🔄 in-progress`（进行中）/ `✅ done`（已完成）/ `⛔ blocked`（阻塞）
+- 匹配锚点：表格单元格首字符为 ASCII 空格 + emoji，工具匹配时可按单元格文本前缀匹配状态词（`pending`/`in-progress`/`done`/`blocked`）不受 emoji 变体影响。
 
 **OpenSpec 关联列**：Stage 2 设计、Stage 3 研发、Stage 5 归档与 OpenSpec 交互，填入对应的 OpenSpec 变更名（如 `add-auth-module`）。Stage 1 产品和 Stage 4 测试不涉及 OpenSpec，填 `—`。Stage 5 完成后，OpenSpec 变更已归档至 `openspec/changes/archive/`。
 
