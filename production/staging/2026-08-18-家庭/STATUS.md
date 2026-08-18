@@ -17,6 +17,6 @@
 |------|:--:|------|
 | Stage 1 产品 | ✅ done | - |
 | Stage 2 设计 | ✅ done | add-family-module |
-| Stage 3 研发 | ⬜ pending | add-family-module |
+| Stage 3 研发 | ✅ done | add-family-module |
 | Stage 4 测试 | ⬜ pending | - |
 | Stage 5 归档 | ⬜ pending | add-family-module |
