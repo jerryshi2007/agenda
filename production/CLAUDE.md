@@ -26,7 +26,7 @@
 | 日程管理 | ✅ | ✅ | ✅ | ✅ | ✅ | add-event-module (archived) |
 | 认证 | ✅ | ✅ | ✅ | ✅ | ✅ | add-auth-module (archived) |
 | 打卡 | ✅ | ✅ | ✅ | ✅ | ✅ | add-checkin-module (archived) |
-| 家庭 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
+| 家庭 | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | — |
 | 模板 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
 | 展示模式 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
 
