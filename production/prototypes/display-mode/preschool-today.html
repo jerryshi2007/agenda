@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>展示模式 - 学龄前今日视图</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* 页面特有样式 */
+    .period-section {
+      margin-bottom: 24px; /* → 48rpx */
+    }
+    .period-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px; /* → 24rpx */
+      padding: 8px 12px; /* → 16rpx 24rpx */
+      background: var(--color-bg-white);
+      border-radius: var(--radius-md);
+    }
+    .period-header.current {
+      background: var(--color-primary-light);
+    }
+    .period-icon {
+      font-size: 24px; /* → 48rpx */
+      margin-right: 8px; /* → 16rpx */
+    }
+    .period-name {
+      font-size: 16px; /* → 32rpx */
+      font-weight: 500;
+      flex: 1;
+    }
+    .period-count {
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+    }
+
+    /* 日程卡片 */
+    /* → wx:for="{{scheduleList}}" */
+    .schedule-card {
+      height: 100px; /* → 200rpx，大卡片适合幼儿点击 */
+      margin-bottom: 12px; /* → 24rpx */
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      padding: 16px; /* → 32rpx */
+      cursor: pointer;
+      transition: transform var(--transition-fast);
+      /* 可点击区域 ≥ 88rpx × 88rpx → 满足要求 */
+    }
+    .schedule-card:active {
+      transform: scale(0.98);
+    }
+    /* 类型背景色 */
+    .schedule-card--activity {
+      background: #E3F2FD; /* 课后活动 蓝色 */
+    }
+    .schedule-card--routine {
+      background: #E8F5E9; /* 日常作息 绿色 */
+    }
+    .schedule-card--homework {
+      background: #FFF3E0; /* 作业任务 橙色 */
+    }
+    /* 红绿灯状态边框 */
+    .schedule-card--current {
+      border: 4px solid var(--color-primary); /* → 8rpx 绿色当前 */
+    }
+    .schedule-card--pending {
+      border: 4px solid #EEEEEE; /* → 8rpx 白色待完成 */
+    }
+    .schedule-card--overdue {
+      border: 4px solid var(--color-danger); /* → 8rpx 红色逾期 */
+    }
+    .schedule-card--done {
+      border: 4px solid var(--color-primary);
+      opacity: 0.7;
+    }
+    .schedule-icon {
+      width: 56px; /* → 112rpx */
+      height: 56px; /* → 112rpx */
+      border-radius: var(--radius-round);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px; /* → 56rpx */
+      background: var(--color-bg-white);
+      margin-right: 16px; /* → 32rpx */
+      flex-shrink: 0;
+    }
+    .schedule-info {
+      flex: 1;
+    }
+    .schedule-name {
+      font-size: 20px; /* → 40rpx */
+      font-weight: 500;
+      color: var(--color-text-primary);
+      margin-bottom: 4px; /* → 8rpx */
+    }
+    .schedule-period {
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+    }
+    .schedule-done-check {
+      font-size: 32px; /* → 64rpx */
+      color: var(--color-primary);
+    }
+
+    /* 打卡确认弹窗 */
+    /* → wx:if="{{showConfirmDialog}}" */
+    /* → <van-dialog> 或 wx.showModal */
+    .confirm-dialog {
+      /* 由 modal-mask 容器承载，见 common.css */
+    }
+    .confirm-dialog .dialog-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    /* 状态区块 */
+    .state-block {
+      display: none;
+    }
+    .state-block.active {
+      display: block;
+    }
+
+    /* 底部安全区 */
+    .safe-area-bottom {
+      height: 20px; /* → 40rpx + env(safe-area-inset-bottom) */
+    }
+  </style>
+</head>
+<body>
+
+<!-- 状态切换器（原型调试用） -->
+<div class="state-switcher">
+  <div class="state-switcher__label">切换状态</div>
+  <button onclick="setState('normal')" class="active">正常态</button>
+  <button onclick="setState('loading')">Loading</button>
+  <button onclick="setState('empty')">空态</button>
+  <button onclick="setState('error')">错误态</button>
+</div>
+
+<div class="phone-frame">
+  <!-- 顶部：微信原生导航栏 -->
+  <!-- title: "今日日程" -->
+  <!-- backgroundColor: "#FFFFFF" -->
+  <!-- frontColor: "#000000" -->
+  <div class="status-bar"></div>
+  <div class="nav-bar">
+    <div class="nav-bar-title">今日日程</div>
+  </div>
+
+  <!-- → <scroll-view scroll-y enable-flex> -->
+  <div class="page-body">
+    <!-- ===== 正常态 ===== -->
+    <div class="state-block state-normal active">
+      <div class="prototype-note">
+        <strong>学龄前模式（3-6岁）</strong><br>
+        - 仅今日视图，无周/月视图<br>
+        - 四时段分组（早上/上午/下午/晚上）<br>
+        - 大卡片 + 卡通图标，点击区域 ≥ 88rpx × 88rpx<br>
+        - 红绿灯体系：绿色=当前/白色=待完成/红色=逾期<br>
+        - 点击卡片 → 弹窗确认打卡
+      </div>
+
+      <!-- 早上时段 -->
+      <section class="period-section">
+        <div class="period-header current">
+          <span class="period-icon">☀️</span>
+          <span class="period-name">早上</span>
+          <span class="period-count">3 项</span>
+        </div>
+        <!-- → wx:for="{{morningList}}" -->
+        <div class="schedule-card schedule-card--routine schedule-card--done" data-id="preschool-card-1">
+          <div class="schedule-icon">🌅</div>
+          <div class="schedule-info">
+            <div class="schedule-name">起床</div>
+            <div class="schedule-period">早上</div>
+          </div>
+          <div class="schedule-done-check">✓</div>
+        </div>
+        <div class="schedule-card schedule-card--activity schedule-card--current" data-id="preschool-card-2">
+          <div class="schedule-icon">🎒</div>
+          <div class="schedule-info">
+            <div class="schedule-name">上学</div>
+            <div class="schedule-period">早上</div>
+          </div>
+          <!-- 当前进行中，无对勾 -->
+        </div>
+        <div class="schedule-card schedule-card--homework schedule-card--pending" data-id="preschool-card-3">
+          <div class="schedule-icon">✏️</div>
+          <div class="schedule-info">
+            <div class="schedule-name">晨读</div>
+            <div class="schedule-period">早上</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 上午时段 -->
+      <section class="period-section">
+        <div class="period-header">
+          <span class="period-icon">🌤</span>
+          <span class="period-name">上午</span>
+          <span class="period-count">2 项</span>
+        </div>
+        <div class="schedule-card schedule-card--activity schedule-card--pending" data-id="preschool-card-4">
+          <div class="schedule-icon">🎨</div>
+          <div class="schedule-info">
+            <div class="schedule-name">美术课</div>
+            <div class="schedule-period">上午</div>
+          </div>
+        </div>
+        <div class="schedule-card schedule-card--activity schedule-card--overdue" data-id="preschool-card-5">
+          <div class="schedule-icon">🎵</div>
+          <div class="schedule-info">
+            <div class="schedule-name">音乐课</div>
+            <div class="schedule-period">上午</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 下午时段 -->
+      <section class="period-section">
+        <div class="period-header">
+          <span class="period-icon">🌤</span>
+          <span class="period-name">下午</span>
+          <span class="period-count">1 项</span>
+        </div>
+        <div class="schedule-card schedule-card--activity schedule-card--pending" data-id="preschool-card-6">
+          <div class="schedule-icon">⚽</div>
+          <div class="schedule-info">
+            <div class="schedule-name">足球课</div>
+            <div class="schedule-period">下午</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 晚上时段 -->
+      <section class="period-section">
+        <div class="period-header">
+          <span class="period-icon">🌙</span>
+          <span class="period-name">晚上</span>
+          <span class="period-count">2 项</span>
+        </div>
+        <div class="schedule-card schedule-card--routine schedule-card--pending" data-id="preschool-card-7">
+          <div class="schedule-icon">📖</div>
+          <div class="schedule-info">
+            <div class="schedule-name">阅读</div>
+            <div class="schedule-period">晚上</div>
+          </div>
+        </div>
+        <div class="schedule-card schedule-card--routine schedule-card--pending" data-id="preschool-card-8">
+          <div class="schedule-icon">🛁</div>
+          <div class="schedule-info">
+            <div class="schedule-name">洗澡睡觉</div>
+            <div class="schedule-period">晚上</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="safe-area-bottom"></div>
+    </div>
+
+    <!-- ===== Loading态 ===== -->
+    <div class="state-block state-loading">
+      <!-- → wx:if="{{loading}}" -->
+      <div class="loading-block">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">加载中...</div>
+      </div>
+      <!-- 骨架屏示例 -->
+      <div class="mt-md">
+        <div class="skeleton" style="height: 50px; border-radius: var(--radius-md); margin-bottom: 12px;"></div>
+        <div class="skeleton" style="height: 100px; border-radius: var(--radius-md); margin-bottom: 12px;"></div>
+        <div class="skeleton" style="height: 100px; border-radius: var(--radius-md); margin-bottom: 12px;"></div>
+        <div class="skeleton" style="height: 50px; border-radius: var(--radius-md); margin-bottom: 12px;"></div>
+        <div class="skeleton" style="height: 100px; border-radius: var(--radius-md);"></div>
+      </div>
+    </div>
+
+    <!-- ===== 空态 ===== -->
+    <div class="state-block state-empty">
+      <!-- → wx:if="{{isEmpty}}" -->
+      <div class="empty-state">
+        <div class="empty-state__icon">🎉</div>
+        <div class="empty-state__title">今天没有要做的事！</div>
+        <div class="empty-state__desc">去玩吧～</div>
+      </div>
+    </div>
+
+    <!-- ===== 错误态 ===== -->
+    <div class="state-block state-error">
+      <!-- → wx:if="{{error}}" -->
+      <div class="error-state">
+        <div class="error-state__icon">📶</div>
+        <div class="error-state__title">网络连接失败</div>
+        <div class="error-state__desc">请检查网络连接后重试</div>
+        <button class="btn btn--primary mt-md" data-id="preschool-retry-btn">重试</button>
+      </div>
+    </div>
+  </div>
+  <!-- /scroll-view -->
+
+  <!-- 微信原生 TabBar -->
+  <!-- tabBar.list: [{ text: "今日", pagePath: "pages/today/index" },
+                    { text: "我的", pagePath: "pages/my/index" }] -->
+  <!-- 学龄前模式仅显示今日 + 我的，不显示周/月 -->
+  <div class="tab-bar">
+    <div class="tab-bar-item active">
+      <div class="tab-bar-icon">📅</div>
+      <div class="tab-bar-label">今日</div>
+    </div>
+    <div class="tab-bar-item">
+      <div class="tab-bar-icon">👤</div>
+      <div class="tab-bar-label">我的</div>
+    </div>
+  </div>
+</div>
+
+<!-- 打卡确认弹窗（演示用，正常态下隐藏，点击卡片后显示） -->
+<div class="modal-mask" id="confirmModal" style="display: none;">
+  <div class="modal confirm-dialog">
+    <div class="dialog-icon">🎒</div>
+    <div class="modal__header">上学</div>
+    <div class="modal__body">完成了吗？</div>
+    <div class="modal__footer">
+      <button class="btn btn--default" onclick="hideConfirm()">取消</button>
+      <button class="btn btn--primary" onclick="hideConfirm()">完成！✓</button>
+    </div>
+  </div>
+</div>
+<!-- → 弹窗映射：<van-dialog> / wx.showModal -->
+
+<script>
+function setState(state) {
+  document.querySelectorAll('.state-block').forEach(el => {
+    el.classList.remove('active');
+  });
+  document.querySelector('.state-' + state).classList.add('active');
+  document.querySelectorAll('.state-switcher button').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+}
+
+function hideConfirm() {
+  document.getElementById('confirmModal').style.display = 'none';
+}
+
+// 点击卡片显示弹窗
+document.querySelectorAll('.schedule-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.getElementById('confirmModal').style.display = 'flex';
+  });
+});
+</script>
+</body>
+</html>

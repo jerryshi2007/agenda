@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>展示模式 - 小学月视图</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* 月视图特有样式 */
+    .month-header {
+      background: var(--color-bg-white);
+      border-radius: var(--radius-md);
+      padding: 16px; /* → 32rpx */
+      margin-bottom: 16px; /* → 32rpx */
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .month-title {
+      font-size: 16px; /* → 32rpx */
+      font-weight: 500;
+    }
+    .month-nav-btn {
+      width: 28px; /* → 56rpx */
+      height: 28px; /* → 56rpx */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      background: var(--color-bg-page);
+      cursor: pointer;
+    }
+    .month-nav-btn:active {
+      background: var(--color-border);
+    }
+
+    /* 星期头部 */
+    .month-week-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px; /* → 4rpx */
+      background: var(--color-bg-white);
+      padding: 12px 8px 8px; /* → 24rpx 16rpx 16rpx */
+      border-radius: var(--radius-md) var(--radius-md) 0 0;
+    }
+    .weekday-name {
+      text-align: center;
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+    }
+
+    /* 日期格子 */
+    .month-days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px; /* → 4rpx */
+      background: var(--color-bg-white);
+      padding: 8px 8px 16px; /* → 16rpx 16rpx 32rpx */
+      border-radius: 0 0 var(--radius-md) var(--radius-md);
+      margin-bottom: 16px; /* → 32rpx */
+    }
+    .month-day-cell {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      padding: 4px 2px; /* → 8rpx 4rpx */
+      min-height: 36px; /* → 72rpx */
+    }
+    .month-day-cell.today {
+      background: var(--color-primary-light);
+    }
+    .month-day-cell.other-month {
+      opacity: 0.2;
+    }
+    .month-day-number {
+      font-size: 13px; /* → 26rpx */
+      font-weight: 500;
+      margin-bottom: 2px; /* → 4rpx */
+    }
+    .month-day-cell.today .month-day-number {
+      color: var(--color-primary);
+    }
+    /* 日程点 */
+    .month-dots {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px; /* → 4rpx */
+      justify-content: center;
+    }
+    .month-dot {
+      width: 4px; /* → 8rpx */
+      height: 4px; /* → 8rpx */
+      border-radius: var(--radius-round);
+    }
+    .month-dot--activity {
+      background: #2196F3;
+    }
+    .month-dot--routine {
+      background: #4CAF50;
+    }
+    .month-dot--homework {
+      background: #FF9800;
+    }
+
+    /* 统计摘要 */
+    .month-stats {
+      background: var(--color-bg-white);
+      border-radius: var(--radius-md);
+      padding: 16px; /* → 32rpx */
+    }
+    .stats-title {
+      font-size: 14px; /* → 28rpx */
+      font-weight: 500;
+      margin-bottom: 12px; /* → 24rpx */
+    }
+    .stats-row {
+      display: flex;
+      justify-content: space-around;
+    }
+    .stats-item {
+      text-align: center;
+    }
+    .stats-value {
+      font-size: 20px; /* → 40rpx */
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+    .stats-label {
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+      margin-top: 4px; /* → 8rpx */
+    }
+
+    /* 标签栏 */
+    .tab-nav {
+      display: flex;
+      background: var(--color-bg-white);
+      border-radius: var(--radius-md);
+      padding: 4px;
+      margin-bottom: 16px; /* → 32rpx */
+    }
+    .tab-nav-item {
+      flex: 1;
+      text-align: center;
+      padding: 8px 0; /* → 16rpx 0 */
+      border-radius: var(--radius-sm);
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .tab-nav-item.active {
+      background: var(--color-primary);
+      color: var(--color-text-white);
+      border-radius: var(--radius-sm);
+    }
+
+    /* 状态区块 */
+    .state-block {
+      display: none;
+    }
+    .state-block.active {
+      display: block;
+    }
+
+    /* 底部安全区 */
+    .safe-area-bottom {
+      height: 20px; /* → 40rpx + env(safe-area-inset-bottom) */
+    }
+  </style>
+</head>
+<body>
+
+<!-- 状态切换器（原型调试用） -->
+<div class="state-switcher">
+  <div class="state-switcher__label">切换状态</div>
+  <button onclick="setState('normal')" class="active">正常态</button>
+  <button onclick="setState('loading')">Loading</button>
+  <button onclick="setState('empty')">空态</button>
+  <button onclick="setState('error')">错误态</button>
+</div>
+
+<div class="phone-frame">
+  <!-- 顶部：微信原生导航栏 -->
+  <!-- title: "日程" -->
+  <div class="status-bar"></div>
+  <div class="nav-bar">
+    <div class="nav-bar-title">日程</div>
+  </div>
+
+  <div class="page-body">
+    <!-- ===== 正常态 ===== -->
+    <div class="state-block state-normal active">
+      <div class="prototype-note">
+        <strong>小学模式 · 月视图</strong><br>
+        - 整月日历网格展示<br>
+        - 色点区分日程类型<br>
+        - 底部显示月度统计摘要<br>
+        - 只读，点击日期跳转到今日视图
+      </div>
+
+      <!-- 标签栏切换 -->
+      <div class="tab-nav">
+        <div class="tab-nav-item">今日</div>
+        <div class="tab-nav-item">周</div>
+        <div class="tab-nav-item active">月</div>
+      </div>
+
+      <!-- 月份导航 -->
+      <div class="month-header">
+        <div class="month-nav-btn">&lt;</div>
+        <div class="month-title">2026年8月</div>
+        <div class="month-nav-btn">&gt;</div>
+      </div>
+
+      <!-- 星期头部 -->
+      <div class="month-week-header">
+        <div class="weekday-name">日</div>
+        <div class="weekday-name">一</div>
+        <div class="weekday-name">二</div>
+        <div class="weekday-name">三</div>
+        <div class="weekday-name">四</div>
+        <div class="weekday-name">五</div>
+        <div class="weekday-name">六</div>
+      </div>
+
+      <!-- 日期网格 -->
+      <!-- → wx:for="{{monthWeeks}}" wx:for-item="week" → wx:for="{{week}}" -->
+      <div class="month-days-grid">
+        <!-- 第一周 -->
+        <div class="month-day-cell other-month">
+          <div class="month-day-number">27</div>
+        </div>
+        <div class="month-day-cell other-month">
+          <div class="month-day-number">28</div>
+        </div>
+        <div class="month-day-cell other-month">
+          <div class="month-day-number">29</div>
+          <div class="month-dots">
+            <span class="month-dot month-dot--routine"></span>
+          </div>
+        </div>
+        <div class="month-day-cell other-month">
+          <div class="month-day-number">30</div>
+          <div class="month-dots">
+            <span class="month-dot month-dot--routine"></span>
+            <span class="month-dot month-dot--activity"></span>
+          </div>
+        </div>
+        <div class="month-day-cell other-month">
+          <div class="month-day-number">31</div>
+          <div class="month-dots">
+            <span class="month-dot month-dot--routine"></span>
+            <span class="month-dot month-dot--activity"></span>
+            <span class="month-dot month-dot--homework"></span>
+          </div>
+        </div>
+        <div class="month-day-cell today">
+          <div class="month-day-number">1</div>
+          <div class="month-dots">
+            <span class="month-dot month-dot--routine"></span>
+            <span class="month-dot month-dot--activity"></span>
+            <span class="month-dot month-dot--homework"></span>
+          </div>
+        </div>
+        <div class="month-day-cell">
+          <div class="month-day-number">2</div>
+          <div class="month-dots">
+            <span class="month-dot month-dot--routine"></span>
+          </div>
+        </div>
+        <!-- 第二周 -->
+        <div class="month-day-cell">
+          <div class="month-day-number">3</div>
+          <div class="month-dots">
+            <span class="month-dot month-dot--routine"></span>
+            <span class="month-dot month-dot--activity"></span>
+          </div>
+        </div>
+        <div class="month-day-cell">
+          <div class="month-day-number">4</div>
+          <div class="month-dots">
+            <span class="month-dot month-dot--routine"></span>
+            <span class="month-dot month-dot--homework"></span>
+          </div>
+        </div>
+        <div class="month-day-cell">
+          <div class="month-day-number">5</div>
+          <div class="month-dots">
+            <span class="month-dot month-dot--routine"></span>
+            <span class="month-dot month-dot--activity"></span>
+          </div>
+        </div>
+        <div class="month-day-cell">
+          <div class="month-day-number">6</div>
+          <div class="month-dots">
+            <span class="month-dot month-dot--routine"></span>
+            <span class="month-dot month-dot--homework"></span>
+          </div>
+        </div>
+        <div class="month-day-cell">
+          <div class="month-day-number">7</div>
+          <div class="month-dots">
+            <span class="month-dot month-dot--routine"></span>
+            <span class="month-dot month-dot--activity"></span>
+            <span class="month-dot month-dot--homework"></span>
+          </div>
+        </div>
+        <div class="month-day-cell">
+          <div class="month-day-number">8</div>
+          <div class="month-dots">
+            <span class="month-dot month-dot--routine"></span>
+          </div>
+        </div>
+        <div class="month-day-cell">
+          <div class="month-day-number">9</div>
+        </div>
+      </div>
+
+      <!-- 本月统计 -->
+      <div class="month-stats">
+        <div class="stats-title">本月统计</div>
+        <div class="stats-row">
+          <div class="stats-item">
+            <div class="stats-value">21</div>
+            <div class="stats-label">总日程</div>
+          </div>
+          <div class="stats-item">
+            <div class="stats-value">18</div>
+            <div class="stats-label">已完成</div>
+          </div>
+          <div class="stats-item">
+            <div class="stats-value">86%</div>
+            <div class="stats-label">完成率</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="safe-area-bottom"></div>
+    </div>
+
+    <!-- ===== Loading态 ===== -->
+    <div class="state-block state-loading">
+      <div class="loading-block">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">加载中...</div>
+      </div>
+    </div>
+
+    <!-- ===== 空态 ===== -->
+    <div class="state-block state-empty">
+      <div class="empty-state">
+        <div class="empty-state__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+        </div>
+        <div class="empty-state__title">本月没有日程</div>
+        <div class="empty-state__desc">等待家长安排新日程～</div>
+      </div>
+    </div>
+
+    <!-- ===== 错误态 ===== -->
+    <div class="state-block state-error">
+      <div class="error-state">
+        <div class="error-state__icon">📶</div>
+        <div class="error-state__title">加载失败</div>
+        <div class="error-state__desc">网络异常，请检查网络连接</div>
+        <button class="btn btn--primary mt-md" data-id="primary-month-retry-btn">重试</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 微信原生 TabBar -->
+  <div class="tab-bar">
+    <div class="tab-bar-item active">
+      <div class="tab-bar-icon">📅</div>
+      <div class="tab-bar-label">日程</div>
+    </div>
+    <div class="tab-bar-item">
+      <div class="tab-bar-icon">👤</div>
+      <div class="tab-bar-label">我的</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function setState(state) {
+  document.querySelectorAll('.state-block').forEach(el => {
+    el.classList.remove('active');
+  });
+  document.querySelector('.state-' + state).classList.add('active');
+  document.querySelectorAll('.state-switcher button').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
