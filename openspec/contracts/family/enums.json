@@ -1,0 +1,26 @@
+{
+  "DisplayMode": {
+    "description": "孩子展示模式：学龄前/小学/高年级",
+    "values": [
+      "Preschool",
+      "Primary",
+      "UpperGrades"
+    ]
+  },
+  "FamilyStatus": {
+    "description": "家庭状态：正常/已解散",
+    "values": [
+      "Normal",
+      "Dissolved"
+    ]
+  },
+  "InvitationCodeStatus": {
+    "description": "邀请码状态：待使用/已使用/已撤销/已过期",
+    "values": [
+      "Pending",
+      "Used",
+      "Redeemed",
+      "Expired"
+    ]
+  }
+}
