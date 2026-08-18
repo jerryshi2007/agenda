@@ -1,6 +1,6 @@
 # 孩子展示模式模块 · 需求文档
 
-<!-- STAGING-STATUS: dev-ready -->
+<!-- STAGING-STATUS: in-progress -->
 <!-- CONFIRMED: 2026-08-18 -->
 
 ## 1. 产品概述
