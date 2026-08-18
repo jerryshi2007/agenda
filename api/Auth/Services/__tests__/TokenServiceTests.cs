@@ -232,4 +232,70 @@ public class TokenServiceTests
         var claim = principal!.FindFirst("displayMode");
         Assert.Null(claim);
     }
+
+    [Fact]
+    public async Task GenerateTokenAsync_ChildInMultipleFamilies_UsesFirstOrDefaultDisplayMode()
+    {
+        // T01: 孩子属于多个家庭 — 同一用户在两个家庭有不同 DisplayMode，
+        // 取 FirstOrDefault 结果的 displayMode。
+        var db = CreateDbContext();
+        var childId = Guid.NewGuid();
+        var family1Id = Guid.NewGuid();
+        var family2Id = Guid.NewGuid();
+        db.Users.Add(new User
+        {
+            Id = childId,
+            OpenId = Guid.NewGuid().ToString("N"),
+            Nickname = "多家庭孩子",
+            Role = UserRole.Child,
+            Status = UserStatus.Active,
+            CreatedAt = DateTimeOffset.UtcNow,
+            LastLoginAt = DateTimeOffset.UtcNow
+        });
+        db.Families.Add(new DomainFamily
+        {
+            Id = family1Id,
+            Name = "家庭一",
+            CreatedAt = DateTimeOffset.UtcNow,
+            Status = FamilyStatus.Normal
+        });
+        db.Families.Add(new DomainFamily
+        {
+            Id = family2Id,
+            Name = "家庭二",
+            CreatedAt = DateTimeOffset.UtcNow,
+            Status = FamilyStatus.Normal
+        });
+        db.FamilyMembers.Add(new DomainFamilyMember
+        {
+            Id = Guid.NewGuid(),
+            FamilyId = family1Id,
+            UserId = childId,
+            Role = UserRole.Child,
+            DisplayMode = DisplayMode.UpperGrades,
+            JoinedAt = DateTimeOffset.UtcNow
+        });
+        db.FamilyMembers.Add(new DomainFamilyMember
+        {
+            Id = Guid.NewGuid(),
+            FamilyId = family2Id,
+            UserId = childId,
+            Role = UserRole.Child,
+            DisplayMode = DisplayMode.Preschool,
+            JoinedAt = DateTimeOffset.UtcNow
+        });
+        await db.SaveChangesAsync();
+        var jwt = CreateJwtService();
+        var svc = new TokenService(db, jwt);
+
+        var token = await svc.GenerateTokenAsync(childId);
+
+        var principal = jwt.ValidateToken(token);
+        Assert.NotNull(principal);
+        var claim = principal!.FindFirst("displayMode");
+        Assert.NotNull(claim);
+        // FirstOrDefault 取第一个匹配记录，不保证顺序，但保证有值
+        var validModes = new[] { "UpperGrades", "Preschool" };
+        Assert.Contains(claim!.Value, validModes);
+    }
 }

@@ -107,6 +107,33 @@ public class ChildScheduleQueryServiceTests
         };
     }
 
+    private static Domain.Entities.Schedule CreateDerivativeActivity(
+        Guid familyId, Guid childId, string name, Guid sourceScheduleId, DateOnly overrideDate,
+        DayOfWeek day, TimeOnly start, TimeOnly end)
+    {
+        return new Domain.Entities.Schedule
+        {
+            Id = Guid.NewGuid(),
+            Name = name,
+            ScheduleType = ScheduleType.AfterSchoolActivity,
+            FamilyId = familyId,
+            AssignedChildId = childId,
+            CreatedBy = childId,
+            GroupKey = Guid.NewGuid(),
+            SourceScheduleId = sourceScheduleId,
+            OverrideDate = overrideDate,
+            RepeatEndDate = null,
+            IsDeleted = false,
+            RowVersion = Guid.NewGuid().ToByteArray(),
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            TimeSlots =
+            {
+                new TimeSlot { DayOfWeek = day, StartTime = start, EndTime = end }
+            }
+        };
+    }
+
     // ---------- 今日视图 ----------
 
     [Fact]
@@ -366,5 +393,199 @@ public class ChildScheduleQueryServiceTests
         var result = await svc.GetByIdAsync(myActivity.Id, childId, wrongFamilyId);
 
         Assert.Null(result);
+    }
+
+    // ---------- 衍生日程 / 边界 ----------
+
+    [Fact]
+    public async Task GetDailyListAsync_DerivativeScheduleOverrideDateMatchesToday_AppearsInList()
+    {
+        // B01: 衍生日程按 OverrideDate 匹配今日。源日程 TimeSlot 不匹配今日，
+        // 衍生日程 OverrideDate=today → 衍生日程出现，源日程不出现。
+        var (db, familyId, childId) = await SeedAsync(db: CreateDbContext());
+        var today = new DateOnly(2026, 8, 24); // 周一
+        // 源日程：周二才出现（TimeSlot 不匹配周一）
+        var source = CreateActivity(familyId, childId, "钢琴课", DayOfWeek.Tuesday, new TimeOnly(16, 0), new TimeOnly(17, 0));
+        db.Schedules.Add(source);
+        // 衍生日程：OverrideDate=周一（今天）
+        var derivative = CreateDerivativeActivity(familyId, childId, "钢琴课(调整)", source.Id, today,
+            DayOfWeek.Monday, new TimeOnly(15, 0), new TimeOnly(16, 0));
+        db.Schedules.Add(derivative);
+        await db.SaveChangesAsync();
+        var svc = new ChildScheduleQueryService(db);
+
+        var resp = await svc.GetDailyListAsync(childId, familyId, today);
+
+        Assert.Single(resp.Items);
+        Assert.Equal(derivative.Id, resp.Items[0].ScheduleId);
+        Assert.Equal(1, resp.TotalCount);
+    }
+
+    [Fact]
+    public async Task GetDailyListAsync_DerivativeScheduleOverrideDateNotToday_NotAppears()
+    {
+        // B02: 衍生日程 OverrideDate 不在今日则不出现
+        var (db, familyId, childId) = await SeedAsync(db: CreateDbContext());
+        var today = new DateOnly(2026, 8, 24); // 周一
+        var otherDay = new DateOnly(2026, 8, 25); // 周二
+        var source = CreateActivity(familyId, childId, "钢琴课", DayOfWeek.Monday, new TimeOnly(16, 0), new TimeOnly(17, 0));
+        db.Schedules.Add(source);
+        var derivative = CreateDerivativeActivity(familyId, childId, "钢琴课(调整)", source.Id, otherDay,
+            DayOfWeek.Tuesday, new TimeOnly(15, 0), new TimeOnly(16, 0));
+        db.Schedules.Add(derivative);
+        await db.SaveChangesAsync();
+        var svc = new ChildScheduleQueryService(db);
+
+        var resp = await svc.GetDailyListAsync(childId, familyId, today);
+
+        // 仅源日程的周一实例出现，衍生日程不出现（OverrideDate=周二）
+        Assert.Single(resp.Items);
+        Assert.Equal(source.Id, resp.Items[0].ScheduleId);
+    }
+
+    [Fact]
+    public async Task GetDailyListAsync_DateExclusionExcludesDate_NotAppears()
+    {
+        // B03: DateExclusion 排除日期过滤 — 源日程在今天有 DateExclusion 记录，不出现在今日列表
+        var (db, familyId, childId) = await SeedAsync(db: CreateDbContext());
+        var today = new DateOnly(2026, 8, 24); // 周一
+        var activity = CreateActivity(familyId, childId, "钢琴课", DayOfWeek.Monday, new TimeOnly(16, 0), new TimeOnly(17, 0));
+        db.Schedules.Add(activity);
+        db.ScheduleDateExclusions.Add(new ScheduleDateExclusion
+        {
+            ScheduleId = activity.Id,
+            ExcludedDate = today,
+            ExcludedBy = childId,
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+        await db.SaveChangesAsync();
+        var svc = new ChildScheduleQueryService(db);
+
+        var resp = await svc.GetDailyListAsync(childId, familyId, today);
+
+        Assert.Empty(resp.Items);
+        Assert.Equal(0, resp.TotalCount);
+    }
+
+    [Fact]
+    public async Task GetDailyListAsync_RepeatEndDateExpired_NotAppears()
+    {
+        // B04: RepeatEndDate 到期后不再出现 — RepeatEndDate=昨天，查询今天，不出现在列表
+        var (db, familyId, childId) = await SeedAsync(db: CreateDbContext());
+        var yesterday = new DateOnly(2026, 8, 23); // 周日
+        var today = new DateOnly(2026, 8, 24); // 周一
+        var activity = new Domain.Entities.Schedule
+        {
+            Id = Guid.NewGuid(),
+            Name = "已到期课程",
+            ScheduleType = ScheduleType.AfterSchoolActivity,
+            FamilyId = familyId,
+            AssignedChildId = childId,
+            CreatedBy = childId,
+            GroupKey = Guid.NewGuid(),
+            RepeatEndDate = yesterday,
+            IsDeleted = false,
+            RowVersion = Guid.NewGuid().ToByteArray(),
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            TimeSlots =
+            {
+                new TimeSlot { DayOfWeek = DayOfWeek.Monday, StartTime = new TimeOnly(16, 0), EndTime = new TimeOnly(17, 0) }
+            }
+        };
+        db.Schedules.Add(activity);
+        await db.SaveChangesAsync();
+        var svc = new ChildScheduleQueryService(db);
+
+        var resp = await svc.GetDailyListAsync(childId, familyId, today);
+
+        Assert.Empty(resp.Items);
+        Assert.Equal(0, resp.TotalCount);
+    }
+
+    [Fact]
+    public async Task GetWeeklyListAsync_RepeatEndDateInWeekBoundary_RespectsEndDate()
+    {
+        // B05: RepeatEndDate 在周中边界 — RepeatEndDate=本周六，查询周视图(周一~周日)，
+        // 周六及之前出现，周日不出现。
+        var (db, familyId, childId) = await SeedAsync(db: CreateDbContext());
+        var weekStart = new DateOnly(2026, 8, 24); // 周一
+        var saturday = new DateOnly(2026, 8, 29); // 周六
+        // 活动：每天都有 TimeSlot，但 RepeatEndDate=周六
+        var activity = new Domain.Entities.Schedule
+        {
+            Id = Guid.NewGuid(),
+            Name = "暑期班",
+            ScheduleType = ScheduleType.AfterSchoolActivity,
+            FamilyId = familyId,
+            AssignedChildId = childId,
+            CreatedBy = childId,
+            GroupKey = Guid.NewGuid(),
+            RepeatEndDate = saturday,
+            IsDeleted = false,
+            RowVersion = Guid.NewGuid().ToByteArray(),
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            TimeSlots =
+            {
+                new TimeSlot { DayOfWeek = DayOfWeek.Monday, StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(11, 0) },
+                new TimeSlot { DayOfWeek = DayOfWeek.Tuesday, StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(11, 0) },
+                new TimeSlot { DayOfWeek = DayOfWeek.Wednesday, StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(11, 0) },
+                new TimeSlot { DayOfWeek = DayOfWeek.Thursday, StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(11, 0) },
+                new TimeSlot { DayOfWeek = DayOfWeek.Friday, StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(11, 0) },
+                new TimeSlot { DayOfWeek = DayOfWeek.Saturday, StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(11, 0) },
+                new TimeSlot { DayOfWeek = DayOfWeek.Sunday, StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(11, 0) }
+            }
+        };
+        db.Schedules.Add(activity);
+        await db.SaveChangesAsync();
+        var svc = new ChildScheduleQueryService(db);
+
+        var resp = await svc.GetWeeklyListAsync(childId, familyId, weekStart);
+
+        // 周一~周六 6 天出现，周日不出现（超出 RepeatEndDate）
+        Assert.Equal(6, resp.TotalCount);
+    }
+
+    [Fact]
+    public async Task GetDailyListAsync_IsDeletedSchedule_FilteredOut()
+    {
+        // B06: IsDeleted=true 日程被过滤 — 不出现在任何查询
+        var (db, familyId, childId) = await SeedAsync(db: CreateDbContext());
+        var today = new DateOnly(2026, 8, 24); // 周一
+        var activity = CreateActivity(familyId, childId, "已删除课程", DayOfWeek.Monday, new TimeOnly(16, 0), new TimeOnly(17, 0));
+        activity.IsDeleted = true;
+        db.Schedules.Add(activity);
+        await db.SaveChangesAsync();
+        var svc = new ChildScheduleQueryService(db);
+
+        var resp = await svc.GetDailyListAsync(childId, familyId, today);
+
+        Assert.Empty(resp.Items);
+        Assert.Equal(0, resp.TotalCount);
+    }
+
+    [Fact]
+    public async Task GetWeeklyListAsync_DerivativeScheduleInWeek_CountedInTotal()
+    {
+        // B07: 衍生日程在周视图正确计数 — 衍生日程 OverrideDate 在周内，计入 totalCount
+        var (db, familyId, childId) = await SeedAsync(db: CreateDbContext());
+        var weekStart = new DateOnly(2026, 8, 24); // 周一
+        var wednesday = new DateOnly(2026, 8, 26); // 周三
+        // 源日程：周四才出现（TimeSlot 不匹配周一~周三）
+        var source = CreateActivity(familyId, childId, "钢琴课", DayOfWeek.Thursday, new TimeOnly(16, 0), new TimeOnly(17, 0));
+        db.Schedules.Add(source);
+        // 衍生日程：OverrideDate=周三
+        var derivative = CreateDerivativeActivity(familyId, childId, "钢琴课(调整)", source.Id, wednesday,
+            DayOfWeek.Wednesday, new TimeOnly(15, 0), new TimeOnly(16, 0));
+        db.Schedules.Add(derivative);
+        await db.SaveChangesAsync();
+        var svc = new ChildScheduleQueryService(db);
+
+        var resp = await svc.GetWeeklyListAsync(childId, familyId, weekStart);
+
+        // 源日程(周四) + 衍生日程(周三) = 2
+        Assert.Equal(2, resp.TotalCount);
+        Assert.Equal(2, resp.Items.Count);
     }
 }

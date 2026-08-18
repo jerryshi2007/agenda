@@ -85,6 +85,33 @@ public class CompletionStatsServiceTests
         };
     }
 
+    private static Domain.Entities.Schedule CreateDerivativeActivity(
+        Guid familyId, Guid childId, string name, Guid sourceScheduleId, DateOnly overrideDate,
+        DayOfWeek day, TimeOnly start, TimeOnly end)
+    {
+        return new Domain.Entities.Schedule
+        {
+            Id = Guid.NewGuid(),
+            Name = name,
+            ScheduleType = ScheduleType.AfterSchoolActivity,
+            FamilyId = familyId,
+            AssignedChildId = childId,
+            CreatedBy = childId,
+            GroupKey = Guid.NewGuid(),
+            SourceScheduleId = sourceScheduleId,
+            OverrideDate = overrideDate,
+            RepeatEndDate = null,
+            IsDeleted = false,
+            RowVersion = Guid.NewGuid().ToByteArray(),
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            TimeSlots =
+            {
+                new TimeSlot { DayOfWeek = day, StartTime = start, EndTime = end }
+            }
+        };
+    }
+
     [Fact]
     public async Task GetChildWeeklyCompletionRateAsync_NoSchedules_ReturnsZeros()
     {
@@ -305,5 +332,107 @@ public class CompletionStatsServiceTests
         Assert.Equal(1, total);
         Assert.Equal(1, completed);
         Assert.Equal(100.0, percentage);
+    }
+
+    // ---------- 衍生日程 / 边界 ----------
+
+    [Fact]
+    public async Task GetChildWeeklyCompletionRateAsync_DerivativeScheduleInWeek_CountedInTotal()
+    {
+        // C01: 衍生日程按 OverrideDate 计入周统计 — 衍生日程 OverrideDate 在周内，
+        // 计入 total，若已打卡计入 completed。
+        var (db, familyId, childId) = await SeedAsync(CreateDbContext());
+        var weekStart = new DateOnly(2026, 8, 24); // 周一
+        var wednesday = new DateOnly(2026, 8, 26); // 周三
+        // 源日程：周四才出现
+        var source = CreateActivity(familyId, childId, "钢琴课", DayOfWeek.Thursday, new TimeOnly(16, 0), new TimeOnly(17, 0));
+        db.Schedules.Add(source);
+        // 衍生日程：OverrideDate=周三
+        var derivative = CreateDerivativeActivity(familyId, childId, "钢琴课(调整)", source.Id, wednesday,
+            DayOfWeek.Wednesday, new TimeOnly(15, 0), new TimeOnly(16, 0));
+        db.Schedules.Add(derivative);
+        // 周三打卡
+        db.Checkins.Add(new Domain.Entities.Checkin
+        {
+            ScheduleId = derivative.Id,
+            Date = wednesday,
+            UserId = childId,
+            Source = CheckinSource.Child,
+            CheckinAt = DateTimeOffset.UtcNow,
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+        await db.SaveChangesAsync();
+        var svc = new CompletionStatsService(db);
+
+        var (percentage, completed, total) = await svc.GetChildWeeklyCompletionRateAsync(childId, familyId, weekStart);
+
+        // 源日程(周四) + 衍生日程(周三) = 2 total，衍生日程已打卡 = 1 completed
+        Assert.Equal(2, total);
+        Assert.Equal(1, completed);
+        Assert.Equal(50.0, percentage);
+    }
+
+    [Fact]
+    public async Task GetChildWeeklyCompletionRateAsync_RepeatEndDateMidWeek_OnlyCountsBeforeEndDate()
+    {
+        // C02: RepeatEndDate 在周中到期 — RepeatEndDate=周三，weekStart=周一，
+        // 周一至周三计入，周四至周日不计入。
+        var (db, familyId, childId) = await SeedAsync(CreateDbContext());
+        var weekStart = new DateOnly(2026, 8, 24); // 周一
+        var wednesday = new DateOnly(2026, 8, 26); // 周三
+        // 活动：每天都有 TimeSlot，但 RepeatEndDate=周三
+        var activity = new Domain.Entities.Schedule
+        {
+            Id = Guid.NewGuid(),
+            Name = "短期班",
+            ScheduleType = ScheduleType.AfterSchoolActivity,
+            FamilyId = familyId,
+            AssignedChildId = childId,
+            CreatedBy = childId,
+            GroupKey = Guid.NewGuid(),
+            RepeatEndDate = wednesday,
+            IsDeleted = false,
+            RowVersion = Guid.NewGuid().ToByteArray(),
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            TimeSlots =
+            {
+                new TimeSlot { DayOfWeek = DayOfWeek.Monday, StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(11, 0) },
+                new TimeSlot { DayOfWeek = DayOfWeek.Tuesday, StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(11, 0) },
+                new TimeSlot { DayOfWeek = DayOfWeek.Wednesday, StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(11, 0) },
+                new TimeSlot { DayOfWeek = DayOfWeek.Thursday, StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(11, 0) },
+                new TimeSlot { DayOfWeek = DayOfWeek.Friday, StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(11, 0) },
+                new TimeSlot { DayOfWeek = DayOfWeek.Saturday, StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(11, 0) },
+                new TimeSlot { DayOfWeek = DayOfWeek.Sunday, StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(11, 0) }
+            }
+        };
+        db.Schedules.Add(activity);
+        await db.SaveChangesAsync();
+        var svc = new CompletionStatsService(db);
+
+        var (percentage, completed, total) = await svc.GetChildWeeklyCompletionRateAsync(childId, familyId, weekStart);
+
+        // 周一~周三 3 天计入，周四~周日 4 天不计入
+        Assert.Equal(3, total);
+        Assert.Equal(0, completed);
+        Assert.Equal(0.0, percentage);
+    }
+
+    [Fact]
+    public async Task GetChildWeeklyCompletionRateAsync_IsDeletedSchedule_NotCounted()
+    {
+        // C03: IsDeleted=true 日程不计入 — 日程度 IsDeleted=true，不计入 total
+        var (db, familyId, childId) = await SeedAsync(CreateDbContext());
+        var weekStart = new DateOnly(2026, 8, 24); // 周一
+        var activity = CreateActivity(familyId, childId, "已删除课程", DayOfWeek.Monday, new TimeOnly(16, 0), new TimeOnly(17, 0));
+        activity.IsDeleted = true;
+        db.Schedules.Add(activity);
+        await db.SaveChangesAsync();
+        var svc = new CompletionStatsService(db);
+
+        var (percentage, completed, total) = await svc.GetChildWeeklyCompletionRateAsync(childId, familyId, weekStart);
+
+        Assert.Equal(0, total);
+        Assert.Equal(0.0, percentage);
     }
 }
