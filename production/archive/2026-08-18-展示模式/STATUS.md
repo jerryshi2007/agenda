@@ -2,14 +2,14 @@
 
 | 字段 | 值 |
 |------|-----|
-| 状态 | in-progress |
+| 状态 | done |
 | 创建日期 | 2026-08-18 |
 | 最后更新 | 2026-08-18 |
 
 ## 状态流转
 
     draft -> confirmed -> dev-ready -> in-progress -> done
-                                           ↑ 当前
+                                                       ↑ 当前
 
 ## 阶段进度
 
@@ -18,5 +18,5 @@
 | Stage 1 产品 | ✅ done | - |
 | Stage 2 设计 | ✅ done | add-display-mode-module |
 | Stage 3 研发 | ✅ done | add-display-mode-module |
-| Stage 4 测试 | ⬜ pending | - |
-| Stage 5 归档 | ⬜ pending | add-display-mode-module |
+| Stage 4 测试 | ✅ done | - |
+| Stage 5 归档 | ✅ done | add-display-mode-module |

@@ -4,11 +4,19 @@
 TBD - created by archiving change add-auth-module. Update Purpose after archive.
 ## Requirements
 ### Requirement: JWT 签发与验签
-后端 MUST 在登录/续期成功时签发 JWT，载荷含 userId/iat/exp，有效期 7 天。后端 MUST 对所有受保护 API 请求验签，验签失败返回 401。JWT 签名密钥 MUST 通过环境变量注入，不进源码。
+后端 MUST 在登录/续期成功时签发 JWT，载荷含 userId/iat/exp，有效期 7 天。当用户角色为 Child 时，MUST 额外包含 `displayMode` claim（值为 `Preschool` / `Primary` / `UpperGrades`）。后端 MUST 对所有受保护 API 请求验签，验签失败返回 401。JWT 签名密钥 MUST 通过环境变量注入，不进源码。
 
 #### Scenario: 正常签发 JWT
 - **WHEN** 登录或续期成功
 - **THEN** 后端签发 JWT，含 userId、iat、exp（7 天后），返回前端
+
+#### Scenario: Child 登录含 displayMode
+- **WHEN** 角色为 Child 的用户登录成功
+- **THEN** JWT 含 `displayMode` claim，值为该 child 的当前展示模式（`Preschool` / `Primary` / `UpperGrades`）
+
+#### Scenario: Parent 登录不含 displayMode
+- **WHEN** 角色为 Parent 的用户登录成功
+- **THEN** JWT 不包含 `displayMode` claim
 
 #### Scenario: JWT 验签失败
 - **WHEN** 请求携带被篡改的 JWT
