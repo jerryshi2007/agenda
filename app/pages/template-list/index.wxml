@@ -1,0 +1,64 @@
+<!-- pages/template-list/index.wxml
+     模板列表页 —— 搜索 + 预设/我的模板分区 + use-template-dialog 弹窗 -->
+
+<view class="template-list-page">
+  <!-- 顶部搜索 + 新建 -->
+  <view class="header">
+    <view class="search-bar">
+      <input class="search-input" placeholder="搜索模板" value="{{keyword}}"
+             data-id="template-list-search-input" bindinput="onSearchInput" bindconfirm="onSearch" />
+      <view wx:if="{{keyword}}" class="search-clear" bindtap="onSearchClear">×</view>
+    </view>
+    <view class="btn-add" data-id="template-list-add-btn" bindtap="onTapAdd">+ 新建模板</view>
+  </view>
+
+  <scroll-view scroll-y enable-flex class="content">
+    <!-- 预设模板分区 -->
+    <view wx:if="{{presets.length > 0}}" class="section" data-id="template-list-preset-section">
+      <view class="section-title">预设模板</view>
+      <view wx:for="{{presets}}" wx:key="templateId" class="template-row"
+            data-id="template-list-preset-row-{{item.templateId}}"
+            data-template-id="{{item.templateId}}" bindtap="onTapTemplate">
+        <view class="template-info">
+          <view class="template-name">{{item.name}}</view>
+          <view class="template-meta">{{item.timeSlotsSummary || '系统预设'}}</view>
+        </view>
+        <view class="template-tag template-tag-preset">预设</view>
+      </view>
+    </view>
+
+    <!-- 自定义模板分区 -->
+    <view wx:if="{{customs.length > 0}}" class="section" data-id="template-list-custom-section">
+      <view class="section-title">我的模板</view>
+      <view wx:for="{{customs}}" wx:key="templateId" class="template-row"
+            data-id="template-list-custom-row-{{item.templateId}}"
+            data-template-id="{{item.templateId}}" bindtap="onTapTemplate">
+        <view class="template-info">
+          <view class="template-name">{{item.name}}</view>
+          <view class="template-meta">{{item.timeSlotsSummary || '自定义'}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空态（customs.length === 0） -->
+    <view wx:if="{{customs.length === 0 && !loading}}" class="empty-state">
+      <view class="empty-state-desc">还没有自定义模板，从日程保存或新建模板开始</view>
+      <view class="btn btn-primary mt-md" data-id="template-list-empty-add-btn" bindtap="onTapEmptyAdd">
+        新建模板
+      </view>
+    </view>
+
+    <!-- 搜索无结果 -->
+    <view wx:if="{{keyword && presets.length === 0 && customs.length === 0 && !loading}}" class="empty-state">
+      <view class="empty-state-desc">未找到匹配模板</view>
+    </view>
+  </scroll-view>
+
+  <!-- 使用模板弹窗 -->
+  <use-template-dialog
+    template="{{activeTemplate}}"
+    visible="{{dialogVisible}}"
+    bind:close="onDialogClose"
+    bind:success="onDialogSuccess"
+  />
+</view>

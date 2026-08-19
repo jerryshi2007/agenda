@@ -1,0 +1,78 @@
+<!-- components/use-template-dialog/index.wxml
+     使用模板弹窗 —— 模板预览 + 孩子选择 + 起始日期 + 名称/备注覆盖 -->
+
+<view wx:if="{{showDialog}}" class="modal-mask" data-id="use-template-dialog">
+  <view class="modal">
+    <view class="modal__header">使用模板</view>
+
+    <!-- 模板预览（只读） -->
+    <view class="modal__body template-preview">
+      <view class="preview-row">
+        <text class="preview-label">模板名称</text>
+        <text class="preview-value">{{template.name}}</text>
+      </view>
+      <view class="preview-row">
+        <text class="preview-label">类型</text>
+        <text class="preview-value">{{scheduleTypeLabel}}</text>
+      </view>
+      <view wx:if="{{timeSlotSummary}}" class="preview-row">
+        <text class="preview-label">时间</text>
+        <text class="preview-value">{{timeSlotSummary}}</text>
+      </view>
+      <view wx:if="{{template.location}}" class="preview-row">
+        <text class="preview-label">地点</text>
+        <text class="preview-value">{{template.location}}</text>
+      </view>
+    </view>
+
+    <!-- 必填：孩子选择 -->
+    <view class="modal__section">
+      <view class="section-label">关联孩子 <text class="required">*</text></view>
+      <view wx:if="{{hasNoChild}}" class="empty-state-desc">当前家庭还没有孩子，请先邀请家人加入</view>
+      <view wx:else>
+        <view class="selected-child" data-id="use-template-dialog-child-picker">
+          <text>{{childName}}</text>
+        </view>
+        <!-- 简化为单选：实际可选展开 picker 或多个 child -->
+        <view wx:for="{{template.childList}}" wx:key="userId" wx:if="{{false}}"
+              data-id="use-template-dialog-child-{{item.userId}}"
+              data-child-id="{{item.userId}}" data-child-name="{{item.childName}}"
+              bindtap="onSelectChild" />
+      </view>
+    </view>
+
+    <!-- 必填：起始日期 -->
+    <view class="modal__section">
+      <view class="section-label">起始日期 <text class="required">*</text></view>
+      <picker mode="date" value="{{startDate}}" start="{{minDate}}"
+              data-id="use-template-dialog-start-date-picker" bindchange="onDateChange">
+        <view class="form-input form-picker-value">
+          {{startDate || '请选择起始日期'}}
+        </view>
+      </picker>
+    </view>
+
+    <!-- 可覆盖：名称 -->
+    <view class="modal__section">
+      <view class="section-label">日程名称（可选覆盖）</view>
+      <input class="form-input" placeholder="留空则使用模板名称" maxlength="50"
+             data-id="use-template-dialog-name-input" value="{{overrideName}}"
+             bindinput="onNameInput" />
+    </view>
+
+    <!-- 可覆盖：备注 -->
+    <view class="modal__section">
+      <view class="section-label">备注（可选覆盖）</view>
+      <textarea class="form-textarea" placeholder="留空则使用模板备注" maxlength="500"
+                data-id="use-template-dialog-notes-input" value="{{overrideNotes}}"
+                bindinput="onNotesInput" auto-height />
+    </view>
+
+    <view class="modal__footer">
+      <view class="btn btn-default" data-id="use-template-dialog-cancel-btn" bindtap="onClose">取消</view>
+      <view class="btn btn-primary" data-id="use-template-dialog-confirm-btn" bindtap="onConfirm" loading="{{submitting}}">
+        {{submitting ? '生成中...' : '生成日程'}}
+      </view>
+    </view>
+  </view>
+</view>

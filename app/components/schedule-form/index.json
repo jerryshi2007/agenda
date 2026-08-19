@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "time-slot-picker": "/components/time-slot-picker/index"
+  }
+}

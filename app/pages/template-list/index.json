@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "use-template-dialog": "../../components/use-template-dialog/index"
+  },
+  "navigationBarTitleText": "模板管理"
+}

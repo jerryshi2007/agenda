@@ -1,0 +1,208 @@
+/* components/schedule-form/index.wxss
+   日程/模板共用表单样式 —— 复用 schedule-create/schedule-edit 视觉 */
+
+.schedule-form {
+  padding: 24rpx 24rpx 0;
+}
+
+.form-group {
+  margin-bottom: 32rpx;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 12rpx;
+  font-weight: 500;
+}
+
+.required {
+  color: #FA5151;
+}
+
+.form-input,
+.form-picker-value {
+  background: #F7F7F7;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  color: #333;
+  min-height: 40rpx;
+}
+
+.form-picker-value {
+  display: flex;
+  align-items: center;
+}
+
+.form-textarea {
+  background: #F7F7F7;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  color: #333;
+  width: calc(100% - 48rpx);
+  min-height: 120rpx;
+  box-sizing: border-box;
+}
+
+.form-error {
+  color: #FA5151;
+  font-size: 24rpx;
+  margin-top: 8rpx;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+}
+
+.form-row .form-input.half {
+  flex: 1;
+}
+
+/* 类型卡 */
+.type-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.type-card {
+  background: #F7F7F7;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  display: flex;
+  align-items: center;
+  position: relative;
+  border: 2rpx solid transparent;
+}
+
+.type-card.selected {
+  border-color: #07C160;
+  background: rgba(7, 193, 96, 0.06);
+}
+
+.type-card-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  margin-right: 20rpx;
+  background: #fff;
+}
+
+.type-card-icon-activity { color: #10AEFF; }
+.type-card-icon-routine { color: #FF9500; }
+.type-card-icon-homework { color: #07C160; }
+
+.type-card-info {
+  flex: 1;
+}
+
+.type-card-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4rpx;
+}
+
+.type-card-desc {
+  font-size: 24rpx;
+  color: #888;
+}
+
+.type-card-check {
+  position: absolute;
+  right: 24rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #07C160;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.type-locked-tag {
+  display: inline-block;
+  padding: 8rpx 20rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  color: #fff;
+  background: #10AEFF;
+}
+
+.tag-activity { background: #10AEFF; }
+.tag-routine { background: #FF9500; }
+.tag-homework { background: #07C160; }
+
+/* 孩子多选 */
+.child-select-item {
+  display: flex;
+  align-items: center;
+  background: #F7F7F7;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  margin-bottom: 12rpx;
+  border: 2rpx solid transparent;
+}
+
+.child-select-item.selected {
+  border-color: #07C160;
+  background: rgba(7, 193, 96, 0.06);
+}
+
+.child-select-check {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 2rpx solid #ccc;
+  margin-right: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #07C160;
+  font-size: 28rpx;
+  background: #fff;
+}
+
+.child-select-item.selected .child-select-check {
+  background: #07C160;
+  border-color: #07C160;
+  color: #fff;
+}
+
+.child-select-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 500;
+  margin-right: 20rpx;
+}
+
+.child-select-info {
+  flex: 1;
+}
+
+.child-select-name {
+  font-size: 30rpx;
+  color: #333;
+}
+
+/* 空态 */
+.empty-state {
+  padding: 32rpx;
+  text-align: center;
+}
+
+.empty-state-desc {
+  color: #888;
+  font-size: 26rpx;
+}

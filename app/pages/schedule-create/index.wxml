@@ -1,7 +1,7 @@
 <!-- pages/schedule-create/index.wxml
      创建日程页 —— 4 步向导：
      Step 1: 选择孩子  Step 2: 选择类型
-     Step 3: 填写字段    Step 4: 确认预览 -->
+     Step 3: 填写字段（schedule-form 子组件）  Step 4: 确认预览 -->
 
 <view class="create-page">
   <!-- 步骤条 -->
@@ -84,87 +84,17 @@
       </view>
     </view>
 
-    <!-- Step 3: 填写字段（按类型动态表单） -->
+    <!-- Step 3: 填写字段（schedule-form 子组件：类型已选、孩子已选，仅显示剩余字段） -->
     <view wx:if="{{currentStep === 3}}" class="form-block">
-      <!-- 名称 -->
-      <view class="form-group">
-        <view class="form-label">日程名称 <text class="required">*</text></view>
-        <input class="form-input" placeholder="例如：钢琴课" maxlength="50"
-               data-id="schedule-create-name-input" value="{{formData.name}}"
-               bindinput="onFieldInput" data-field="name" />
-        <view wx:if="{{errors.name}}" class="form-error">{{errors.name}}</view>
-      </view>
-
-      <!-- 时间槽选择器（课后活动 + 日常作息） -->
-      <view wx:if="{{scheduleType !== 'HomeworkTask'}}" class="form-group">
-        <view class="form-label">重复时间 <text class="required">*</text></view>
-        <time-slot-picker
-          data-id="schedule-create-timeslot"
-          timeSlots="{{formData.timeSlots}}"
-          bind:timeslotchange="onTimeSlotChange"
-        />
-        <view wx:if="{{errors.timeSlots}}" class="form-error">{{errors.timeSlots}}</view>
-      </view>
-
-      <!-- 重复结束日期（课后活动 + 日常作息） -->
-      <view wx:if="{{scheduleType !== 'HomeworkTask'}}" class="form-group">
-        <view class="form-label">重复结束日期</view>
-        <picker mode="date" value="{{formData.repeatEndDate}}" start="{{minDate}}"
-                data-id="schedule-create-repeat-end" bindchange="onDateChange" data-field="repeatEndDate">
-          <view class="form-input form-picker-value">
-            {{formData.repeatEndDate || '不设置（永久重复）'}}
-          </view>
-        </picker>
-      </view>
-
-      <!-- 地点（仅课后活动） -->
-      <view wx:if="{{scheduleType === 'AfterSchoolActivity'}}" class="form-group">
-        <view class="form-label">地点</view>
-        <input class="form-input" placeholder="例如：少年宫3楼钢琴教室" maxlength="100"
-               data-id="schedule-create-location-input" value="{{formData.location}}"
-               bindinput="onFieldInput" data-field="location" />
-      </view>
-
-      <!-- 截止日期（仅作业任务） -->
-      <view wx:if="{{scheduleType === 'HomeworkTask'}}" class="form-group">
-        <view class="form-label">截止日期 <text class="required">*</text></view>
-        <picker mode="date" value="{{formData.dueDate}}" start="{{minDate}}"
-                data-id="schedule-create-due-date" bindchange="onDateChange" data-field="dueDate">
-          <view class="form-input form-picker-value">
-            {{formData.dueDate || '请选择截止日期'}}
-          </view>
-        </picker>
-        <view wx:if="{{errors.dueDate}}" class="form-error">{{errors.dueDate}}</view>
-      </view>
-
-      <!-- 建议时间（仅作业任务） -->
-      <view wx:if="{{scheduleType === 'HomeworkTask'}}" class="form-group">
-        <view class="form-label">建议完成时间</view>
-        <view class="form-row">
-          <picker mode="time" value="{{formData.suggestedStartTime}}"
-                  data-id="schedule-create-suggest-start" bindchange="onTimeChange" data-field="suggestedStartTime">
-            <view class="form-input form-picker-value half">
-              {{formData.suggestedStartTime || '开始'}}
-            </view>
-          </picker>
-          <text style="margin:0 16rpx;">至</text>
-          <picker mode="time" value="{{formData.suggestedEndTime}}"
-                  data-id="schedule-create-suggest-end" bindchange="onTimeChange" data-field="suggestedEndTime">
-            <view class="form-input form-picker-value half">
-              {{formData.suggestedEndTime || '结束'}}
-            </view>
-          </picker>
-        </view>
-      </view>
-
-      <!-- 备注 -->
-      <view class="form-group">
-        <view class="form-label">备注</view>
-        <textarea class="form-textarea" placeholder="选填，最多500字" maxlength="500"
-                  data-id="schedule-create-notes-input" value="{{formData.notes}}"
-                  bindinput="onFieldInput" data-field="notes" auto-height />
-        <view wx:if="{{errors.notes}}" class="form-error">{{errors.notes}}</view>
-      </view>
+      <schedule-form
+        id="schedule-form"
+        mode="create"
+        schedule-type-locked="{{true}}"
+        child-selector-visible="{{false}}"
+        start-date-visible="{{false}}"
+        initial-values="{{formData}}"
+        bind:submit="onFormSubmit"
+      />
     </view>
 
     <!-- Step 4: 确认 -->

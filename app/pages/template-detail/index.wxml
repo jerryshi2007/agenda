@@ -1,0 +1,49 @@
+<!-- pages/template-detail/index.wxml
+     模板详情页 —— 只读展示 + 编辑/删除/使用按钮 -->
+
+<view class="template-detail-page">
+  <view wx:if="{{template}}" class="content">
+    <view class="detail-card">
+      <view class="detail-name">{{template.name}}</view>
+      <view class="detail-type">
+        <text class="type-tag tag tag-{{stripeClass}}">{{scheduleTypeLabel}}</text>
+        <text wx:if="{{isPreset}}" class="preset-tag">系统预设</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">重复时间</view>
+      <view class="section-value">{{timeSlotSummary}}</view>
+    </view>
+
+    <view wx:if="{{template.location}}" class="section">
+      <view class="section-title">地点</view>
+      <view class="section-value">{{template.location}}</view>
+    </view>
+
+    <view wx:if="{{template.notes}}" class="section">
+      <view class="section-title">备注</view>
+      <view class="section-value">{{template.notes}}</view>
+    </view>
+
+    <view wx:if="{{template.usageCount > 0}}" class="section">
+      <view class="section-title">使用次数</view>
+      <view class="section-value">{{template.usageCount}} 个日程使用过</view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="footer safe-area-bottom">
+    <view wx:if="{{!isPreset}}" class="btn btn-default" data-id="template-detail-edit-btn" bindtap="onTapEdit">编辑</view>
+    <view wx:if="{{!isPreset}}" class="btn btn-danger" data-id="template-detail-delete-btn" bindtap="onTapDelete">删除</view>
+    <view class="btn btn-primary btn-flex" data-id="template-detail-use-btn" bindtap="onTapUse">使用模板</view>
+  </view>
+
+  <!-- 使用模板弹窗 -->
+  <use-template-dialog
+    template="{{activeTemplate}}"
+    visible="{{dialogVisible}}"
+    bind:close="onDialogClose"
+    bind:success="onDialogSuccess"
+  />
+</view>
