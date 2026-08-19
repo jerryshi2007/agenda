@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Agenda.Api.Infrastructure;
 using Agenda.Api.Infrastructure.Auth;
 using Agenda.Api.Infrastructure.Data;
@@ -79,6 +80,10 @@ builder.Services.AddAuthorization();
 
 // ---- Controllers + Swagger ----
 builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    })
     .ConfigureApplicationPartManager(manager =>
     {
         // 测试专用控制器仅在 Development 环境注册（生产环境路由表不可达）。
