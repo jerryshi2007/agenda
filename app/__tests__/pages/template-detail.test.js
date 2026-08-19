@@ -64,12 +64,12 @@ describe('template-detail 页面', () => {
       expect(ctx.data.isPreset).toBe(false);
     });
 
-    test('加载失败 → Toast', async () => {
+    test('加载失败 → Toast 显示后端 message', async () => {
       template.getById.mockRejectedValue({ statusCode: 404, message: '模板不存在' });
       const ctx = setup();
       ctx.onLoad({ id: 't1' });
       await flush();
-      expect(wx.showToast).toHaveBeenCalledWith({ title: '加载失败', icon: 'none' });
+      expect(wx.showToast).toHaveBeenCalledWith({ title: '模板不存在', icon: 'none' });
     });
   });
 
@@ -108,18 +108,21 @@ describe('template-detail 页面', () => {
     });
 
     test('确认删除 → template.remove + Toast + navigateBack', async () => {
+      jest.useFakeTimers();
       template.remove.mockResolvedValue({ data: { deleted: true } });
       const ctx = setup();
       ctx.onLoad({ id: 't1' });
       await flush();
-      // 模拟 showModal 确认
       wx.showModal.mockImplementation(opts => {
         if (opts.success) opts.success({ confirm: true });
       });
       await ctx.onTapDelete();
       expect(template.remove).toHaveBeenCalledWith('t1');
       expect(wx.showToast).toHaveBeenCalledWith({ title: '模板已删除', icon: 'success' });
+      // navigateBack 在 setTimeout(1000) 中
+      jest.advanceTimersByTime(1000);
       expect(wx.navigateBack).toHaveBeenCalled();
+      jest.useRealTimers();
     });
 
     test('取消删除 → 不调 remove', async () => {
