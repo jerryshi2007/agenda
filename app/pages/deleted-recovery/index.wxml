@@ -6,7 +6,7 @@
 
   <block wx:else>
     <view class="recovery-card">
-      <view class="recovery-icon">&#x1F512;</view>
+      <view class="recovery-icon">🔒</view>
       <view class="recovery-title">账户已注销</view>
       <view class="recovery-countdown" data-id="deleted-recovery-countdown">
         数据保留至 {{expiresDateStr}}（剩余 {{remainingDays}} 天）

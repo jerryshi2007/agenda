@@ -1,7 +1,7 @@
 <!-- pages/family-restore/index.wxml -->
 <view class="page-container safe-bottom">
   <view class="header">
-    <view class="header__icon">&#x1F494;</view>
+    <view class="header__icon">💔</view>
     <view class="header__title">{{familyName || '家庭'}} 已解散</view>
     <view class="header__subtitle" wx:if="{{daysLeft > 0}}">数据将在 {{daysLeft}} 天后永久删除</view>
     <view class="header__subtitle header__subtitle--expired" wx:else>数据已过期，无法恢复</view>

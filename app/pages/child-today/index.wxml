@@ -46,7 +46,7 @@
             <text class="child-item-type-tag tag tag-{{item.typeClass}}">{{item.typeLabel}}</text>
             <text class="child-item-name">{{item.name}}</text>
             <text wx:if="{{item.status === 'completed' || item.status === 'Completed'}}"
-                  class="child-item-status-done" data-id="child-today-status-done-{{item.scheduleId}}">&#x2713;</text>
+                  class="child-item-status-done" data-id="child-today-status-done-{{item.scheduleId}}">✓</text>
           </view>
           <!-- 时间行 -->
           <view wx:if="{{item.startTime && item.endTime}}" class="child-item-time">
@@ -78,7 +78,7 @@
     <!-- 空态 -->
     <view wx:else class="empty-state" data-id="child-today-empty">
       <view class="empty-state-icon">
-        <text style="font-size:96rpx;">&#x1F4C5;</text>
+        <text style="font-size:96rpx;">📅</text>
       </view>
       <view class="empty-state-title">今天还没有日程</view>
       <view class="empty-state-desc">去「周」或「月」视图查看更多吧</view>

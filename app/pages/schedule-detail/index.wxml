@@ -32,10 +32,10 @@
     <!-- 打卡状态区 -->
     <view class="detail-status">
       <view class="detail-status-icon status-icon-{{statusClass}}">
-        <text wx:if="{{isCompleted}}">&#x2713;</text>
-        <text wx:elif="{{isCancelled}}">&#x2014;</text>
-        <text wx:elif="{{isOverdue || isEnded}}">&#x2717;</text>
-        <text wx:else>&#x25CB;</text>
+        <text wx:if="{{isCompleted}}">✓</text>
+        <text wx:elif="{{isCancelled}}">—</text>
+        <text wx:elif="{{isOverdue || isEnded}}">✗</text>
+        <text wx:else>○</text>
       </view>
       <text wx:if="{{isCompleted}}" class="detail-status-text status-text-done" data-id="schedule-detail-status-completed">{{statusLabel}}</text>
       <text wx:elif="{{isEnded}}" class="detail-status-text status-text-overdue" data-id="schedule-detail-status-ended">{{statusLabel}}</text>
@@ -170,13 +170,13 @@
       <block wx:if="{{!isHomework && schedule.repeatRule}}">
         <view class="modal-radio-group">
           <view class="modal-radio-item" data-id="schedule-detail-delete-this-only" bindtap="onSelectDeleteScope" data-scope="ThisOnly">
-            <text wx:if="{{deleteScope === 'ThisOnly'}}">&#x25C9;</text>
-            <text wx:else>&#x25CB;</text>
+            <text wx:if="{{deleteScope === 'ThisOnly'}}">◉</text>
+            <text wx:else>○</text>
             <text>仅删除本次</text>
           </view>
           <view class="modal-radio-item" data-id="schedule-detail-delete-all" bindtap="onSelectDeleteScope" data-scope="ThisAndFuture">
-            <text wx:if="{{deleteScope === 'ThisAndFuture'}}">&#x25C9;</text>
-            <text wx:else>&#x25CB;</text>
+            <text wx:if="{{deleteScope === 'ThisAndFuture'}}">◉</text>
+            <text wx:else>○</text>
             <text>删除本次及之后所有</text>
           </view>
         </view>

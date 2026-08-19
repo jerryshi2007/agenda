@@ -7,14 +7,14 @@
 
   <block wx:else>
     <view wx:if="{{error}}" class="error-state">
-      <view class="error-state__icon">&#x26A0;&#xFE0F;</view>
+      <view class="error-state__icon">⚠️</view>
       <view class="error-state__title">{{errorMessage || '网络异常'}}</view>
       <button class="btn-primary" data-id="family-switch-retry-btn" bindtap="onRetry">重试</button>
     </view>
 
     <block wx:else>
       <view wx:if="{{singleFamily}}" class="empty-state">
-        <view class="empty-state__icon">&#x1F465;</view>
+        <view class="empty-state__icon">👥</view>
         <view class="empty-state__text">仅有 1 个家庭，无需切换</view>
       </view>
 
@@ -30,13 +30,13 @@
                 data-id="family-switch-row-{{item.familyId}}"
                 data-family-id="{{item.familyId}}"
                 bindtap="onSelectFamily">
-            <view class="family-card__icon">&#x1F3E0;</view>
+            <view class="family-card__icon">🏠</view>
             <view class="family-card__info">
               <view class="family-card__name">{{item.familyName}}</view>
               <view class="family-card__meta">{{item.memberCount || 0}} 位成员 · {{item.role === 'Parent' ? '家长' : '孩子'}}</view>
             </view>
             <view wx:if="{{item.isCurrent}}" class="family-card__badge" data-id="family-switch-current-badge-{{item.familyId}}">当前</view>
-            <view wx:else class="family-card__arrow">&#x203A;</view>
+            <view wx:else class="family-card__arrow">›</view>
           </view>
         </view>
       </block>

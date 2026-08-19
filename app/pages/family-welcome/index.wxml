@@ -8,7 +8,7 @@
 
   <!-- 错误态 -->
   <view wx:elif="{{error}}" class="error-state">
-    <view class="error-state__icon">&#x26A0;&#xFE0F;</view>
+    <view class="error-state__icon">⚠️</view>
     <view class="error-state__title">网络连接失败</view>
     <view class="error-state__desc">无法检查家庭状态，请检查网络后重试</view>
     <button class="btn-primary" data-id="welcome-retry-btn" bindtap="onRetry">重试</button>
@@ -17,7 +17,7 @@
   <!-- 分享卡片确认页（TC-FW-04 端到端：分享邀请卡预填后展示确认页） -->
   <block wx:elif="{{pendingShare}}">
     <view wx:if="{{shareInfo}}" class="share-confirm">
-      <view class="share-confirm__illust">&#x1F4E8;</view>
+      <view class="share-confirm__illust">📨</view>
       <view class="share-confirm__title">你被邀请加入家庭</view>
       <view class="share-confirm__family">{{shareInfo.familyName}}</view>
       <view wx:if="{{shareInfo.targetChildName}}" class="share-confirm__meta">
@@ -34,7 +34,7 @@
     </view>
 
     <view wx:else class="error-state">
-      <view class="error-state__icon">&#x26A0;&#xFE0F;</view>
+      <view class="error-state__icon">⚠️</view>
       <view class="error-state__title">邀请信息加载失败</view>
       <view class="error-state__desc">{{shareError}}</view>
       <button class="btn-primary" data-id="welcome-retry-btn" bindtap="onRetry">返回</button>
@@ -43,7 +43,7 @@
 
   <!-- 引导态 -->
   <view wx:else class="welcome-page">
-    <view class="welcome-illust">&#x1F46A;</view>
+    <view class="welcome-illust">👪</view>
     <view class="welcome-title">欢迎使用家庭日程</view>
     <view class="welcome-desc">创建或加入一个家庭，开启协作日程管理</view>
     <view class="welcome-actions">

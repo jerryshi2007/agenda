@@ -7,13 +7,13 @@
     <!-- 日期导航栏 -->
     <view class="date-navigator" style="position: relative;">
       <view class="date-nav-arrow" data-id="calendar-date-prev" bindtap="onPrev">
-        &#x2039;
+        ‹
       </view>
       <view class="date-nav-title" data-id="calendar-date-title" bindtap="onDatePicker">
         {{navTitle}}
       </view>
       <view class="date-nav-arrow" data-id="calendar-date-next" bindtap="onNext">
-        &#x203A;
+        ›
       </view>
       <view class="date-nav-today" data-id="calendar-today-btn" bindtap="onToday">今天</view>
     </view>
@@ -33,12 +33,12 @@
       <view class="filter-item {{selectedChildId ? 'active' : ''}}"
             data-id="calendar-filter-child" bindtap="onChildFilter">
         {{selectedChildId ? selectedChildName : '全部孩子'}}
-        <text class="filter-item-arrow">&#x25BE;</text>
+        <text class="filter-item-arrow">▾</text>
       </view>
       <view class="filter-item {{selectedScheduleTypes.length > 0 ? 'active' : ''}}"
             data-id="calendar-filter-type" bindtap="onTypeFilter">
         {{selectedScheduleTypes.length > 0 ? selectedTypeLabel : '全部类型'}}
-        <text class="filter-item-arrow">&#x25BE;</text>
+        <text class="filter-item-arrow">▾</text>
       </view>
     </view>
   </view>
@@ -84,7 +84,7 @@
   <!-- 空态 -->
   <view wx:if="{{!loading && !error && isEmpty}}" class="empty-state">
     <view class="empty-state-icon">
-      <text style="font-size:96rpx;">&#x1F4C5;</text>
+      <text style="font-size:96rpx;">📅</text>
     </view>
     <view class="empty-state-title">还没有日程</view>
     <view class="empty-state-desc">点击下方按钮，为孩子创建第一个日程吧</view>

@@ -6,12 +6,12 @@
         data-id="calendar-filter-child"
         bindtap="onChildFilterTap">
     {{selectedChildName || '全部孩子'}}
-    <text class="filter-item-arrow">&#x25BE;</text>
+    <text class="filter-item-arrow">▾</text>
   </view>
   <view class="filter-item {{typesCount > 0 ? 'active' : ''}}"
         data-id="calendar-filter-type"
         bindtap="onTypeFilterTap">
     {{typesCount > 0 ? typesLabel : '全部类型'}}
-    <text class="filter-item-arrow">&#x25BE;</text>
+    <text class="filter-item-arrow">▾</text>
   </view>
 </view>

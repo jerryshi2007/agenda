@@ -15,7 +15,7 @@
         <view class="profile-nickname">{{profile.nickname}}</view>
         <view class="profile-hint">点击编辑资料</view>
       </view>
-      <view class="profile-arrow">&#x203A;</view>
+      <view class="profile-arrow">›</view>
     </view>
 
     <!-- 家庭信息区 -->
@@ -34,7 +34,7 @@
             {{currentFamily.role === 'Parent' ? '家长' : '成员'}} · {{currentFamily.memberCount}} 位成员
           </view>
         </view>
-        <view class="family-arrow">&#x203A;</view>
+        <view class="family-arrow">›</view>
       </view>
 
       <!-- 家庭加载失败降级 -->
@@ -52,15 +52,15 @@
     <view class="action-list">
       <view class="action-row" data-id="mine-create-family" bindtap="onCreateFamily">
         <text>创建家庭</text>
-        <text class="action-arrow">&#x203A;</text>
+        <text class="action-arrow">›</text>
       </view>
       <view class="action-row" data-id="mine-join-family" bindtap="onJoinFamily">
         <text>加入家庭</text>
-        <text class="action-arrow">&#x203A;</text>
+        <text class="action-arrow">›</text>
       </view>
       <view class="action-row" data-id="mine-settings" bindtap="onSettings">
         <text>设置</text>
-        <text class="action-arrow">&#x203A;</text>
+        <text class="action-arrow">›</text>
       </view>
     </view>
   </block>

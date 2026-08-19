@@ -3,17 +3,17 @@
   <view class="action-list">
     <view class="action-row" data-id="settings-delete-account" bindtap="onDeleteAccount">
       <text class="action-label danger">注销账户</text>
-      <text class="action-arrow">&#x203A;</text>
+      <text class="action-arrow">›</text>
     </view>
 
     <!-- 预留扩展区（后续版本：关于、意见反馈、撤销隐私授权） -->
     <view class="action-row" data-id="settings-about" bindtap="onAbout">
       <text class="action-label">关于</text>
-      <text class="action-arrow">&#x203A;</text>
+      <text class="action-arrow">›</text>
     </view>
     <view class="action-row" data-id="settings-feedback" bindtap="onFeedback">
       <text class="action-label">意见反馈</text>
-      <text class="action-arrow">&#x203A;</text>
+      <text class="action-arrow">›</text>
     </view>
   </view>
 </view>

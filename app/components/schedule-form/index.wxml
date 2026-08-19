@@ -10,32 +10,32 @@
       <view class="type-card type-card-activity {{scheduleType === 'AfterSchoolActivity' ? 'selected' : ''}}"
             data-id="schedule-form-type-afterschool"
             data-type="AfterSchoolActivity" bindtap="onSelectType">
-        <view class="type-card-icon type-card-icon-activity">&#x1F3AB;</view>
+        <view class="type-card-icon type-card-icon-activity">🎫</view>
         <view class="type-card-info">
           <view class="type-card-name">课后活动</view>
           <view class="type-card-desc">课外班、兴趣活动</view>
         </view>
-        <text wx:if="{{scheduleType === 'AfterSchoolActivity'}}" class="type-card-check">&#x2713;</text>
+        <text wx:if="{{scheduleType === 'AfterSchoolActivity'}}" class="type-card-check">✓</text>
       </view>
       <view class="type-card type-card-routine {{scheduleType === 'DailyRoutine' ? 'selected' : ''}}"
             data-id="schedule-form-type-daily"
             data-type="DailyRoutine" bindtap="onSelectType">
-        <view class="type-card-icon type-card-icon-routine">&#x23F0;</view>
+        <view class="type-card-icon type-card-icon-routine">⏰</view>
         <view class="type-card-info">
           <view class="type-card-name">日常作息</view>
           <view class="type-card-desc">练琴、阅读等固定安排</view>
         </view>
-        <text wx:if="{{scheduleType === 'DailyRoutine'}}" class="type-card-check">&#x2713;</text>
+        <text wx:if="{{scheduleType === 'DailyRoutine'}}" class="type-card-check">✓</text>
       </view>
       <view class="type-card type-card-homework {{scheduleType === 'HomeworkTask' ? 'selected' : ''}}"
             data-id="schedule-form-type-homework"
             data-type="HomeworkTask" bindtap="onSelectType">
-        <view class="type-card-icon type-card-icon-homework">&#x1F4DA;</view>
+        <view class="type-card-icon type-card-icon-homework">📚</view>
         <view class="type-card-info">
           <view class="type-card-name">作业任务</view>
           <view class="type-card-desc">一次性或重复作业</view>
         </view>
-        <text wx:if="{{scheduleType === 'HomeworkTask'}}" class="type-card-check">&#x2713;</text>
+        <text wx:if="{{scheduleType === 'HomeworkTask'}}" class="type-card-check">✓</text>
       </view>
     </view>
     <view wx:if="{{errors.scheduleType}}" class="form-error">{{errors.scheduleType}}</view>
@@ -67,7 +67,7 @@
           data-id="schedule-form-child-{{item.userId}}"
           data-index="{{index}}" bindtap="onToggleChild">
       <view class="child-select-check">
-        <text wx:if="{{item._selected}}">&#x2713;</text>
+        <text wx:if="{{item._selected}}">✓</text>
       </view>
       <view class="child-select-avatar" style="background:{{item._color || '#10AEFF'}};">
         <text>{{item.childName ? item.childName.charAt(0) : '?'}}</text>
