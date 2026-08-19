@@ -152,6 +152,19 @@ describe('template-list 页面', () => {
       ctx.onTapTemplate({ currentTarget: { dataset: { templateId: 't2' } } });
       expect(wx.navigateTo).toHaveBeenCalledWith({ url: '/pages/template-detail/index?id=t2' });
     });
+
+    test('action=apply 模式：点击自定义模板 → 弹 dialog（不跳详情）', async () => {
+      const t2 = sampleTemplate({ templateId: 't2', isPreset: false });
+      mockListResponse([], [t2]);
+      const ctx = setup();
+      ctx.onLoad({ action: 'apply' });
+      await flush();
+      expect(ctx.data.actionApply).toBe(true);
+      ctx.onTapTemplate({ currentTarget: { dataset: { templateId: 't2' } } });
+      expect(ctx.data.activeTemplate.templateId).toBe('t2');
+      expect(ctx.data.dialogVisible).toBe(true);
+      expect(wx.navigateTo).not.toHaveBeenCalled();
+    });
   });
 
   describe('新建/入口', () => {

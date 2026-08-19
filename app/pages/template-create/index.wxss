@@ -1,0 +1,8 @@
+/* pages/template-create/index.wxss
+   模板创建/编辑页样式 —— 复用 schedule-form 内部样式，仅做容器适配 */
+
+.template-create-page {
+  min-height: 100vh;
+  background: var(--color-bg-page, #F5F6F8);
+  padding-bottom: env(safe-area-inset-bottom);
+}

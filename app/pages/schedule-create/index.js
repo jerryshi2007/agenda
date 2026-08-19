@@ -281,6 +281,15 @@ Page({
   },
 
   /**
+   * 从模板创建入口：跳到模板列表页（action=apply 触发 use-template-dialog 弹窗而非跳详情）
+   */
+  onTapFromTemplate() {
+    wx.navigateTo({
+      url: '/pages/template-list/index?action=apply&returnTo=schedule-create'
+    });
+  },
+
+  /**
    * 保存草稿
    */
   _saveDraft() {

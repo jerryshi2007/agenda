@@ -62,26 +62,31 @@ Page({
    */
   onTapDelete() {
     const tpl = this.data.template;
-    if (!tpl) return;
+    if (!tpl) return Promise.resolve();
     const usageCount = tpl.usageCount || 0;
     const content = usageCount > 0
       ? `已有 ${usageCount} 个日程使用过此模板，删除模板不会影响这些日程。确定删除吗？`
       : '确定删除该模板吗？';
-    wx.showModal({
-      title: '删除模板',
-      content: content,
-      confirmText: '删除',
-      cancelText: '取消',
-      success: (res) => {
-        if (res.confirm) {
-          this._doDelete(tpl.templateId);
-        }
-      }
+    return new Promise(resolve => {
+      wx.showModal({
+        title: '删除模板',
+        content: content,
+        confirmText: '删除',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            this._doDelete(tpl.templateId).then(resolve);
+          } else {
+            resolve();
+          }
+        },
+        fail: () => resolve()
+      });
     });
   },
 
   _doDelete(id) {
-    templateService.remove(id)
+    return templateService.remove(id)
       .then(() => {
         wx.showToast({ title: '模板已删除', icon: 'success' });
         setTimeout(() => wx.navigateBack(), 1000);

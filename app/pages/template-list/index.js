@@ -10,10 +10,15 @@ Page({
     keyword: '',
     loading: false,
     dialogVisible: false,
-    activeTemplate: null
+    activeTemplate: null,
+    actionApply: false  // true 时所有模板点击都弹 dialog（用于"从模板创建"入口）
   },
 
-  onLoad() {
+  onLoad(options) {
+    // action=apply：所有模板点击都弹 use-template-dialog（用于"从模板创建"入口）
+    if (options && options.action === 'apply') {
+      this.setData({ actionApply: true });
+    }
     this._loadList();
   },
 
@@ -78,7 +83,8 @@ Page({
     const tpl = all.find(t => t.templateId === templateId);
     if (!tpl) return;
 
-    if (tpl.isPreset) {
+    // action=apply 模式：所有模板都弹 use-template-dialog
+    if (this.data.actionApply || tpl.isPreset) {
       this.setData({ activeTemplate: tpl, dialogVisible: true });
     } else {
       wx.navigateTo({ url: '/pages/template-detail/index?id=' + templateId });

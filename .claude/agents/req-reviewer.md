@@ -27,6 +27,11 @@ skills: [req-review]
 
 6. 交还主代理 → 人工审批 → 飞书回填 → dev-ready
 
+7. **下游分支咨询** — 审批通过后，用 AskUserQuestion 询问主代理（或用户）：下一步走哪个？
+   - **需要原型** → 先调度 `ui-designer`（产出 HTML 原型验证交互），原型确认后再进入 Stage 2 调度 `arch-architect`
+   - **不需要原型** → 直接进入 Stage 2 调度 `arch-architect`（架构设计）
+   - ⚠️ **ui-designer 和 arch-architect 不是二选一**——原型是交互验证，架构设计是技术设计，两者可串行。选了 ui-designer 只是多一步原型验证，之后仍要走 arch-architect。
+
 ## Gate 违规（STOP）
 
 - 试图修改需求文档 → STOP

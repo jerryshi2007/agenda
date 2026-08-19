@@ -3,8 +3,10 @@
 
 const scheduleService = require('../../services/schedule');
 const checkinService = require('../../services/checkin');
+const templateService = require('../../services/template');
 const dateUtils = require('../../utils/date-utils');
 const { CheckinStatus, Reason } = require('../../contracts/checkin');
+const { ErrorMessages } = require('../../contracts/template');
 const app = getApp();
 
 const TYPE_LABELS = {
@@ -327,6 +329,54 @@ Page({
     wx.navigateTo({
       url: `/pages/schedule-edit/index?scheduleId=${this.data.scheduleId}&date=${this.data.targetDate}`
     });
+  },
+
+  /**
+   * 保存为模板（弹二次确认 + 从 schedule 构造 payload 调 template.create）
+   */
+  onSaveAsTemplate() {
+    const sched = this.data.schedule;
+    if (!sched || !sched.scheduleId) {
+      return Promise.resolve();
+    }
+    return new Promise(resolve => {
+      wx.showModal({
+        title: '保存为模板',
+        content: `确定将 "${sched.name || '此日程'}" 保存为模板吗？保存后可在模板管理中查看和使用。`,
+        confirmText: '保存',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            this._doSaveAsTemplate(sched).then(resolve);
+          } else {
+            resolve();
+          }
+        },
+        fail: () => resolve()
+      });
+    });
+  },
+
+  _doSaveAsTemplate(sched) {
+    const data = {
+      name: (sched.name || '').trim() || '未命名模板',
+      scheduleType: sched.scheduleType,
+      timeSlots: sched.timeSlots || []
+    };
+    if (sched.location) data.location = sched.location;
+    if (sched.notes) data.notes = sched.notes;
+    if (sched.dueDate) data.dueDate = sched.dueDate;
+    if (sched.suggestedStartTime) data.suggestedStartTime = sched.suggestedStartTime;
+    if (sched.suggestedEndTime) data.suggestedEndTime = sched.suggestedEndTime;
+    return templateService.create(data)
+      .then(() => {
+        wx.showToast({ title: '已保存为模板，可在模板管理中查看', icon: 'success' });
+      })
+      .catch(err => {
+        const code = err && err.error;
+        const msg = (code && ErrorMessages[code]) || (err && err.message) || '保存失败';
+        wx.showToast({ title: msg, icon: 'none' });
+      });
   },
 
   /**

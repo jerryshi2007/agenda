@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "schedule-form": "../../components/schedule-form/index"
+  },
+  "navigationBarTitleText": "新建模板"
+}
