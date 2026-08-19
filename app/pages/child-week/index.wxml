@@ -1,0 +1,53 @@
+<!-- pages/child-week/index.wxml
+     孩子周只读视图（小学模式）—— 7 天日历 + 日程色点 -->
+
+<view class="page-container safe-bottom">
+  <!-- 视图切换器（孩子端 4 视图互跳） -->
+  <view class="child-view-switcher">
+    <view class="child-view-switcher-item" data-id="child-week-nav-today" bindtap="onSwitchToToday">今日</view>
+    <view class="child-view-switcher-item active" data-id="child-week-nav-week">本周</view>
+    <view class="child-view-switcher-item" data-id="child-week-nav-month" bindtap="onSwitchToMonth">本月</view>
+    <view class="child-view-switcher-item" data-id="child-week-nav-mine" bindtap="onSwitchToMine">我的</view>
+  </view>
+
+  <!-- 加载态 -->
+  <view wx:if="{{loading}}" class="loading-block" data-id="child-week-loading">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载本周日程中...</view>
+  </view>
+
+  <!-- 错误态 -->
+  <view wx:elif="{{error}}" class="error-state" data-id="child-week-error">
+    <view class="error-state-title">加载失败</view>
+    <view class="error-state-desc">网络连接失败，请检查网络设置</view>
+    <view class="btn btn-primary btn-sm" data-id="child-week-retry-btn" bindtap="onRetry">重试</view>
+  </view>
+
+  <block wx:else>
+    <!-- 星期头 -->
+    <view class="child-week-header">
+      <view class="child-week-header-cell">一</view>
+      <view class="child-week-header-cell">二</view>
+      <view class="child-week-header-cell">三</view>
+      <view class="child-week-header-cell">四</view>
+      <view class="child-week-header-cell">五</view>
+      <view class="child-week-header-cell child-week-header-weekend">六</view>
+      <view class="child-week-header-cell child-week-header-weekend">日</view>
+    </view>
+
+    <!-- 7 天网格 -->
+    <view class="child-week-grid" data-id="child-week-grid">
+      <view wx:for="{{weekDays}}" wx:key="date" wx:for-item="day"
+            class="child-week-cell {{day.isToday ? 'child-week-cell-today' : ''}} {{day.isWeekend ? 'child-week-cell-weekend' : ''}}"
+            data-id="child-week-day-{{day.date}}"
+            data-date="{{day.date}}"
+            bindtap="onDayTap">
+        <view class="child-week-day {{day.isToday ? 'child-week-day-today' : ''}}">{{day.day}}</view>
+        <view class="child-week-dots">
+          <view wx:for="{{day.dots}}" wx:for-item="dot" wx:key="scheduleType"
+                class="child-week-dot child-week-dot-{{dot.typeClass}}"></view>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

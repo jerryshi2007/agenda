@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>展示模式 - 高年级我的页面</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* 高年级我的页面特有样式 */
+    .user-card {
+      background: var(--color-bg-white);
+      border-radius: var(--radius-md);
+      padding: 24px 16px; /* → 48rpx 32rpx */
+      text-align: center;
+      margin-bottom: 16px; /* → 32rpx */
+    }
+    .user-avatar {
+      width: 80px; /* → 160rpx */
+      height: 80px; /* → 160rpx */
+      border-radius: var(--radius-round);
+      background: var(--color-primary-light);
+      margin: 0 auto 12px; /* → 24rpx */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px; /* → 72rpx */
+    }
+    .user-name {
+      font-size: 20px; /* → 40rpx */
+      font-weight: 500;
+      color: var(--color-text-primary);
+      margin-bottom: 4px; /* → 8rpx */
+    }
+    .user-role {
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+    }
+
+    /* 统计卡片 */
+    .stats-card {
+      background: var(--color-bg-white);
+      border-radius: var(--radius-md);
+      padding: 16px; /* → 32rpx */
+      margin-bottom: 16px; /* → 32rpx */
+    }
+    .card-title {
+      font-size: 16px; /* → 32rpx */
+      font-weight: 500;
+      margin-bottom: 16px; /* → 32rpx */
+    }
+    .progress-container {
+      margin-bottom: 12px; /* → 24rpx */
+    }
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px; /* → 16rpx */
+    }
+    .progress-label {
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-primary);
+    }
+    .progress-value {
+      font-size: 18px; /* → 36rpx */
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+    .progress-track {
+      height: 16px; /* → 32rpx */
+      background: var(--color-bg-page);
+      border-radius: 8px; /* → 16rpx */
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--color-primary), #4cd080);
+      border-radius: 8px; /* → 16rpx */
+      transition: width var(--transition-base);
+    }
+
+    /* 连续天数卡片 */
+    .streak-card {
+      background: var(--color-bg-white);
+      border-radius: var(--radius-md);
+      padding: 20px 16px; /* → 40rpx 32rpx */
+      text-align: center;
+      margin-bottom: 16px; /* → 32rpx */
+    }
+    .streak-number {
+      font-size: 48px; /* → 96rpx */
+      font-weight: 700;
+      color: var(--color-primary);
+      line-height: 1;
+    }
+    .streak-label {
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-secondary);
+      margin-top: 8px; /* → 16rpx */
+    }
+
+    /* 按类型统计 */
+    .type-stats {
+      background: var(--color-bg-white);
+      border-radius: var(--radius-md);
+      padding: 16px; /* → 32rpx */
+      margin-bottom: 16px; /* → 32rpx */
+    }
+    .type-stat-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0; /* → 24rpx 0 */
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    .type-stat-item:last-child {
+      border-bottom: none;
+    }
+    .type-info {
+      display: flex;
+      align-items: center;
+    }
+    .type-color {
+      width: 16px; /* → 32rpx */
+      height: 16px; /* → 32rpx */
+      border-radius: var(--radius-sm);
+      margin-right: 12px; /* → 24rpx */
+    }
+    .type-name {
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-primary);
+    }
+    .type-completion {
+      font-size: 14px; /* → 28rpx */
+      font-weight: 500;
+      color: var(--color-primary);
+    }
+
+    /* 菜单列表 */
+    .menu-list {
+      background: var(--color-bg-white);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: 16px; /* → 32rpx */
+      border-bottom: 1px solid var(--color-border-light);
+      cursor: pointer;
+    }
+    .menu-item:last-child {
+      border-bottom: none;
+    }
+    .menu-item:active {
+      background: var(--color-bg-page);
+    }
+    .menu-icon {
+      width: 24px; /* → 48rpx */
+      height: 24px; /* → 48rpx */
+      margin-right: 12px; /* → 24rpx */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px; /* → 36rpx */
+      color: var(--color-primary);
+    }
+    .menu-text {
+      flex: 1;
+      font-size: 14px; /* → 28rpx */
+      color: var(--color-text-primary);
+    }
+    .menu-arrow {
+      color: var(--color-text-placeholder);
+      font-size: 16px; /* → 32rpx */
+    }
+
+    /* 状态区块 */
+    .state-block {
+      display: none;
+    }
+    .state-block.active {
+      display: block;
+    }
+
+    /* 底部安全区 */
+    .safe-area-bottom {
+      height: 20px; /* → 40rpx + env(safe-area-inset-bottom) */
+    }
+  </style>
+</head>
+<body>
+
+<!-- 状态切换器（原型调试用） -->
+<div class="state-switcher">
+  <div class="state-switcher__label">切换状态</div>
+  <button onclick="setState('normal')" class="active">正常态</button>
+  <button onclick="setState('loading')">Loading</button>
+  <button onclick="setState('empty')">空态</button>
+  <button onclick="setState('error')">错误态</button>
+</div>
+
+<div class="phone-frame">
+  <!-- 顶部：微信原生导航栏 -->
+  <!-- title: "我的" -->
+  <div class="status-bar"></div>
+  <div class="nav-bar">
+    <div class="nav-bar-title">我的</div>
+  </div>
+
+  <div class="page-body">
+    <!-- ===== 正常态 ===== -->
+    <div class="state-block state-normal active">
+      <div class="prototype-note">
+        <strong>高年级模式 · 我的页面</strong><br>
+        - 比小学模式增加更多统计项<br>
+        - 本周完成率 + 本月完成率<br>
+        - 连续完成天数<br>
+        - 按日程类型分别统计完成率<br>
+        - 不展示全家庭对比数据
+      </div>
+
+      <!-- 用户信息卡片 -->
+      <div class="user-card">
+        <div class="user-avatar">👦</div>
+        <div class="user-name">小明</div>
+        <div class="user-role">孩子 · 高年级模式</div>
+      </div>
+
+      <!-- 连续完成天数 -->
+      <div class="streak-card">
+        <div class="streak-number">7</div>
+        <div class="streak-label">连续打卡天数</div>
+      </div>
+
+      <!-- 本周完成率 -->
+      <div class="stats-card">
+        <div class="card-title">本周完成率</div>
+        <div class="progress-container">
+          <div class="progress-header">
+            <span class="progress-label">已完成</span>
+            <span class="progress-value">85%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" style="width: 85%"></div>
+          </div>
+          <div class="progress-footer text-sm text-secondary mt-xs">已完成 17 / 20</div>
+        </div>
+      </div>
+
+      <!-- 本月完成率 -->
+      <div class="stats-card">
+        <div class="card-title">本月完成率</div>
+        <div class="progress-container">
+          <div class="progress-header">
+            <span class="progress-label">已完成</span>
+            <span class="progress-value">79%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" style="width: 79%"></div>
+          </div>
+          <div class="progress-footer text-sm text-secondary mt-xs">已完成 62 / 78</div>
+        </div>
+      </div>
+
+      <!-- 按类型统计 -->
+      <div class="type-stats">
+        <div class="card-title">按类型统计</div>
+        <div class="type-stat-item">
+          <div class="type-info">
+            <div class="type-color" style="background: #2196F3;"></div>
+            <div class="type-name">课后活动</div>
+          </div>
+          <div class="type-completion">92%</div>
+        </div>
+        <div class="type-stat-item">
+          <div class="type-info">
+            <div class="type-color" style="background: #4CAF50;"></div>
+            <div class="type-name">日常作息</div>
+          </div>
+          <div class="type-completion">88%</div>
+        </div>
+        <div class="type-stat-item">
+          <div class="type-info">
+            <div class="type-color" style="background: #FF9800;"></div>
+            <div class="type-name">作业任务</div>
+          </div>
+          <div class="type-completion">65%</div>
+        </div>
+      </div>
+
+      <!-- 菜单列表 -->
+      <div class="menu-list">
+        <div class="menu-item" data-id="senior-my-exit-btn">
+          <div class="menu-icon">🚪</div>
+          <div class="menu-text">退出家庭</div>
+          <div class="menu-arrow">&gt;</div>
+        </div>
+      </div>
+
+      <div class="safe-area-bottom"></div>
+    </div>
+
+    <!-- ===== Loading态 ===== -->
+    <div class="state-block state-loading">
+      <div class="loading-block">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">加载中...</div>
+      </div>
+      <div class="mt-md">
+        <div class="skeleton" style="height: 140px; border-radius: var(--radius-md);"></div>
+        <div class="skeleton" style="height: 100px; border-radius: var(--radius-md); margin-top: 16px;"></div>
+        <div class="skeleton" style="height: 100px; border-radius: var(--radius-md); margin-top: 16px;"></div>
+        <div class="skeleton" style="height: 160px; border-radius: var(--radius-md); margin-top: 16px;"></div>
+      </div>
+    </div>
+
+    <!-- ===== 空态 ===== -->
+    <div class="state-block state-empty">
+      <div class="empty-state">
+        <div class="empty-state__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 16v-4"></path>
+            <path d="M12 8h.01"></path>
+          </svg>
+        </div>
+        <div class="empty-state__title">暂无统计数据</div>
+        <div class="empty-state__desc">开始打卡即可生成统计～</div>
+      </div>
+    </div>
+
+    <!-- ===== 错误态 ===== -->
+    <div class="state-block state-error">
+      <div class="error-state">
+        <div class="error-state__icon">📶</div>
+        <div class="error-state__title">加载失败</div>
+        <div class="error-state__desc">网络异常，请检查网络连接</div>
+        <button class="btn btn--primary mt-md" data-id="senior-my-retry-btn">重试</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 微信原生 TabBar -->
+  <div class="tab-bar">
+    <div class="tab-bar-item">
+      <div class="tab-bar-icon">📅</div>
+      <div class="tab-bar-label">日程</div>
+    </div>
+    <div class="tab-bar-item active">
+      <div class="tab-bar-icon">👤</div>
+      <div class="tab-bar-label">我的</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function setState(state) {
+  document.querySelectorAll('.state-block').forEach(el => {
+    el.classList.remove('active');
+  });
+  document.querySelector('.state-' + state).classList.add('active');
+  document.querySelectorAll('.state-switcher button').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

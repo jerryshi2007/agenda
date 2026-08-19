@@ -56,14 +56,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 测试 track
 
-| 阶段 | Agent | Skill |
-|------|-------|-------|
-| 测试策划 | test-planner | test-case-design |
-| 脚本编写 | test-writer | test-e2e-playwright |
-| 测试审查 | test-reviewer | test-case-design |
-| 测试执行 | test-runner | test-execution, dev-verification |
+| 阶段 | Agent | Skill | 适用 |
+|------|-------|-------|------|
+| 测试策划 | test-planner | test-case-design | Web / 小程序 |
+| 脚本编写（Web） | test-writer | test-e2e-playwright | 仅 Web |
+| 脚本编写（小程序） | dev-dotnet + dev-miniapp | dev-dotnet-tdd, dev-miniapp-tdd | 仅小程序 |
+| 测试审查 | test-reviewer | test-case-design | Web / 小程序 |
+| 测试执行（Web） | test-runner | test-execution, dev-verification | 仅 Web |
+| 测试执行（小程序） | 主代理直接执行 | — | 仅小程序 |
 
-> E2E（Playwright）仅覆盖 Web 应用；小程序由 dev-miniapp-tdd（Jest + miniprogram-simulate）覆盖。
+> **Stage 4 分支逻辑**：主代理先判断项目类型。Web 应用走 `test-planner → test-writer → test-reviewer → test-runner → 人审批`。小程序走 `test-planner → 已有测试评估 → 按需补充后端(dev-dotnet)/前端(dev-miniapp) → test-reviewer → 主代理执行测试并生成报告 → 人审批`。主代理进入 Stage 4 前 MUST 先 Glob 扫描已有测试文件，将结论写入 test-planner 提示词。
 
 ### 横切
 

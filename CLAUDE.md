@@ -9,7 +9,9 @@
 | 日程管理 | ✅ | ✅ | ✅ | ✅ | ✅ | add-event-module (archived) |
 | 认证 | ✅ | ✅ | ✅ | ✅ | ✅ | add-auth-module (archived) |
 | 打卡 | ✅ | ✅ | ✅ | ✅ | ✅ | add-checkin-module (archived) |
-| 家庭/模板/展示模式 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
+| 家庭 | ✅ | ✅ | ✅ | ✅ | ✅ | add-family-module (archived) |
+| 模板 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | - |
+| 展示模式 | ✅ | ✅ | ✅ | ✅ | ✅ | add-display-mode-module (archived) |
 
 - `app/` 已有日程管理前端代码（4 页面 + 11 组件 + 3 Service + 2 Util），认证模块（mine/privacy-prompt 页面）
 - `api/` 已有 .NET 10 后端（Schedule + Auth + Family + Domain + Infrastructure 分层），含 EF Core Migration

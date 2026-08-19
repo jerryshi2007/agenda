@@ -1,0 +1,49 @@
+<!-- pages/child-mine/index.wxml
+     孩子我的页面（小学模式）—— 孩子姓名 + 本周完成率进度条
+     故意不展示家长端管理功能（切换家庭、设置等） -->
+
+<view class="page-container safe-bottom">
+  <!-- 视图切换器（孩子端 4 视图互跳） -->
+  <view class="child-view-switcher">
+    <view class="child-view-switcher-item" data-id="child-mine-nav-today" bindtap="onSwitchToToday">今日</view>
+    <view class="child-view-switcher-item" data-id="child-mine-nav-week" bindtap="onSwitchToWeek">本周</view>
+    <view class="child-view-switcher-item" data-id="child-mine-nav-month" bindtap="onSwitchToMonth">本月</view>
+    <view class="child-view-switcher-item active" data-id="child-mine-nav-mine">我的</view>
+  </view>
+
+  <!-- 加载态 -->
+  <view wx:if="{{loading}}" class="loading-block" data-id="child-mine-loading">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <block wx:else>
+    <!-- 孩子姓名卡 -->
+    <view class="child-mine-name-card">
+      <view class="child-mine-name-avatar">{{childName ? childName[0] : '孩'}}</view>
+      <view class="child-mine-name-info">
+        <view class="child-mine-name-text" data-id="child-mine-name">{{childName || '小朋友'}}</view>
+        <view class="child-mine-name-hint">坚持就是胜利</view>
+      </view>
+    </view>
+
+    <!-- 本周完成率卡 -->
+    <view class="child-mine-progress-card" data-id="child-mine-progress">
+      <view class="child-mine-progress-header">
+        <text class="child-mine-progress-title">本周完成率</text>
+        <text class="child-mine-progress-percent">{{weeklyPercentage}}%</text>
+      </view>
+      <view class="child-mine-progress-bar">
+        <view class="child-mine-progress-bar-fill"
+              data-id="child-mine-progress-bar-fill"
+              style="width: {{weeklyPercentage}}%;"></view>
+      </view>
+      <view class="child-mine-progress-text" data-id="child-mine-progress-text">{{weeklyText}}</view>
+    </view>
+
+    <!-- 错误占位（资料/完成率加载失败时不阻塞主展示） -->
+    <view wx:if="{{error}}" class="error-state" data-id="child-mine-error">
+      <view class="error-state-desc">部分信息加载失败</view>
+    </view>
+  </block>
+</view>

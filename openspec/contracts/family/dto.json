@@ -270,5 +270,41 @@
         "required": true
       }
     }
+  },
+  "ChildScheduleListResponse": {
+    "fields": {
+      "items": {
+        "type": "ScheduleInfo[]",
+        "required": true
+      },
+      "completedCount": {
+        "type": "integer",
+        "required": true
+      },
+      "totalCount": {
+        "type": "integer",
+        "required": true
+      },
+      "completionPercentage": {
+        "type": "double",
+        "required": true
+      }
+    }
+  },
+  "ChildWeeklyCompletionResponse": {
+    "fields": {
+      "percentage": {
+        "type": "double",
+        "required": true
+      },
+      "completed": {
+        "type": "integer",
+        "required": true
+      },
+      "total": {
+        "type": "integer",
+        "required": true
+      }
+    }
   }
 }

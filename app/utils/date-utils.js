@@ -145,9 +145,11 @@ function getDayOfWeekName(date) {
 
 /**
  * 日期加减天数
+ * 注意：toDate() 对 Date 输入直接返回同一对象，必须显式克隆避免外层 caller 的 monday
+ * 被累积污染（H-fix：原实现把同一 monday 对象 +1/+2/+3...，导致 generateWeekDays 失败）
  */
 function addDays(date, days) {
-  const d = toDate(date);
+  const d = new Date(toDate(date));
   d.setDate(d.getDate() + days);
   return d;
 }
@@ -156,7 +158,7 @@ function addDays(date, days) {
  * 日期加减月数
  */
 function addMonths(date, months) {
-  const d = toDate(date);
+  const d = new Date(toDate(date));
   d.setMonth(d.getMonth() + months);
   return d;
 }

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>展示模式 - 家长端孩子展示模式设置</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* 设置页面特有样式 */
+    .child-info-card {
+      background: var(--color-bg-white);
+      border-radius: var(--radius-md);
+      padding: 16px; /* → 32rpx */
+      margin-bottom: 16px; /* → 32rpx */
+      display: flex;
+      align-items: center;
+    }
+    .child-avatar {
+      width: 48px; /* → 96rpx */
+      height: 48px; /* → 96rpx */
+      border-radius: var(--radius-round);
+      background: var(--color-primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px; /* → 48rpx */
+      margin-right: 12px; /* → 24rpx */
+    }
+    .child-info {
+      flex: 1;
+    }
+    .child-name {
+      font-size: 16px; /* → 32rpx */
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+    .child-age {
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+      margin-top: 2px; /* → 4rpx */
+    }
+
+    /* 模式选项卡片 */
+    .mode-option {
+      background: var(--color-bg-white);
+      border-radius: var(--radius-md);
+      border: 2px solid var(--color-border);
+      padding: 16px; /* → 32rpx */
+      margin-bottom: 12px; /* → 24rpx */
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .mode-option.selected {
+      border-color: var(--color-primary);
+      background: var(--color-primary-light);
+    }
+    .mode-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px; /* → 16rpx */
+    }
+    .mode-title {
+      display: flex;
+      align-items: center;
+      font-size: 16px; /* → 32rpx */
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+    .mode-icon {
+      font-size: 24px; /* → 48rpx */
+      margin-right: 8px; /* → 16rpx */
+    }
+    .mode-desc {
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+    }
+    .radio-dot {
+      width: 16px; /* → 32rpx */
+      height: 16px; /* → 32rpx */
+      border-radius: var(--radius-round);
+      border: 2px solid var(--color-border);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .mode-option.selected .radio-dot {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+    }
+    .mode-option.selected .radio-dot::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: white;
+    }
+
+    /* 提示说明 */
+    .info-note {
+      background: #FFF8E1;
+      border-left: 3px solid #FFC107;
+      padding: 12px; /* → 24rpx */
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin-bottom: 16px; /* → 32rpx */
+    }
+    .info-note-text {
+      font-size: 12px; /* → 24rpx */
+      color: #8B6D04;
+      line-height: 1.6;
+    }
+
+    /* 预览按钮 */
+    .preview-section {
+      background: var(--color-bg-white);
+      border-radius: var(--radius-md);
+      padding: 16px; /* → 32rpx */
+      margin-bottom: 16px; /* → 32rpx */
+    }
+    .preview-desc {
+      font-size: 12px; /* → 24rpx */
+      color: var(--color-text-secondary);
+      margin-bottom: 12px; /* → 24rpx */
+    }
+
+    /* 底部保存按钮 */
+    .save-footer {
+      position: sticky;
+      bottom: 0;
+      padding: 16px 0 20px; /* → 32rpx 0 40rpx + env(safe-area-inset-bottom) */
+      background: var(--color-bg-page);
+    }
+
+    /* 状态区块 */
+    .state-block {
+      display: none;
+    }
+    .state-block.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+<!-- 状态切换器（原型调试用） -->
+<div class="state-switcher">
+  <div class="state-switcher__label">切换状态</div>
+  <button onclick="setState('normal')" class="active">正常态</button>
+  <button onclick="setState('loading')">Loading</button>
+</div>
+
+<div class="phone-frame">
+  <!-- 顶部：微信原生导航栏 -->
+  <!-- title: "设置展示模式" -->
+  <div class="status-bar"></div>
+  <div class="nav-bar">
+    <div class="nav-bar-back">&lt;</div>
+    <div class="nav-bar-title">设置展示模式</div>
+  </div>
+
+  <div class="page-body">
+    <!-- ===== 正常态 ===== -->
+    <div class="state-block state-normal active">
+      <div class="prototype-note">
+        <strong>家长端 · 孩子展示模式设置</strong><br>
+        - 家长在家庭管理 → 成员列表 → 点击孩子 → 设置展示模式<br>
+        - 三个模式选项，单选<br>
+        - 提供"预览孩子端"按钮，半屏预览<br>
+        - 根据孩子年龄自动推荐默认模式
+      </div>
+
+      <!-- 孩子信息 -->
+      <div class="child-info-card">
+        <div class="child-avatar">👦</div>
+        <div class="child-info">
+          <div class="child-name">小明</div>
+          <div class="child-age">5岁 · 系统推荐：学龄前模式</div>
+        </div>
+      </div>
+
+      <!-- 说明提示 -->
+      <div class="info-note">
+        <div class="info-note-text">
+          展示模式会改变孩子端界面的呈现方式，适配不同年龄孩子的认知水平。三种模式共享同一份日程数据，仅改变展示方式。你可以随时修改，孩子端下次进入页面自动生效。
+        </div>
+      </div>
+
+      <!-- 模式选项 -->
+      <!-- → wx:for="{{modeOptions}}" bindtap="selectMode" -->
+      <div class="mode-option selected" data-mode="preschool" data-id="setting-mode-preschool">
+        <div class="mode-header">
+          <div class="mode-title">
+            <span class="mode-icon">🧸</span>
+            <span>学龄前模式</span>
+          </div>
+          <div class="radio-dot"></div>
+        </div>
+        <div class="mode-desc">适合 3-6 岁 · 大色块卡片 + 红绿灯状态 + 弹窗确认打卡</div>
+      </div>
+
+      <div class="mode-option" data-mode="primary" data-id="setting-mode-primary">
+        <div class="mode-header">
+          <div class="mode-title">
+            <span class="mode-icon">📋</span>
+            <span>小学模式</span>
+          </div>
+          <div class="radio-dot"></div>
+        </div>
+        <div class="mode-desc">适合 6-10 岁 · 文字+图标列表 + 今日/周/月三视图 + 直接打卡</div>
+      </div>
+
+      <div class="mode-option" data-mode="senior" data-id="setting-mode-senior">
+        <div class="mode-header">
+          <div class="mode-title">
+            <span class="mode-icon">📱</span>
+            <span>高年级模式</span>
+          </div>
+          <div class="radio-dot"></div>
+        </div>
+        <div class="mode-desc">适合 10-14 岁 · 接近成人视图 + 自主添加日程 + 个人统计</div>
+      </div>
+
+      <!-- 预览区域 -->
+      <div class="preview-section">
+        <div class="preview-desc">点击下方按钮可预览孩子端今日视图效果（半屏弹窗）</div>
+        <button class="btn btn--default btn--block" data-id="setting-preview-btn">预览孩子端</button>
+      </div>
+
+      <!-- 保存按钮 -->
+      <div class="save-footer">
+        <button class="btn btn--primary btn--block" data-id="setting-save-btn">保存</button>
+      </div>
+    </div>
+
+    <!-- ===== Loading态 ===== -->
+    <div class="state-block state-loading">
+      <div class="loading-block">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">加载中...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 微信原生导航栏返回手势处理 -->
+</div>
+
+<!-- 预览弹窗（半屏） -->
+<div class="modal-mask" id="previewModal" style="display: none;">
+  <div class="modal" style="width: 90%; max-height: 70vh; overflow-y: auto;">
+    <div class="modal__header">预览孩子端（学龄前模式）</div>
+    <div class="modal__body" style="text-align: left; max-height: 50vh; overflow-y: auto;">
+      <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: 8px;">
+        此处弹窗显示孩子端今日视图的预览截图或迷你渲染（仅视觉预览，不支持交互）
+      </div>
+      <div style="border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 8px;">
+        <div style="font-weight: 500; margin-bottom: 8px;">今日日程</div>
+        <div style="background: var(--color-bg-page); padding: 8px; border-radius: 4px; font-size: 12px;">
+          👦 小明 · 学龄前模式<br>
+          ☀️ 早上 (3项)<br>
+          [🌅] 起床 ✓<br>
+          [🎒] 上学 (当前)<br>
+          [✏️] 晨读
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--default" onclick="hidePreview()">关闭</button>
+      <button class="btn btn--primary" onclick="hidePreview()">确认</button>
+    </div>
+  </div>
+</div>
+<!-- → 弹窗映射：wx.showModal 或自定义弹窗组件 -->
+
+<script>
+function setState(state) {
+  document.querySelectorAll('.state-block').forEach(el => {
+    el.classList.remove('active');
+  });
+  document.querySelector('.state-' + state).classList.add('active');
+  document.querySelectorAll('.state-switcher button').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+}
+
+// 点击选择模式
+document.querySelectorAll('.mode-option').forEach(option => {
+  option.addEventListener('click', () => {
+    document.querySelectorAll('.mode-option').forEach(opt => {
+      opt.classList.remove('selected');
+    });
+    option.classList.add('selected');
+  });
+});
+
+function hidePreview() {
+  document.getElementById('previewModal').style.display = 'none';
+}
+
+// 点击预览按钮显示弹窗
+document.querySelector('[data-id="setting-preview-btn"]').addEventListener('click', () => {
+  document.getElementById('previewModal').style.display = 'flex';
+});
+</script>
+</body>
+</html>

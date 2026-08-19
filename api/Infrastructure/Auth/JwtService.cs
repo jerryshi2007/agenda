@@ -21,6 +21,11 @@ public class JwtService : IJwtService
 
     public string GenerateToken(Guid userId, TimeSpan? lifetime = null)
     {
+        return GenerateToken(userId, displayMode: null, lifetime);
+    }
+
+    public string GenerateToken(Guid userId, string? displayMode, TimeSpan? lifetime = null)
+    {
         var now = DateTimeOffset.UtcNow;
         var lifetimeValue = lifetime ?? DefaultLifetime;
         var expires = now.Add(lifetimeValue);
@@ -29,13 +34,19 @@ public class JwtService : IJwtService
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey)),
             SecurityAlgorithms.HmacSha256);
 
+        var claims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.Sub, userId.ToString()),
+            new("userId", userId.ToString())
+        };
+
+        // 仅当 displayMode 非空时追加 claim（家长 token 不含此 claim）。
+        if (!string.IsNullOrEmpty(displayMode))
+            claims.Add(new Claim("displayMode", displayMode));
+
         var token = new JwtSecurityToken(
             issuer: _options.Issuer,
-            claims:
-            [
-                new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-                new Claim("userId", userId.ToString())
-            ],
+            claims: claims,
             notBefore: lifetimeValue < TimeSpan.Zero ? null : now.UtcDateTime,
             expires: expires.UtcDateTime,
             signingCredentials: credentials);

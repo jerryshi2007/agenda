@@ -53,6 +53,8 @@ const UserRoleLabels = Object.freeze({
 /** 错误码（errors.json keys） */
 const ErrorCodes = Object.freeze({
   CANNOT_REMOVE_SELF: 'CANNOT_REMOVE_SELF',
+  CHILD_ACCESS_DENIED: 'CHILD_ACCESS_DENIED',
+  CHILD_ONLY_ENDPOINT: 'CHILD_ONLY_ENDPOINT',
   DISSOLVED_EXPIRED: 'DISSOLVED_EXPIRED',
   FAMILY_ALREADY_DISSOLVED: 'FAMILY_ALREADY_DISSOLVED',
   FAMILY_CREATOR_CANNOT_EXIT: 'FAMILY_CREATOR_CANNOT_EXIT',
@@ -78,6 +80,8 @@ const ErrorCodes = Object.freeze({
 /** 错误码 → 中文提示（errors.json message，前端展示的权威值） */
 const ErrorMessages = Object.freeze({
   CANNOT_REMOVE_SELF: '不能移除自己，请使用退出功能',
+  CHILD_ACCESS_DENIED: '你只能查看自己的日程',
+  CHILD_ONLY_ENDPOINT: '仅孩子角色可访问',
   DISSOLVED_EXPIRED: '数据已过期删除，无法恢复',
   FAMILY_ALREADY_DISSOLVED: '家庭已解散',
   FAMILY_CREATOR_CANNOT_EXIT: '创建者无法退出，请先解散家庭',
@@ -103,6 +107,8 @@ const ErrorMessages = Object.freeze({
 /** 错误码 → HTTP 状态码（errors.json httpStatus） */
 const HttpStatus = Object.freeze({
   CANNOT_REMOVE_SELF: 400,
+  CHILD_ACCESS_DENIED: 403,
+  CHILD_ONLY_ENDPOINT: 403,
   DISSOLVED_EXPIRED: 410,
   FAMILY_ALREADY_DISSOLVED: 400,
   FAMILY_CREATOR_CANNOT_EXIT: 403,

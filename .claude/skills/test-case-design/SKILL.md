@@ -13,6 +13,11 @@ rules: [test-standards, req-staging]
 
 ## 流程
 1. **先 Read `rules/test-standards.md` 和 `rules/req-staging.md` 并严格遵守其约束，Read `production/staging/<name>/requirement.md`（验收标准/边界与异常/优先级）+ `epic-story.md` 作为等价类、边界值、错误路径、优先级的划分依据。**
+1.5 **已有覆盖扫描**（正向设计模式）— 在规划新用例前，MUST 扫描已有测试文件：
+   - 后端：Glob `api/**/__tests__/*Tests.cs`，统计已有测试方法数，阅读关键文件了解覆盖场景
+   - 小程序前端：Glob `app/__tests__/**/*.test.js`，统计已有测试文件数，阅读关键文件了解覆盖场景
+   - Web 前端：Glob `web/src/**/__tests__/*.test.ts`，统计已有测试文件数
+   - 产出"已有覆盖清单"——列出每个测试文件及其覆盖的场景类别。后续等价类划分时，已有覆盖的等价类标注"已有"，只规划缺口。
 2. **等价类划分**——把输入/状态分成"等价类"，每类选代表用例（合法类 + 非法类）。避免穷举。
 3. **边界值**——针对每个边界取值（min-1/min/min+1、max-1/max/max+1、空、0、负）。边界是 bug 高发区。
 4. **错误路径**——异常、超时、权限不足、资源不可用、并发冲突。

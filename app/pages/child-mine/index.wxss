@@ -1,0 +1,126 @@
+/* pages/child-mine/index.wxss
+   孩子我的页面（小学模式）—— 简洁：姓名 + 本周完成率 */
+
+@import '../../styles/common.wxss';
+
+.page-container {
+  min-height: 100vh;
+  background: var(--color-bg-page);
+  padding: var(--spacing-md);
+}
+
+/* 视图切换器 */
+.child-view-switcher {
+  display: flex;
+  background: var(--color-bg-white);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 2rpx solid var(--color-border-light);
+  margin: calc(-1 * var(--spacing-md));
+  margin-bottom: var(--spacing-md);
+}
+
+.child-view-switcher-item {
+  flex: 1;
+  text-align: center;
+  padding: var(--spacing-sm) 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.child-view-switcher-item.active {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+/* 姓名卡 */
+.child-mine-name-card {
+  display: flex;
+  align-items: center;
+  background: var(--color-bg-white);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.child-mine-name-avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: var(--radius-round);
+  background: var(--color-primary);
+  color: var(--color-text-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xl);
+  font-weight: 500;
+  margin-right: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+.child-mine-name-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.child-mine-name-text {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 4rpx;
+}
+
+.child-mine-name-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* 本周完成率卡 */
+.child-mine-progress-card {
+  background: var(--color-bg-white);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.child-mine-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-md);
+}
+
+.child-mine-progress-title {
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.child-mine-progress-percent {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.child-mine-progress-bar {
+  height: 24rpx;
+  background: var(--color-border-light);
+  border-radius: var(--radius-round);
+  overflow: hidden;
+  margin-bottom: var(--spacing-sm);
+}
+
+.child-mine-progress-bar-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-round);
+  transition: width var(--transition-base);
+}
+
+.child-mine-progress-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-align: right;
+}

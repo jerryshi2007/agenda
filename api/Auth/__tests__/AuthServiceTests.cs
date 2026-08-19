@@ -1,4 +1,5 @@
 using Agenda.Api.Auth.Dtos;
+using Agenda.Api.Auth.Services;
 using Agenda.Api.Domain.Enums;
 using Agenda.Api.Family.Dtos;
 using Agenda.Api.Domain.Entities;
@@ -35,11 +36,11 @@ public class AuthServiceTests
         return mock;
     }
 
-    private static Mock<IJwtService> CreateJwtMock()
+    private static Mock<ITokenService> CreateTokenMock()
     {
-        var mock = new Mock<IJwtService>();
-        mock.Setup(j => j.GenerateToken(It.IsAny<Guid>(), It.IsAny<TimeSpan?>()))
-            .Returns("test-jwt");
+        var mock = new Mock<ITokenService>();
+        mock.Setup(t => t.GenerateTokenAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("test-jwt");
         return mock;
     }
 
@@ -61,7 +62,7 @@ public class AuthServiceTests
         AppDbContext db,
         Mock<IWeChatService> weChat,
         Mock<IFamilyQueryService> family) =>
-        new(db, weChat.Object, CreateJwtMock().Object, family.Object, NullLogger<AuthService>.Instance);
+        new(db, weChat.Object, CreateTokenMock().Object, family.Object, NullLogger<AuthService>.Instance);
 
     private static async Task<User> SeedUserAsync(
         AppDbContext db,

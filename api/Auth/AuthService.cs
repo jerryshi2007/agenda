@@ -1,4 +1,5 @@
 using Agenda.Api.Auth.Dtos;
+using Agenda.Api.Auth.Services;
 using Agenda.Api.Domain;
 using Agenda.Api.Domain.Entities;
 using Agenda.Api.Domain.Enums;
@@ -13,20 +14,20 @@ public class AuthService : IAuthService
 {
     private readonly AppDbContext _db;
     private readonly IWeChatService _weChatService;
-    private readonly IJwtService _jwtService;
+    private readonly ITokenService _tokenService;
     private readonly IFamilyQueryService _familyQueryService;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         AppDbContext db,
         IWeChatService weChatService,
-        IJwtService jwtService,
+        ITokenService tokenService,
         IFamilyQueryService familyQueryService,
         ILogger<AuthService> logger)
     {
         _db = db;
         _weChatService = weChatService;
-        _jwtService = jwtService;
+        _tokenService = tokenService;
         _familyQueryService = familyQueryService;
         _logger = logger;
     }
@@ -54,7 +55,7 @@ public class AuthService : IAuthService
 
             return new LoginResponse
             {
-                Jwt = _jwtService.GenerateToken(user.Id),
+                Jwt = await _tokenService.GenerateTokenAsync(user.Id, ct),
                 UserId = user.Id,
                 IsNewUser = false,
                 NeedsProfileCollection = false,
@@ -68,7 +69,7 @@ public class AuthService : IAuthService
 
         return new LoginResponse
         {
-            Jwt = _jwtService.GenerateToken(user.Id),
+            Jwt = await _tokenService.GenerateTokenAsync(user.Id, ct),
             UserId = user.Id,
             IsNewUser = false,
             NeedsProfileCollection = user.Nickname == User.DefaultNickname,
@@ -87,7 +88,7 @@ public class AuthService : IAuthService
 
         return new RefreshResponse
         {
-            Jwt = _jwtService.GenerateToken(user.Id),
+            Jwt = await _tokenService.GenerateTokenAsync(user.Id, ct),
             UserId = user.Id
         };
     }
@@ -194,7 +195,7 @@ public class AuthService : IAuthService
 
         return new RecoverResponse
         {
-            Jwt = _jwtService.GenerateToken(user.Id),
+            Jwt = await _tokenService.GenerateTokenAsync(user.Id, ct),
             UserId = user.Id
         };
     }
@@ -218,7 +219,7 @@ public class AuthService : IAuthService
 
         return new LoginResponse
         {
-            Jwt = _jwtService.GenerateToken(user.Id),
+            Jwt = await _tokenService.GenerateTokenAsync(user.Id, ct),
             UserId = user.Id,
             IsNewUser = true,
             NeedsProfileCollection = true,
