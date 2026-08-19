@@ -18,5 +18,5 @@
 | Stage 1 产品 | ✅ done | — |
 | Stage 2 设计 | ✅ done | — |
 | Stage 3 研发 | ✅ done | add-template-module |
-| Stage 4 测试 | ⬜ pending | — |
+| Stage 4 测试 | ✅ done | add-template-module |
 | Stage 5 归档 | ⬜ pending | — |
