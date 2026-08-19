@@ -27,7 +27,7 @@
 | 认证 | ✅ | ✅ | ✅ | ✅ | ✅ | add-auth-module (archived) |
 | 打卡 | ✅ | ✅ | ✅ | ✅ | ✅ | add-checkin-module (archived) |
 | 家庭 | ✅ | ✅ | ✅ | ✅ | ✅ | add-family-module (archived) |
-| 模板 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | — |
+| 模板 | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | — |
 | 展示模式 | ✅ | ✅ | ✅ | ✅ | ✅ | add-display-mode-module (archived) |
 
 - **日程管理**：全流程完成（五阶段 done），OpenSpec 已归档
@@ -35,7 +35,7 @@
 - **打卡**：全流程完成（五阶段 done），OpenSpec 已归档
 - **家庭**：全流程完成（五阶段 done），OpenSpec 已归档
 - **展示模式**：全流程完成（五阶段 done），OpenSpec 已归档
-- **模板**：requirements/ 文档已完成，尚未进入 staging 流程
+- **模板**：Stage 1 产品已完成，staging 需求审核通过，进入 dev-ready
 - **归档**：模块完成后由 `archiver` agent 两步归档——OpenSpec 变更 → `openspec/changes/archive/`，staging 目录 → `production/archive/`
 
 ## 需求文档规范

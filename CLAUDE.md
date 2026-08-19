@@ -10,7 +10,7 @@
 | 认证 | ✅ | ✅ | ✅ | ✅ | ✅ | add-auth-module (archived) |
 | 打卡 | ✅ | ✅ | ✅ | ✅ | ✅ | add-checkin-module (archived) |
 | 家庭 | ✅ | ✅ | ✅ | ✅ | ✅ | add-family-module (archived) |
-| 模板 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | - |
+| 模板 | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | - |
 | 展示模式 | ✅ | ✅ | ✅ | ✅ | ✅ | add-display-mode-module (archived) |
 
 - `app/` 已有日程管理前端代码（4 页面 + 11 组件 + 3 Service + 2 Util），认证模块（mine/privacy-prompt 页面）
