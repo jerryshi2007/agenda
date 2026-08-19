@@ -1,0 +1,13 @@
+{
+  "TemplateSource": {
+    "values": ["Preset", "Custom"],
+    "numeric": { "Preset": 1, "Custom": 2 },
+    "description": "模板来源。Preset=系统预设模板（全局可见，不可编辑删除）；Custom=用户自定义模板（家庭内共享，仅创建者可编辑删除）。与模板实体的 IsPreset 布尔字段语义等价：IsPreset=true → Preset，IsPreset=false → Custom。"
+  },
+  "ScheduleType": {
+    "values": ["AfterSchoolActivity", "DailyRoutine", "HomeworkTask"],
+    "numeric": { "AfterSchoolActivity": 1, "DailyRoutine": 2, "HomeworkTask": 3 },
+    "description": "日程类型（复用 api/Domain/Enums/ScheduleType.cs）。模板与日程共享此枚举，模板不设独立分类体系。AfterSchoolActivity=课后活动（时间槽模型，周重复），DailyRoutine=日常作息（时间槽模型，周重复），HomeworkTask=作业任务（截止日期模型，不设时间槽，不重复）。",
+    "sourceRef": "api/Domain/Enums/ScheduleType.cs"
+  }
+}

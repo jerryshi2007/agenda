@@ -108,6 +108,9 @@ builder.Services.AddCheckinModule();
 // ---- Family Module ----
 builder.Services.AddFamilyModule();
 
+// ---- Template Module ----
+builder.Services.AddTemplateModule();
+
 // ---- Checkin Settlement (Hangfire) ----
 builder.Services.AddHangfireModule(builder.Configuration);
 

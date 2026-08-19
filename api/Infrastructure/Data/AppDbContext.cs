@@ -18,6 +18,8 @@ public class AppDbContext : DbContext
     public DbSet<CheckinSettlement> CheckinSettlements => Set<CheckinSettlement>();
     public DbSet<Streak> Streaks => Set<Streak>();
     public DbSet<Domain.Entities.Checkin> Checkins => Set<Domain.Entities.Checkin>();
+    public DbSet<DomainTemplate> Templates => Set<DomainTemplate>();
+    public DbSet<DomainTemplateTimeSlot> TemplateTimeSlots => Set<DomainTemplateTimeSlot>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

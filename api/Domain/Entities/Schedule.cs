@@ -39,6 +39,9 @@ public class Schedule
     /// <summary>衍生日程覆盖日期（仅 ThisOnly 编辑产生，标记该衍生日程应用的特定日期）</summary>
     public DateOnly? OverrideDate { get; set; }
 
+    /// <summary>衍生来源模板 Id（从模板生成时设置，软引用——模板删除不影响已生成日程）</summary>
+    public Guid? SourceTemplateId { get; set; }
+
     /// <summary>乐观锁版本号</summary>
     public byte[] RowVersion { get; set; } = Array.Empty<byte>();
 

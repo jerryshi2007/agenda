@@ -1,0 +1,87 @@
+{
+  "TemplateSummary": {
+    "fields": {
+      "templateId": { "type": "Guid", "required": true, "description": "模板唯一标识" },
+      "name": { "type": "string", "required": true, "description": "模板名称，最大 50 字符" },
+      "scheduleType": { "type": "ScheduleType", "required": true, "description": "模板类型，复用日程类型枚举 AfterSchoolActivity/DailyRoutine/HomeworkTask" },
+      "isPreset": { "type": "boolean", "required": true, "description": "是否为系统预设模板" },
+      "createdBy": { "type": "Guid", "required": true, "description": "创建者 ID，预设模板为 Guid.Empty" },
+      "createdAt": { "type": "DateTimeOffset", "required": true, "description": "创建时间" }
+    }
+  },
+  "TemplateDetail": {
+    "fields": {
+      "templateId": { "type": "Guid", "required": true },
+      "name": { "type": "string", "required": true },
+      "scheduleType": { "type": "ScheduleType", "required": true },
+      "isPreset": { "type": "boolean", "required": true },
+      "createdBy": { "type": "Guid", "required": true },
+      "createdAt": { "type": "DateTimeOffset", "required": true },
+      "timeSlots": { "type": "TemplateTimeSlotDto[]", "required": true, "description": "时间槽列表，HomeworkTask 模板为空数组" },
+      "repeatEndDate": { "type": "DateOnly?", "required": false, "description": "重复结束日期，HomeworkTask 为 null" },
+      "location": { "type": "string?", "required": false, "maxLength": 100 },
+      "notes": { "type": "string?", "required": false, "maxLength": 500 },
+      "usageCount": { "type": "integer", "required": true, "description": "已被使用生成的日程数量（SourceTemplateId=templateId 且 IsDeleted=false）" }
+    }
+  },
+  "TemplateTimeSlotDto": {
+    "fields": {
+      "dayOfWeek": { "type": "DayOfWeek", "required": true, "description": "0=Sunday, 1=Monday, ..., 6=Saturday" },
+      "startTime": { "type": "TimeOnly", "required": true },
+      "endTime": { "type": "TimeOnly", "required": true }
+    }
+  },
+  "CreateTemplateRequest": {
+    "fields": {
+      "name": { "type": "string", "required": true, "maxLength": 50 },
+      "scheduleType": { "type": "ScheduleType", "required": true, "description": "AfterSchoolActivity/DailyRoutine/HomeworkTask" },
+      "timeSlots": { "type": "TemplateTimeSlotDto[]", "required": false, "description": "HomeworkTask 不允许；其他类型至少 1 项" },
+      "repeatEndDate": { "type": "DateOnly?", "required": false, "description": "HomeworkTask 为 null" },
+      "location": { "type": "string?", "required": false, "maxLength": 100 },
+      "notes": { "type": "string?", "required": false, "maxLength": 500 }
+    }
+  },
+  "UpdateTemplateRequest": {
+    "fields": {
+      "name": { "type": "string", "required": true, "maxLength": 50 },
+      "timeSlots": { "type": "TemplateTimeSlotDto[]", "required": true, "description": "完整替换时间槽列表；HomeworkTask 传空数组" },
+      "repeatEndDate": { "type": "DateOnly?", "required": false },
+      "location": { "type": "string?", "required": false, "maxLength": 100 },
+      "notes": { "type": "string?", "required": false, "maxLength": 500 }
+    }
+  },
+  "ApplyTemplateRequest": {
+    "fields": {
+      "childId": { "type": "Guid", "required": true, "description": "目标孩子，必须是当前家庭成员" },
+      "startDate": { "type": "DateOnly", "required": true, "description": "起始日期，不能早于今天" },
+      "name": { "type": "string?", "required": false, "maxLength": 50, "description": "覆盖模板的默认名称" },
+      "timeSlots": { "type": "TemplateTimeSlotDto[]", "required": false, "description": "覆盖模板的时间槽" },
+      "repeatEndDate": { "type": "DateOnly?", "required": false, "description": "覆盖模板的重复结束日期" },
+      "location": { "type": "string?", "required": false, "maxLength": 100, "description": "覆盖模板的地点" },
+      "notes": { "type": "string?", "required": false, "maxLength": 500, "description": "覆盖模板的备注" }
+    }
+  },
+  "ListTemplatesResponse": {
+    "fields": {
+      "items": { "type": "TemplateSummary[]", "required": true },
+      "totalCount": { "type": "integer", "required": true },
+      "page": { "type": "integer", "required": true },
+      "pageSize": { "type": "integer", "required": true }
+    }
+  },
+  "DeleteTemplateResponse": {
+    "fields": {
+      "templateId": { "type": "Guid", "required": true },
+      "deleted": { "type": "boolean", "required": true }
+    }
+  },
+  "TemplateListQuery": {
+    "fields": {
+      "keyword": { "type": "string?", "required": false, "description": "按名称模糊搜索" },
+      "scheduleType": { "type": "ScheduleType?", "required": false },
+      "isPreset": { "type": "boolean?", "required": false, "description": "true=只返回预设；false=只返回自定义；null=全部" },
+      "page": { "type": "integer", "required": false, "default": 1 },
+      "pageSize": { "type": "integer", "required": false, "default": 20, "max": 100 }
+    }
+  }
+}

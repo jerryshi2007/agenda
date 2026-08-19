@@ -26,6 +26,7 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Domain.Entities.Sc
         builder.HasIndex(e => e.AssignedChildId);
         builder.HasIndex(e => new { e.FamilyId, e.AssignedChildId });
         builder.HasIndex(e => e.GroupKey);
+        builder.HasIndex(e => e.SourceTemplateId);
 
         builder.HasMany(e => e.TimeSlots)
             .WithOne(t => t.Schedule)

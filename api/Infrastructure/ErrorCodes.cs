@@ -96,8 +96,40 @@ public static class ErrorCodes
         [InvitationCodeUsed] = "邀请码已被使用",
         [InvitationCodeRedeemed] = "邀请码已被撤销",
         [InvitationCannotRevoke] = "邀请码已使用，无法撤销",
-        [InvitationCodeGenerationFailed] = "邀请码生成冲突，请稍后重试"
+        [InvitationCodeGenerationFailed] = "邀请码生成冲突，请稍后重试",
+        [TemplateNameEmpty] = "模板名称不能为空",
+        [TemplateNameTooLong] = "模板名称不能超过 50 个字符",
+        [TemplateNotesTooLong] = "备注不能超过 500 个字符",
+        [TemplateLocationTooLong] = "地点不能超过 100 个字符",
+        [TemplateTimeslotInvalid] = "作业任务模板不能配置时间槽",
+        [TemplateTimeslotRequired] = "课后活动/日常作息模板至少需要一个时间槽",
+        [TemplateTimeslotTimeInvalid] = "时间槽开始时间不能晚于或等于结束时间",
+        [TemplateDuplicateName] = "当前家庭已存在同名模板",
+        [TemplateNotFound] = "模板不存在",
+        [TemplatePresetReadonly] = "预设模板不可编辑或删除",
+        [TemplateNotOwner] = "仅创建者可编辑或删除此模板",
+        [TemplateChildAccessDenied] = "孩子角色无权访问模板",
+        [TemplateChildNotInFamily] = "所选孩子不属于当前家庭",
+        [TemplateStartDateInvalid] = "起始日期不能早于今天",
+        [TemplateTypeInvalid] = "模板类型无效"
     };
+
+    // Template module constants
+    public const string TemplateNameEmpty = "TEMPLATE_NAME_EMPTY";
+    public const string TemplateNameTooLong = "TEMPLATE_NAME_TOO_LONG";
+    public const string TemplateNotesTooLong = "TEMPLATE_NOTES_TOO_LONG";
+    public const string TemplateLocationTooLong = "TEMPLATE_LOCATION_TOO_LONG";
+    public const string TemplateTimeslotInvalid = "TEMPLATE_TIMESLOT_INVALID";
+    public const string TemplateTimeslotRequired = "TEMPLATE_TIMESLOT_REQUIRED";
+    public const string TemplateTimeslotTimeInvalid = "TEMPLATE_TIMESLOT_TIME_INVALID";
+    public const string TemplateDuplicateName = "TEMPLATE_DUPLICATE_NAME";
+    public const string TemplateNotFound = "TEMPLATE_NOT_FOUND";
+    public const string TemplatePresetReadonly = "TEMPLATE_PRESET_READONLY";
+    public const string TemplateNotOwner = "TEMPLATE_NOT_OWNER";
+    public const string TemplateChildAccessDenied = "CHILD_ACCESS_DENIED";
+    public const string TemplateChildNotInFamily = "CHILD_NOT_IN_FAMILY";
+    public const string TemplateStartDateInvalid = "START_DATE_INVALID";
+    public const string TemplateTypeInvalid = "TEMPLATE_TYPE_INVALID";
 
     private static readonly IReadOnlyDictionary<string, int> HttpStatuses = new Dictionary<string, int>
     {
@@ -142,7 +174,22 @@ public static class ErrorCodes
         [InvitationCodeUsed] = 400,
         [InvitationCodeRedeemed] = 400,
         [InvitationCannotRevoke] = 400,
-        [InvitationCodeGenerationFailed] = 503
+        [InvitationCodeGenerationFailed] = 503,
+        [TemplateNameEmpty] = 400,
+        [TemplateNameTooLong] = 400,
+        [TemplateNotesTooLong] = 400,
+        [TemplateLocationTooLong] = 400,
+        [TemplateTimeslotInvalid] = 400,
+        [TemplateTimeslotRequired] = 400,
+        [TemplateTimeslotTimeInvalid] = 400,
+        [TemplateDuplicateName] = 409,
+        [TemplateNotFound] = 404,
+        [TemplatePresetReadonly] = 403,
+        [TemplateNotOwner] = 403,
+        [TemplateChildAccessDenied] = 403,
+        [TemplateChildNotInFamily] = 400,
+        [TemplateStartDateInvalid] = 400,
+        [TemplateTypeInvalid] = 400
     };
 
     public static string Message(string code) =>
