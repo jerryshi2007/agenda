@@ -23,19 +23,19 @@
             data-id="create-family-role-parent" data-role="Parent" bindtap="onSelectRole">
         <text class="role-card__title">家长</text>
         <text class="role-card__desc">管理家庭、邀请成员、查看全部日程</text>
-        <text wx:if="{{role === 'Parent'}}" class="role-check">&#x2713;</text>
+        <text wx:if="{{role === 'Parent'}}" class="role-check">✓</text>
       </view>
       <view class="role-card {{role === 'Child' ? 'role-card--selected' : ''}}"
             data-id="create-family-role-child" data-role="Child" bindtap="onSelectRole">
         <text class="role-card__title">孩子</text>
         <text class="role-card__desc">查看自己的日程、完成打卡任务</text>
-        <text wx:if="{{role === 'Child'}}" class="role-check">&#x2713;</text>
+        <text wx:if="{{role === 'Child'}}" class="role-check">✓</text>
       </view>
     </view>
   </view>
 
   <view wx:if="{{roleHint}}" class="role-hint">
-    <text>&#x26A0;&#xFE0F; {{roleHint}}</text>
+    <text>⚠️ {{roleHint}}</text>
   </view>
 
   <view wx:if="{{error}}" class="error-text">{{error}}</view>

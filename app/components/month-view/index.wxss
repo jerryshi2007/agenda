@@ -1,5 +1,8 @@
 /* components/month-view/index.wxss */
 
+/* 共享样式：weekday-header 等类定义在 schedule-common.wxss（组件样式隔离，需显式引用） */
+@import '../../styles/schedule-common.wxss';
+
 .month-container {
   flex: 1;
   display: flex;

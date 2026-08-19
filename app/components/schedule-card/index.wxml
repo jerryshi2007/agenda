@@ -56,7 +56,7 @@
 
       <!-- 地点（日视图显示） -->
       <text wx:if="{{viewType === 'day' && schedule.location}}" class="schedule-card-location">
-        &#x1F4CD; {{schedule.location}}
+        📍 {{schedule.location}}
       </text>
     </view>
 
@@ -71,6 +71,6 @@
         class="schedule-card-checkin"
         data-id="calendar-schedule-card-checkin-btn-{{schedule.scheduleId}}"
         catchtap="onCheckinTap">
-    <text class="checkin-icon">&#x2713;</text>
+    <text class="checkin-icon">✓</text>
   </view>
 </view>

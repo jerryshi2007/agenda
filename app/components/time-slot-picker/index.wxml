@@ -38,7 +38,7 @@
   <view wx:if="{{selectedCount > 0}}" class="ts-tune-toggle" bindtap="onToggleTunePanel"
         data-id="schedule-create-timeslot-tune-toggle">
     <text>逐天微调时间</text>
-    <text class="ts-arrow {{showTunePanel ? 'open' : ''}}">&#x25BE;</text>
+    <text class="ts-arrow {{showTunePanel ? 'open' : ''}}">▾</text>
   </view>
 
   <view wx:if="{{showTunePanel}}" class="ts-tune-panel">

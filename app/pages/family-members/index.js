@@ -29,17 +29,28 @@ Page({
     selfRole: ''
   },
 
-  onLoad() {
+  onLoad(options) {
+    // 优先从 URL 参数读取 familyId（如 mine 页跳转时传入），回退到 Storage
+    const familyId = (options && options.familyId) || this._readFamilyId();
+    if (familyId) {
+      wx.setStorageSync(STORAGE_KEYS.CURRENT_FAMILY_ID, familyId);
+    }
+    this._familyId = familyId;
     this._load();
   },
 
   onShow() {
+    this._familyId = this._readFamilyId();
     this._load();
   },
 
   _load() {
     this.setData({ loading: true, error: false, errorMessage: '' });
-    const familyId = this._readFamilyId();
+    const familyId = this._familyId;
+    if (!familyId) {
+      this.setData({ loading: false, error: true, errorMessage: '未选择家庭' });
+      return;
+    }
     return familyService.getMembers(familyId).then((res) => {
       const data = res || {};
       this.setData({

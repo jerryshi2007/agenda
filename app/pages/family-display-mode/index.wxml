@@ -13,9 +13,9 @@
           data-mode="{{item.mode}}"
           bindtap="onSelectMode">
       <view class="mode-card__icon mode-card__icon--{{item.mode.toLowerCase()}}">
-        <text wx:if="{{item.mode === 'Preschool'}}">&#x1F476;</text>
-        <text wx:elif="{{item.mode === 'Primary'}}">&#x1F466;</text>
-        <text wx:else>&#x1F467;</text>
+        <text wx:if="{{item.mode === 'Preschool'}}">👶</text>
+        <text wx:elif="{{item.mode === 'Primary'}}">👦</text>
+        <text wx:else>👧</text>
       </view>
       <view class="mode-card__info">
         <view class="mode-card__label">{{item.label}}</view>
@@ -26,7 +26,7 @@
         </view>
       </view>
       <view class="mode-card__check" wx:if="{{item.mode === selectedMode}}">
-        <text>&#x2713;</text>
+        <text>✓</text>
       </view>
     </view>
   </view>

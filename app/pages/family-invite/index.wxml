@@ -4,23 +4,23 @@
     <!-- 邀请类型选择 -->
     <view class="invite-type-card" data-id="invite-member-parent-card" bindtap="onSelectType" data-role="Parent">
       <view class="invite-type-header">
-        <view class="invite-type-icon invite-type-icon--parent">&#x1F468;</view>
+        <view class="invite-type-icon invite-type-icon--parent">👨</view>
         <view class="invite-type-info">
           <view class="invite-type-title">邀请家长</view>
           <view class="invite-type-desc">生成 6 位邀请码，发送给对方</view>
         </view>
-        <view wx:if="{{targetRole === 'Parent'}}" class="invite-type-check">&#x2713;</view>
+        <view wx:if="{{targetRole === 'Parent'}}" class="invite-type-check">✓</view>
       </view>
     </view>
 
     <view class="invite-type-card" data-id="invite-member-child-card" bindtap="onSelectType" data-role="Child">
       <view class="invite-type-header">
-        <view class="invite-type-icon invite-type-icon--child">&#x1F466;</view>
+        <view class="invite-type-icon invite-type-icon--child">👦</view>
         <view class="invite-type-info">
           <view class="invite-type-title">邀请孩子</view>
           <view class="invite-type-desc">需指定孩子姓名和展示模式</view>
         </view>
-        <view wx:if="{{targetRole === 'Child'}}" class="invite-type-check">&#x2713;</view>
+        <view wx:if="{{targetRole === 'Child'}}" class="invite-type-check">✓</view>
       </view>
 
       <!-- 孩子表单（仅在 Child 时展开） -->

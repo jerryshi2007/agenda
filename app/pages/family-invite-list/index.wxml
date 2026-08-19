@@ -8,7 +8,7 @@
   <block wx:else>
     <!-- 错误态 -->
     <view wx:if="{{error}}" class="error-state">
-      <view class="error-state__icon">&#x26A0;&#xFE0F;</view>
+      <view class="error-state__icon">⚠️</view>
       <view class="error-state__title">{{errorMessage || '网络异常'}}</view>
       <button class="btn-primary" data-id="invite-list-retry-btn" bindtap="onRetry">重试</button>
     </view>
@@ -66,7 +66,7 @@
       <!-- 空态 -->
       <view wx:if="{{groups.pending.length === 0 && groups.used.length === 0 && groups.redeemed.length === 0 && groups.expired.length === 0}}"
             class="empty-state">
-        <view class="empty-state__icon">&#x1F4ED;</view>
+        <view class="empty-state__icon">📭</view>
         <view class="empty-state__text">暂无邀请记录</view>
       </view>
     </block>
