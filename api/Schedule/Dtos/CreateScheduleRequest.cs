@@ -13,6 +13,9 @@ public record CreateScheduleRequest
     public TimeOnly? SuggestedStartTime { get; init; }
     public TimeOnly? SuggestedEndTime { get; init; }
     public bool IgnoreConflict { get; init; }
+
+    /// <summary>衍生来源模板 ID（从模板生成时设置；为 null 时不设置）</summary>
+    public Guid? SourceTemplateId { get; init; }
 }
 
 public record TimeSlotDto

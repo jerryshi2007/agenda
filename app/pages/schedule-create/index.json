@@ -1,6 +1,6 @@
 {
   "usingComponents": {
-    "time-slot-picker": "../../components/time-slot-picker/index"
+    "schedule-form": "../../components/schedule-form/index"
   },
   "navigationBarTitleText": "创建日程"
 }

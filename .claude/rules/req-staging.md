@@ -42,6 +42,7 @@ production/staging/
 | `STATUS.md` | 外层状态追踪：粗粒度状态机 + Stage 进度表 + OpenSpec 关联 |
 
 - **命名唯一性**：`YYYY-MM-DD-概要` 中"概要"需确保同日唯一。若同日已有同名概要，追加数字后缀（如 `2026-08-04-日程管理-2`）。创建前先检查 `production/staging/` 中是否已有同名目录。
+- **⚠️ 路径格式（Windows）**：创建目录时 MUST 使用相对路径 + 正斜杠（`mkdir -p production/staging/2026-08-19-概要`），禁止在 Bash 中使用 Windows 绝对路径（`d:\...`）——反斜杠会被 Bash 解释为转义字符，导致路径压扁成单个畸形目录名。
 
 ### 状态机
 

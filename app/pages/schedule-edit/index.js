@@ -1,9 +1,9 @@
 // pages/schedule-edit/index.js
-// 编辑日程页 —— 复用创建页表单 + 编辑范围开关 + 乐观锁
+// 编辑日程页 —— 复用 schedule-form 子组件 + editScope + 乐观锁
 
 const scheduleService = require('../../services/schedule');
 const dateUtils = require('../../utils/date-utils');
-const app = getApp();
+const { ScheduleType, ScheduleTypeLabels } = require('../../contracts/template');
 
 Page({
   data: {
@@ -11,28 +11,31 @@ Page({
     scheduleType: '',
     isHomework: false,
     editScope: 'ThisOnly',    // 'ThisOnly' | 'ThisAndFuture'
-    targetDate: '',           // 编辑目标日期
-    rowVersion: '',           // 乐观锁版本号
+    targetDate: '',
+    rowVersion: '',
 
-    // Form data
+    // Form（schedule-form 子组件内部维护，进入"待保存"态时同步写入此 formData）
     formData: {
       name: '',
+      scheduleType: '',
       timeSlots: [],
       repeatEndDate: '',
       location: '',
       dueDate: '',
       suggestedStartTime: '',
       suggestedEndTime: '',
-      notes: ''
+      notes: '',
+      childIds: [],
+      startDate: ''
     },
-    errors: {},
+    typeLabel: '',
     minDate: '',
 
     saving: false
   },
 
   onLoad(options) {
-    const { scheduleId, date } = options;
+    const { scheduleId, date } = options || {};
     if (!scheduleId) {
       wx.showToast({ title: '缺少日程信息', icon: 'none' });
       wx.navigateBack();
@@ -55,26 +58,30 @@ Page({
   _loadSchedule() {
     scheduleService.getById(this.data.scheduleId, this.data.targetDate)
       .then(res => {
-        const d = res.data;
-        const isHomework = d.scheduleType === 'HomeworkTask';
+        const d = (res && res.data) || {};
+        const isHomework = d.scheduleType === ScheduleType.HomeworkTask;
         this.setData({
-          scheduleType: d.scheduleType,
+          scheduleType: d.scheduleType || '',
           isHomework: isHomework,
+          typeLabel: ScheduleTypeLabels[d.scheduleType] || '',
           rowVersion: d.rowVersion || '',
           formData: {
             name: d.name || '',
+            scheduleType: d.scheduleType || '',
             timeSlots: d.timeSlots || [],
             repeatEndDate: d.repeatEndDate || '',
             location: d.location || '',
             dueDate: d.dueDate || '',
             suggestedStartTime: d.suggestedStartTime || '',
             suggestedEndTime: d.suggestedEndTime || '',
-            notes: d.notes || ''
+            notes: d.notes || '',
+            childIds: d.childIds || [],
+            startDate: d.startDate || ''
           }
         });
       })
       .catch(err => {
-        if (err.data && err.data.error === 'SCHEDULE_NOT_FOUND') {
+        if (err && err.data && err.data.error === 'SCHEDULE_NOT_FOUND') {
           wx.showToast({ title: '该日程已被删除', icon: 'none' });
           wx.navigateBack();
         } else {
@@ -91,78 +98,72 @@ Page({
   },
 
   /**
-   * 表单字段输入
+   * schedule-form 子组件 submit 事件回调
+   * 仅做缓存（onSave 走 selectComponent 直接读 form data 并调 API）
    */
-  onFieldInput(e) {
-    const { field } = e.currentTarget.dataset;
-    const formData = this.data.formData;
-    formData[field] = e.detail.value;
-    this.setData({ formData });
-
-    if (this.data.errors[field]) {
-      const errors = this.data.errors;
-      errors[field] = '';
-      this.setData({ errors });
+  onFormSubmit(e) {
+    const { formData, valid } = e.detail || {};
+    if (!valid) {
+      // 校验失败：保留原 formData，schedule-form 自身已显示 errors
+      return;
     }
-  },
-
-  onDateChange(e) {
-    const { field } = e.currentTarget.dataset;
-    const formData = this.data.formData;
-    formData[field] = e.detail.value;
-    this.setData({ formData });
-  },
-
-  onTimeChange(e) {
-    const { field } = e.currentTarget.dataset;
-    const formData = this.data.formData;
-    formData[field] = e.detail.value;
-    this.setData({ formData });
-  },
-
-  onTimeSlotChange(e) {
-    const formData = this.data.formData;
-    formData.timeSlots = e.detail.timeSlots;
-    this.setData({ formData });
+    this.setData({ formData: Object.assign({}, this.data.formData, formData) });
   },
 
   /**
-   * 保存
+   * 保存按钮：先同步 form 最新数据到页面，再调 API
+   * 走 selectComponent 直接读 form.data.formData（覆盖用户在 form 中未触发 submit 的修改）
+   * 走 form._validate() 校验
    */
   onSave() {
-    if (!this._validateForm()) return;
+    if (this.data.saving) return Promise.resolve();
+    const formComp = this.selectComponent('#schedule-form');
+    if (formComp) {
+      if (typeof formComp._validate === 'function' && !formComp._validate()) {
+        return Promise.resolve();
+      }
+      const formData = formComp.data && formComp.data.formData;
+      if (formData) {
+        this.setData({ formData: Object.assign({}, this.data.formData, formData) });
+      }
+    }
+    return this._callUpdateAPI();
+  },
+
+  /**
+   * 调 scheduleService.update
+   */
+  _callUpdateAPI() {
+    if (this.data.saving) return Promise.resolve();
 
     this.setData({ saving: true });
 
     const fd = this.data.formData;
+    const isHomework = this.data.isHomework;
     const requestData = {
       scope: this.data.editScope,
       date: this.data.targetDate,
-      name: fd.name.trim(),
+      name: (fd.name || '').trim(),
       rowVersion: this.data.rowVersion
     };
 
-    if (!this.data.isHomework) {
-      requestData.timeSlots = fd.timeSlots;
+    if (!isHomework) {
+      if (fd.timeSlots && fd.timeSlots.length) requestData.timeSlots = fd.timeSlots;
       if (fd.repeatEndDate) requestData.repeatEndDate = fd.repeatEndDate;
       if (fd.location) requestData.location = fd.location;
     }
 
-    if (this.data.isHomework) {
+    if (isHomework) {
       if (fd.dueDate) requestData.dueDate = fd.dueDate;
       if (fd.suggestedStartTime) requestData.suggestedStartTime = fd.suggestedStartTime;
       if (fd.suggestedEndTime) requestData.suggestedEndTime = fd.suggestedEndTime;
     }
 
     if (fd.notes) requestData.notes = fd.notes;
-    if (this.data.scheduleType === 'AfterSchoolActivity' && fd.location) {
-      requestData.location = fd.location;
-    }
 
-    scheduleService.update(this.data.scheduleId, requestData)
+    return scheduleService.update(this.data.scheduleId, requestData)
       .then(() => {
         wx.showToast({ title: '保存成功', icon: 'success' });
-        // 返回并通知首页刷新
         const pages = getCurrentPages();
         const prevPage = pages[pages.length - 2];
         if (prevPage) {
@@ -174,7 +175,6 @@ Page({
         this.setData({ saving: false });
 
         if (err.statusCode === 409 || (err.data && err.data.error === 'CONCURRENT_EDIT_CONFLICT')) {
-          // 乐观锁冲突 — reload to get fresh rowVersion
           wx.showModal({
             title: '编辑冲突',
             content: '该日程已被其他用户修改，请刷新后重新编辑',
@@ -187,37 +187,8 @@ Page({
         } else if (err.data && err.data.error === 'CHILD_NOT_IN_FAMILY') {
           wx.showToast({ title: '关联孩子已不在家庭中', icon: 'none' });
         } else {
-          wx.showToast({ title: err.message || '保存失败，请刷新重试', icon: 'none' });
+          wx.showToast({ title: (err && err.message) || '保存失败，请刷新重试', icon: 'none' });
         }
       });
-  },
-
-  /**
-   * 表单校验
-   */
-  _validateForm() {
-    const errors = {};
-    const fd = this.data.formData;
-
-    if (!fd.name || !fd.name.trim()) {
-      errors.name = '请输入日程名称';
-    } else if (fd.name.length > 50) {
-      errors.name = '名称长度不超过50个字符';
-    }
-
-    if (!this.data.isHomework && (!fd.timeSlots || fd.timeSlots.length === 0)) {
-      errors.timeSlots = '请至少选择一天';
-    }
-
-    if (this.data.isHomework && !fd.dueDate) {
-      errors.dueDate = '请选择截止日期';
-    }
-
-    if (fd.notes && fd.notes.length > 500) {
-      errors.notes = '备注不超过500个字符';
-    }
-
-    this.setData({ errors });
-    return Object.keys(errors).length === 0;
   }
 });

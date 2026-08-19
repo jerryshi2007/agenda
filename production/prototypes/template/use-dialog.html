@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>使用模板弹窗 - 模板系统</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    .dialog-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-md);
+    }
+    .dialog-container {
+      background-color: var(--color-bg-white);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .dialog-header {
+      padding: var(--spacing-md) var(--spacing-md) 0 var(--spacing-md);
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      margin-bottom: var(--spacing-md);
+    }
+    .dialog-body {
+      padding: 0 var(--spacing-md);
+    }
+    .dialog-footer {
+      padding: var(--spacing-md);
+      display: flex;
+      gap: var(--spacing-md);
+      border-top: 1px solid var(--color-separator);
+      margin-top: var(--spacing-md);
+    }
+    .dialog-footer .btn {
+      flex: 1;
+    }
+    .preview-section {
+      margin-bottom: var(--spacing-md);
+    }
+    .preview-title {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--spacing-xs);
+    }
+    .preview-content {
+      background-color: var(--color-bg-card);
+      padding: var(--spacing-sm);
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-md);
+    }
+    .required-tag {
+      color: var(--color-warning);
+      margin-left: 4px;
+    }
+    .error-hint {
+      color: var(--color-warning);
+      font-size: var(--font-size-sm);
+      margin-top: 4px;
+      display: none;
+    }
+    .has-error .error-hint {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <!-- 说明：此弹窗从模板列表页点击模板唤起 -->
+  <!-- 组件映射：→ <van-dialog> 或 wx.showModal 弹窗 -->
+
+  <!-- 状态切换器（原型调试用） -->
+  <div class="state-switcher" style="position: fixed; top: 0; z-index: 99999;">
+    <button onclick="setState('normal')" class="active">正常态</button>
+    <button onclick="setState('empty-child')">无孩子</button>
+    <button onclick="setState('validation-error')">验证错误</button>
+    <button onclick="setState('loading')">创建中</button>
+  </div>
+
+  <div class="dialog-overlay">
+    <div class="dialog-container state-normal">
+      <div class="dialog-header">使用模板：钢琴课</div>
+      <div class="dialog-body">
+        <!-- 模板预览区 -->
+        <div class="preview-section">
+          <div class="preview-title">模板预览（可修改）</div>
+          <div class="form-item">
+            <label class="form-label">名称</label>
+            <!-- → <input type="text"> -->
+            <input type="text" class="form-input" value="钢琴课" data-id="template-use-name-input">
+          </div>
+          <div class="form-item">
+            <label class="form-label">类型</label>
+            <input type="text" class="form-input readonly" value="课后活动" disabled>
+          </div>
+          <div class="form-item">
+            <label class="form-label">时间配置</label>
+            <div class="preview-content">周三 16:00-17:00</div>
+          </div>
+          <div class="form-item">
+            <label class="form-label">重复</label>
+            <div class="preview-content">每周</div>
+          </div>
+          <div class="form-item">
+            <label class="form-label">备注</label>
+            <!-- → <textarea> (微信原生) -->
+            <textarea class="form-input" rows="2" data-id="template-use-remark-input">带上琴谱</textarea>
+          </div>
+        </div>
+
+        <!-- 必填项 -->
+        <div class="preview-section">
+          <div style="color: var(--color-text-secondary); font-size: var(--font-size-sm); margin-bottom: 8px;">── 以下为必填 ──</div>
+
+          <div class="form-item" id="childForm">
+            <label class="form-label">关联孩子 <span class="required-tag">*</span></label>
+            <!-- → <picker mode="selector"> 从家庭孩子列表选择 -->
+            <select class="form-select" data-id="template-use-child-picker">
+              <option value="">请选择孩子</option>
+              <option value="1" selected>小明 (10岁)</option>
+              <option value="2">小红 (8岁)</option>
+            </select>
+            <div class="error-hint">请选择孩子</div>
+          </div>
+
+          <div class="form-item" id="dateForm">
+            <label class="form-label">起始日期 <span class="required-tag">*</span></label>
+            <!-- → <picker mode="date"> -->
+            <input type="date" class="form-input" value="2026-08-25" data-id="template-use-date-picker">
+            <div class="error-hint">请选择起始日期</div>
+          </div>
+        </div>
+
+        <div class="prototype-note">
+          交互说明：模板字段均可修改，修改不影响原模板；类型不可改
+        </div>
+      </div>
+
+      <div class="dialog-footer">
+        <button class="btn btn-default" data-id="template-use-cancel-btn">取消</button>
+        <button class="btn btn-primary" data-id="template-use-confirm-btn">创建日程</button>
+      </div>
+    </div>
+
+    <!-- ===== 空态：家庭无孩子 ===== -->
+    <div class="dialog-container state-empty-child" style="display:none">
+      <div class="dialog-header">使用模板：钢琴课</div>
+      <div class="dialog-body">
+        <div class="error-container" style="padding: 20px 0;">
+          <p>当前家庭没有孩子成员</p>
+          <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">请先在「我的 - 家庭管理」中添加孩子</p>
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn btn-default" data-id="template-use-close-btn">关闭</button>
+      </div>
+    </div>
+
+    <!-- ===== Loading态：创建中 ===== -->
+    <div class="dialog-container state-loading" style="display:none">
+      <div class="dialog-header">使用模板：钢琴课</div>
+      <div class="dialog-body">
+        <div class="loading-container">
+          <div class="loading-spinner">正在创建日程...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 验证错误态 ===== -->
+    <div class="dialog-container state-validation-error" style="display:none">
+      <div class="dialog-header">使用模板：钢琴课</div>
+      <div class="dialog-body">
+        <div class="preview-section">
+          <div class="preview-title">模板预览（可修改）</div>
+          <div class="form-item">
+            <label class="form-label">名称</label>
+            <input type="text" class="form-input" value="钢琴课">
+          </div>
+          <div class="form-item">
+            <label class="form-label">类型</label>
+            <input type="text" class="form-input readonly" value="课后活动" disabled>
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <div style="color: var(--color-text-secondary); font-size: var(--font-size-sm); margin-bottom: 8px;">── 以下为必填 ──</div>
+
+          <div class="form-item has-error" id="childFormError">
+            <label class="form-label">关联孩子 <span class="required-tag">*</span></label>
+            <!-- → <picker mode="selector"> -->
+            <select class="form-select">
+              <option value="">请选择孩子</option>
+              <option value="1">小明 (10岁)</option>
+            </select>
+            <div class="error-hint">请选择孩子</div>
+          </div>
+
+          <div class="form-item has-error" id="dateFormError">
+            <label class="form-label">起始日期 <span class="required-tag">*</span></label>
+            <!-- → <picker mode="date"> -->
+            <input type="date" class="form-input" value="">
+            <div class="error-hint">请选择起始日期</div>
+          </div>
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn btn-default" data-id="template-use-cancel-btn">取消</button>
+        <button class="btn btn-primary" data-id="template-use-confirm-btn" disabled>创建日程</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function setState(state) {
+      document.querySelectorAll('.state-switcher button').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      document.querySelector('.state-normal').style.display = state === 'normal' ? 'block' : 'none';
+      document.querySelector('.state-empty-child').style.display = state === 'empty-child' ? 'block' : 'none';
+      document.querySelector('.state-loading').style.display = state === 'loading' ? 'block' : 'none';
+      document.querySelector('.state-validation-error').style.display = state === 'validation-error' ? 'block' : 'none';
+    }
+  </script>
+</body>
+</html>

@@ -301,6 +301,9 @@ namespace Agenda.Api.Migrations
                     b.Property<Guid?>("SourceScheduleId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("SourceTemplateId")
+                        .HasColumnType("uuid");
+
                     b.Property<TimeOnly?>("SuggestedEndTime")
                         .HasColumnType("time without time zone");
 
@@ -319,6 +322,8 @@ namespace Agenda.Api.Migrations
                     b.HasIndex("GroupKey");
 
                     b.HasIndex("SourceScheduleId");
+
+                    b.HasIndex("SourceTemplateId");
 
                     b.HasIndex("FamilyId", "AssignedChildId");
 
@@ -386,6 +391,98 @@ namespace Agenda.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("Streaks", (string)null);
+                });
+
+            modelBuilder.Entity("Agenda.Api.Domain.Entities.Template", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("FamilyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsPreset")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateOnly?>("RepeatEndDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("ScheduleType")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("FamilyId");
+
+                    b.HasIndex("IsPreset");
+
+                    b.HasIndex("FamilyId", "Name")
+                        .IsUnique()
+                        .HasFilter("\"IsPreset\" = false AND \"IsDeleted\" = false");
+
+                    b.ToTable("Templates");
+                });
+
+            modelBuilder.Entity("Agenda.Api.Domain.Entities.TemplateTimeSlot", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("integer");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<Guid>("TemplateId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TemplateId");
+
+                    b.HasIndex("TemplateId", "DayOfWeek")
+                        .IsUnique();
+
+                    b.ToTable("TemplateTimeSlots");
                 });
 
             modelBuilder.Entity("Agenda.Api.Domain.Entities.TimeSlot", b =>
@@ -535,6 +632,17 @@ namespace Agenda.Api.Migrations
                     b.Navigation("Schedule");
                 });
 
+            modelBuilder.Entity("Agenda.Api.Domain.Entities.TemplateTimeSlot", b =>
+                {
+                    b.HasOne("Agenda.Api.Domain.Entities.Template", "Template")
+                        .WithMany("TimeSlots")
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Template");
+                });
+
             modelBuilder.Entity("Agenda.Api.Domain.Entities.TimeSlot", b =>
                 {
                     b.HasOne("Agenda.Api.Domain.Entities.Schedule", "Schedule")
@@ -561,6 +669,11 @@ namespace Agenda.Api.Migrations
 
                     b.Navigation("DerivativeSchedules");
 
+                    b.Navigation("TimeSlots");
+                });
+
+            modelBuilder.Entity("Agenda.Api.Domain.Entities.Template", b =>
+                {
                     b.Navigation("TimeSlots");
                 });
 #pragma warning restore 612, 618

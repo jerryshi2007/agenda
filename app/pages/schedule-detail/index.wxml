@@ -141,6 +141,10 @@
       <view wx:if="{{canEdit}}" class="btn btn-default btn-block"
             data-id="schedule-detail-edit-btn" bindtap="onEdit">编辑</view>
 
+      <!-- 保存为模板（仅家长 + 所有 scheduleType 都支持） -->
+      <view wx:if="{{canEdit}}" class="btn btn-default btn-block"
+            data-id="schedule-detail-save-as-template-btn" bindtap="onSaveAsTemplate">保存为模板</view>
+
       <!-- 取消本次（仅家长 + 非作业任务 + 未取消） -->
       <view wx:if="{{canCancel}}" class="btn btn-default btn-block"
             data-id="schedule-detail-cancel-btn" bindtap="onCancelDialog">取消本次</view>

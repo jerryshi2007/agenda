@@ -1,0 +1,17 @@
+{
+  "TEMPLATE_NAME_EMPTY": { "httpStatus": 400, "message": "模板名称不能为空" },
+  "TEMPLATE_NAME_TOO_LONG": { "httpStatus": 400, "message": "模板名称不能超过 50 个字符" },
+  "TEMPLATE_NOTES_TOO_LONG": { "httpStatus": 400, "message": "备注不能超过 500 个字符" },
+  "TEMPLATE_LOCATION_TOO_LONG": { "httpStatus": 400, "message": "地点不能超过 100 个字符" },
+  "TEMPLATE_TIMESLOT_INVALID": { "httpStatus": 400, "message": "作业任务模板不能配置时间槽" },
+  "TEMPLATE_TIMESLOT_REQUIRED": { "httpStatus": 400, "message": "课后活动/日常作息模板至少需要一个时间槽" },
+  "TEMPLATE_TIMESLOT_TIME_INVALID": { "httpStatus": 400, "message": "时间槽开始时间不能晚于或等于结束时间" },
+  "TEMPLATE_DUPLICATE_NAME": { "httpStatus": 409, "message": "当前家庭已存在同名模板" },
+  "TEMPLATE_NOT_FOUND": { "httpStatus": 404, "message": "模板不存在" },
+  "TEMPLATE_PRESET_READONLY": { "httpStatus": 403, "message": "预设模板不可编辑或删除" },
+  "TEMPLATE_NOT_OWNER": { "httpStatus": 403, "message": "仅创建者可编辑或删除此模板" },
+  "CHILD_ACCESS_DENIED": { "httpStatus": 403, "message": "孩子角色无权访问模板" },
+  "CHILD_NOT_IN_FAMILY": { "httpStatus": 400, "message": "所选孩子不属于当前家庭" },
+  "START_DATE_INVALID": { "httpStatus": 400, "message": "起始日期不能早于今天" },
+  "TEMPLATE_TYPE_INVALID": { "httpStatus": 400, "message": "模板类型无效" }
+}

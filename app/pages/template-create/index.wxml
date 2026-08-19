@@ -1,0 +1,14 @@
+<!-- pages/template-create/index.wxml
+     模板创建/编辑页 —— 使用 schedule-form 子组件（mode: template-create | template-edit） -->
+
+<view class="template-create-page">
+  <schedule-form
+    id="schedule-form"
+    mode="{{mode}}"
+    initial-values="{{initialValues}}"
+    child-selector-visible="{{false}}"
+    start-date-visible="{{false}}"
+    schedule-type-locked="{{true}}"
+    bind:submit="onFormSubmit"
+  />
+</view>

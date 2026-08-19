@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模板详情 - 模板系统</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    .template-info-card .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: var(--spacing-sm) 0;
+      border-bottom: 1px solid var(--color-separator);
+    }
+    .template-info-card .info-row:last-child {
+      border-bottom: none;
+    }
+    .template-info-card .label {
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-md);
+    }
+    .template-info-card .value {
+      font-size: var(--font-size-md);
+      text-align: right;
+    }
+    .time-slots-container {
+      margin-top: var(--spacing-sm);
+    }
+    .bottom-actions {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 375px;
+      margin: 0 auto;
+      padding: var(--spacing-md);
+      padding-bottom: calc(var(--spacing-md) + env(safe-area-inset-bottom));
+      background-color: var(--color-bg-white);
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      gap: var(--spacing-md);
+    }
+    .bottom-actions .btn {
+      flex: 1;
+    }
+    .page-container {
+      padding-bottom: 100px;
+    }
+    .readonly {
+      background-color: var(--color-bg-card);
+    }
+    .system-tag {
+      display: inline-block;
+      padding: 4px 8px;
+      font-size: var(--font-size-xs);
+      background-color: var(--color-bg-card);
+      color: var(--color-text-secondary);
+      border-radius: var(--radius-sm);
+      margin-bottom: var(--spacing-md);
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部：微信原生导航栏 -->
+  <!-- title: "模板详情" -->
+  <!-- backgroundColor: "#FFFFFF" -->
+  <!-- frontColor: "#000000" -->
+
+  <div class="page-container">
+    <!-- 状态切换器（原型调试用，实际页面不含此区域） -->
+    <div class="state-switcher">
+      <button onclick="setState('normal')" class="active">查看态（自定义）</button>
+      <button onclick="setState('system')">查看态（预设）</button>
+      <button onclick="setState('editing')">编辑态</button>
+      <button onclick="setState('loading')">Loading</button>
+      <button onclick="setState('error')">保存错误</button>
+    </div>
+
+    <!-- ===== 正常态（查看自定义模板）===== -->
+    <div class="state-normal">
+      <div class="card template-info-card">
+        <div class="info-row">
+          <span class="label">模板名称</span>
+          <span class="value">钢琴课</span>
+        </div>
+        <div class="info-row">
+          <span class="label">模板类型</span>
+          <span class="value"><span class="tag">课后活动</span></span>
+        </div>
+        <div class="info-row">
+          <span class="label">重复规则</span>
+          <span class="value">每周重复</span>
+        </div>
+        <div class="info-row">
+          <span class="label">使用次数</span>
+          <span class="value">3 次</span>
+        </div>
+        <div class="info-row">
+          <span class="label">创建者</span>
+          <span class="value">张三（家长）</span>
+        </div>
+        <div class="info-row">
+          <span class="label">备注</span>
+          <span class="value">带上琴谱</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">时间配置</div>
+        <div class="time-slots-container">
+          <div class="time-slot-row">
+            <span class="day-label">周一</span>
+            <span class="time-range">-</span>
+          </div>
+          <div class="time-slot-row">
+            <span class="day-label">周二</span>
+            <span class="time-range">-</span>
+          </div>
+          <div class="time-slot-row">
+            <span class="day-label">周三</span>
+            <span class="time-range">16:00 - 17:00</span>
+          </div>
+          <div class="time-slot-row">
+            <span class="day-label">周四</span>
+            <span class="time-range">-</span>
+          </div>
+          <div class="time-slot-row">
+            <span class="day-label">周五</span>
+            <span class="time-range">-</span>
+          </div>
+          <div class="time-slot-row">
+            <span class="day-label">周六</span>
+            <span class="time-range">-</span>
+          </div>
+          <div class="time-slot-row">
+            <span class="day-label">周日</span>
+            <span class="time-range">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prototype-note">
+        交互说明：预设模板不可编辑删除，仅展示；自定义模板可点击底部「编辑」进入编辑模式，「删除」弹出确认框
+      </div>
+
+      <div class="safe-area-bottom"></div>
+    </div>
+
+    <!-- ===== 查看态（预设模板）===== -->
+    <div class="state-system" style="display:none">
+      <div class="card">
+        <div class="system-tag">系统预设 · 不可编辑</div>
+        <div class="template-info-card">
+          <div class="info-row">
+            <span class="label">模板名称</span>
+            <span class="value">课后班模板</span>
+          </div>
+          <div class="info-row">
+            <span class="label">模板类型</span>
+            <span class="value"><span class="tag system-badge">课后活动</span></span>
+          </div>
+          <div class="info-row">
+            <span class="label">重复规则</span>
+            <span class="value">每周重复</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">时间配置</div>
+        <div class="time-slots-container">
+          <div class="time-slot-row">
+            <span class="day-label">周一</span>
+            <span class="time-range">-</span>
+          </div>
+          <div class="time-slot-row">
+            <span class="day-label">周二</span>
+            <span class="time-range">-</span>
+          </div>
+          <div class="time-slot-row">
+            <span class="day-label">周三</span>
+            <span class="time-range">16:00 - 17:00</span>
+          </div>
+          <!-- 其他日期省略 -->
+        </div>
+      </div>
+
+      <div class="safe-area-bottom"></div>
+    </div>
+
+    <!-- ===== 编辑态 ===== -->
+    <div class="state-editing" style="display:none">
+      <form>
+        <div class="card">
+          <div class="form-item">
+            <label class="form-label">模板名称</label>
+            <!-- → <input type="text"> 微信原生输入框 -->
+            <input type="text" class="form-input" value="钢琴课" data-id="template-detail-name-input" placeholder="请输入模板名称">
+          </div>
+
+          <div class="form-item">
+            <label class="form-label">模板类型</label>
+            <!-- → 不可修改，展示类型 -->
+            <input type="text" class="form-input readonly" value="课后活动" disabled>
+          </div>
+
+          <div class="form-item">
+            <label class="form-label">重复规则</label>
+            <!-- → <picker mode="selector"> -->
+            <select class="form-select" data-id="template-repeat-picker">
+              <option>每周重复</option>
+              <option>不重复</option>
+            </select>
+          </div>
+
+          <div class="form-item">
+            <label class="form-label">备注</label>
+            <!-- → <textarea> (微信原生) -->
+            <textarea class="form-input" rows="3" data-id="template-detail-remark-input" placeholder="可选，输入备注">带上琴谱</textarea>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">每周时间配置</div>
+          <div class="time-slots-container">
+            <div class="time-slot-row">
+              <span class="day-label">周一</span>
+              <!-- → 点击唤起两个 time-picker 选择起止时间 -->
+              <span class="time-range" data-id="template-time-mon">未设置</span>
+            </div>
+            <div class="time-slot-row">
+              <span class="day-label">周二</span>
+              <span class="time-range" data-id="template-time-tue">未设置</span>
+            </div>
+            <div class="time-slot-row">
+              <span class="day-label">周三</span>
+              <span class="time-range" data-id="template-time-wed">16:00 - 17:00</span>
+            </div>
+            <div class="time-slot-row">
+              <span class="day-label">周四</span>
+              <span class="time-range" data-id="template-time-thu">未设置</span>
+            </div>
+            <div class="time-slot-row">
+              <span class="day-label">周五</span>
+              <span class="time-range" data-id="template-time-fri">未设置</span>
+            </div>
+            <div class="time-slot-row">
+              <span class="day-label">周六</span>
+              <span class="time-range" data-id="template-time-sat">未设置</span>
+            </div>
+            <div class="time-slot-row">
+              <span class="day-label">周日</span>
+              <span class="time-range" data-id="template-time-sun">未设置</span>
+            </div>
+          </div>
+          <div class="prototype-note" style="margin-top: 12px;">
+            组件映射：每个时间点击 → 唤起 <picker mode="time"> 选择开始时间，再选择结束时间
+          </div>
+        </div>
+
+        <div class="prototype-note">
+          验证规则：模板名称为空 → 阻止保存，提示"请输入模板名称"
+        </div>
+
+        <div class="safe-area-bottom"></div>
+      </form>
+    </div>
+
+    <!-- ===== Loading态（加载详情）===== -->
+    <div class="state-loading" style="display:none">
+      <!-- → wx:if="{{loading}}" -->
+      <div class="loading-container">
+        <div class="loading-spinner">加载中...</div>
+      </div>
+    </div>
+
+    <!-- ===== 错误态（保存失败）===== -->
+    <div class="state-error" style="display:none">
+      <!-- → wx:if="{{saveError}}" -->
+      <div class="error-container">
+        <p>保存模板失败，请重试</p>
+        <button class="btn btn-primary" data-id="template-detail-retry-btn">重试保存</button>
+      </div>
+    </div>
+
+    <!-- 底部操作栏 -->
+    <div class="bottom-actions" id="bottomActions">
+      <!-- 查看态（自定义）-->
+      <div class="state-normal-actions">
+        <button class="btn btn-outline" data-id="template-detail-delete-btn">删除</button>
+        <button class="btn btn-primary" data-id="template-detail-edit-btn">编辑</button>
+      </div>
+      <!-- 编辑态 -->
+      <div class="state-editing-actions" style="display:none">
+        <button class="btn btn-default" data-id="template-detail-cancel-btn">取消</button>
+        <button class="btn btn-primary" data-id="template-detail-save-btn">保存</button>
+      </div>
+      <!-- 预设模板 -->
+      <div class="state-system-actions" style="display:none">
+        <button class="btn btn-primary" data-id="template-detail-use-btn">使用模板</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function setState(state) {
+      document.querySelectorAll('.state-switcher button').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      document.querySelector('.state-normal').style.display = state === 'normal' ? 'block' : 'none';
+      document.querySelector('.state-system').style.display = state === 'system' ? 'block' : 'none';
+      document.querySelector('.state-editing').style.display = state === 'editing' ? 'block' : 'none';
+      document.querySelector('.state-loading').style.display = state === 'loading' ? 'block' : 'none';
+      document.querySelector('.state-error').style.display = state === 'error' ? 'block' : 'none';
+
+      document.querySelector('.state-normal-actions').style.display = state === 'normal' ? 'flex' : 'none';
+      document.querySelector('.state-editing-actions').style.display = state === 'editing' ? 'flex' : 'none';
+      document.querySelector('.state-system-actions').style.display = state === 'system' ? 'flex' : 'none';
+    }
+  </script>
+</body>
+</html>

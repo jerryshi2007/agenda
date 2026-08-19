@@ -1,5 +1,5 @@
 <!-- pages/schedule-edit/index.wxml
-     编辑日程页 —— 复用创建页表单 + 编辑范围开关 -->
+     编辑日程页 —— 复用 schedule-form 子组件 + editScope 范围开关 -->
 
 <view class="edit-page">
   <!-- 编辑范围开关（非作业任务） -->
@@ -11,80 +11,17 @@
     />
   </view>
 
+  <!-- schedule-form 子组件：scheduleTypeLocked=true（编辑不可改类型） -->
   <scroll-view scroll-y enable-flex class="edit-content">
-    <!-- 名称 -->
-    <view class="form-group">
-      <view class="form-label">日程名称 <text class="required">*</text></view>
-      <input class="form-input" placeholder="例如：钢琴课" maxlength="50"
-             data-id="schedule-edit-name-input" value="{{formData.name}}"
-             bindinput="onFieldInput" data-field="name" />
-      <view wx:if="{{errors.name}}" class="form-error">{{errors.name}}</view>
-    </view>
-
-    <!-- 时间槽（非作业任务） -->
-    <view wx:if="{{!isHomework}}" class="form-group">
-      <view class="form-label">重复时间 <text class="required">*</text></view>
-      <time-slot-picker
-        data-id="schedule-edit-timeslot"
-        timeSlots="{{formData.timeSlots}}"
-        bind:timeslotchange="onTimeSlotChange"
-      />
-      <view wx:if="{{errors.timeSlots}}" class="form-error">{{errors.timeSlots}}</view>
-    </view>
-
-    <!-- 重复结束日期（非作业任务） -->
-    <view wx:if="{{!isHomework}}" class="form-group">
-      <view class="form-label">重复结束日期</view>
-      <picker mode="date" value="{{formData.repeatEndDate}}" start="{{minDate}}"
-              data-id="schedule-edit-repeat-end" bindchange="onDateChange" data-field="repeatEndDate">
-        <view class="form-input form-picker-value">
-          {{formData.repeatEndDate || '不设置（永久重复）'}}
-        </view>
-      </picker>
-    </view>
-
-    <!-- 地点（仅课后活动） -->
-    <view wx:if="{{scheduleType === 'AfterSchoolActivity'}}" class="form-group">
-      <view class="form-label">地点</view>
-      <input class="form-input" placeholder="例如：少年宫3楼钢琴教室" maxlength="100"
-             data-id="schedule-edit-location-input" value="{{formData.location}}"
-             bindinput="onFieldInput" data-field="location" />
-    </view>
-
-    <!-- 截止日期（仅作业任务） -->
-    <view wx:if="{{isHomework}}" class="form-group">
-      <view class="form-label">截止日期 <text class="required">*</text></view>
-      <picker mode="date" value="{{formData.dueDate}}" start="{{minDate}}"
-              data-id="schedule-edit-due-date" bindchange="onDateChange" data-field="dueDate">
-        <view class="form-input form-picker-value">
-          {{formData.dueDate || '请选择截止日期'}}
-        </view>
-      </picker>
-    </view>
-
-    <!-- 建议时间（仅作业任务） -->
-    <view wx:if="{{isHomework}}" class="form-group">
-      <view class="form-label">建议完成时间</view>
-      <view class="form-row">
-        <picker mode="time" value="{{formData.suggestedStartTime}}"
-                bindchange="onTimeChange" data-field="suggestedStartTime">
-          <view class="form-input form-picker-value half">{{formData.suggestedStartTime || '开始'}}</view>
-        </picker>
-        <text style="margin:0 16rpx;">至</text>
-        <picker mode="time" value="{{formData.suggestedEndTime}}"
-                bindchange="onTimeChange" data-field="suggestedEndTime">
-          <view class="form-input form-picker-value half">{{formData.suggestedEndTime || '结束'}}</view>
-        </picker>
-      </view>
-    </view>
-
-    <!-- 备注 -->
-    <view class="form-group">
-      <view class="form-label">备注</view>
-      <textarea class="form-textarea" placeholder="选填，最多500字" maxlength="500"
-                data-id="schedule-edit-notes-input" value="{{formData.notes}}"
-                bindinput="onFieldInput" data-field="notes" auto-height />
-    </view>
+    <schedule-form
+      id="schedule-form"
+      mode="edit"
+      schedule-type-locked="{{true}}"
+      child-selector-visible="{{false}}"
+      start-date-visible="{{false}}"
+      initial-values="{{formData}}"
+      bind:submit="onFormSubmit"
+    />
   </scroll-view>
 
   <!-- 底部操作栏 -->

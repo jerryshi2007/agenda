@@ -50,6 +50,7 @@ public class ScheduleService : IScheduleService
                     DueDate = scheduleType == ScheduleType.HomeworkTask ? request.DueDate : null,
                     SuggestedStartTime = scheduleType == ScheduleType.HomeworkTask ? request.SuggestedStartTime : null,
                     SuggestedEndTime = scheduleType == ScheduleType.HomeworkTask ? request.SuggestedEndTime : null,
+                    SourceTemplateId = request.SourceTemplateId,
                     RowVersion = Guid.NewGuid().ToByteArray(),
                     IsDeleted = false,
                     CreatedAt = now,

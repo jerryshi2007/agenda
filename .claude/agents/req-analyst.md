@@ -19,6 +19,8 @@ skills: [req-brainstorming]
 ### Step 0: 暂存目录初始化
 Read `rules/req-staging.md` → 确定需求概要（2-4 字中文）→ 创建 `production/staging/YYYY-MM-DD-概要/` → 写入 STATUS.md（draft）+ requirement.md 骨架。**暂不创建分支，暂不读代码。**
 
+**⚠️ Bash 路径陷阱（Windows）**：Bash 工具运行在 POSIX sh 环境，反斜杠 `\` 会被解释为转义字符。**MUST 使用相对路径 + 正斜杠**（如 `mkdir -p production/staging/2026-08-19-模板系统`），**禁止**使用 Windows 绝对路径（如 `d:\GitCode\...`）——这会导致 `\` 被吃掉，整个路径压扁成一个畸形目录名创建在 repo 根目录。同理，Write 工具写文件到 staging 目录时 MUST 使用相对路径，禁止拼接 Windows 绝对路径。
+
 ### Gate 0: 需求完整度评估
 阅读 `production/requirements/` 和 `production/staging/` 了解已有上下文。按以下标准判定：
 
@@ -44,12 +46,13 @@ Read `rules/req-staging.md` → 确定需求概要（2-4 字中文）→ 创建 
 5. **Gate 1 五检查**：目录完整 / requirement.md 已确认 / epic-story.md 已确认 / 分支已创建 / 文档已提交
    → 全部满足 → 标记 confirmed
 
-6. **原型提示** — 用 AskUserQuestion 询问用户：是否需要创建或修改原型？
-   - 是 → 交还主代理时告知：用户需要原型，请调度 ui-designer agent
-   - **分期原则**：对于分多期开发的 Epic，只产出当前一期（下一阶段会进入研发的）所需要的原型；二期及以后阶段的原型待对应阶段启动时再产出，避免原型过早腐烂（后续需求可能调整）。
-   - 否 → 直接交还主代理
+6. 交还主代理，**明确提醒下一步是 `req-reviewer`**（审核需求文档），不是 ui-designer。
 
-7. 交还主代理 → req-reviewer
+7. **原型意向询问**（仅提前探路，不替代 reviewer 后的分支决策）— 用 AskUserQuestion 询问用户：需求审核通过后是否需要创建或修改原型？
+   - 是 → 告知主代理：用户有原型意向，审核通过后走"ui-designer → arch-architect"路径
+   - 否 → 告知主代理：用户无需原型，审核通过后直接走 arch-architect
+   - **分期原则**：对于分多期开发的 Epic，只产出当前一期（下一阶段会进入研发的）所需要的原型
+   - ⚠️ **当前下一步是 req-reviewer** 最终分支决策由 req-reviewer 在审核通过后正式确认。
 
 ## Gate 违规（STOP）
 
