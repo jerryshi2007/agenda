@@ -46,8 +46,8 @@ public class FamilyController : ControllerBase
         _displayModeValidator = displayModeValidator;
     }
 
-    /// <summary>服务器北京时间（与 Checkin 模块保持一致的时间基准）。</summary>
-    private static DateTimeOffset ServerTime() => DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(8));
+    /// <summary>服务器当前时间（UTC），数据库 timestamp with time zone 仅接受 UTC offset。</summary>
+    private static DateTimeOffset ServerTime() => DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 解析 X-Family-Id Header。未携带或解析失败返回 null（具体端点决定是否必填）。
