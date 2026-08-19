@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模板管理列表 - 模板系统</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    .template-list {
+      margin-top: var(--spacing-md);
+    }
+    .section {
+      margin-bottom: var(--spacing-lg);
+    }
+    .section-header {
+      font-size: var(--font-size-md);
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      margin-bottom: var(--spacing-sm);
+      padding-left: var(--spacing-xs);
+    }
+    .template-type-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: var(--font-size-xs);
+      border-radius: var(--radius-sm);
+      background-color: var(--color-primary-light);
+      color: var(--color-primary);
+      margin-top: 4px;
+    }
+    .system-badge {
+      background-color: var(--color-bg-card);
+      color: var(--color-text-secondary);
+    }
+    .add-btn-container {
+      position: sticky;
+      bottom: var(--spacing-md);
+      padding-top: var(--spacing-sm);
+      background: linear-gradient(transparent, var(--color-bg-page) 50%);
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部：微信原生导航栏 -->
+  <!-- title: "模板管理" -->
+  <!-- backgroundColor: "#FFFFFF" -->
+  <!-- frontColor: "#000000" -->
+
+  <div class="page-container">
+    <!-- 状态切换器（原型调试用，实际页面不含此区域） -->
+    <div class="state-switcher">
+      <button onclick="setState('normal')" class="active">正常态</button>
+      <button onclick="setState('loading')">Loading</button>
+      <button onclick="setState('error')">错误</button>
+      <button onclick="setState('empty')">空态</button>
+    </div>
+
+    <!-- ===== 正常态 ===== -->
+    <div class="state-normal">
+      <!-- 搜索栏 + 新建按钮 -->
+      <div class="search-bar">
+        <!-- → <input type="search" placeholder="搜索模板名称"> -->
+        <input type="text" class="search-input" placeholder="搜索模板" data-id="template-list-search-input">
+        <button class="btn btn-primary" style="width: auto; padding: var(--spacing-sm) var(--spacing-md);" data-id="template-list-add-btn">新建</button>
+      </div>
+
+      <!-- 页面级下拉刷新 -->
+      <!-- → enablePullDownRefresh: true 在 page.json 中开启 -->
+
+      <!-- → <scroll-view scroll-y enable-flex> 长滚动列表 -->
+      <div class="template-list">
+        <!-- 预设模板分区 -->
+        <div class="section">
+          <div class="section-header">预设模板</div>
+          <!-- → wx:for="{{defaultTemplates}}" -->
+          <div class="template-card" data-id="template-list-item-1">
+            <div class="template-info">
+              <div class="template-name">📋 课后班模板</div>
+              <div class="template-meta">
+                <span class="template-type-badge system-badge">课后活动</span>
+                <span>周三 16:00-17:00</span>
+              </div>
+            </div>
+            <div class="tag system-badge">系统</div>
+          </div>
+
+          <div class="template-card" data-id="template-list-item-2">
+            <div class="template-info">
+              <div class="template-name">📋 日常作息模板</div>
+              <div class="template-meta">
+                <span class="template-type-badge system-badge">日常作息</span>
+                <span>周一至周日 18:00-18:30</span>
+              </div>
+            </div>
+            <div class="tag system-badge">系统</div>
+          </div>
+
+          <div class="template-card" data-id="template-list-item-3">
+            <div class="template-info">
+              <div class="template-name">📋 作业模板</div>
+              <div class="template-meta">
+                <span class="template-type-badge system-badge">作业任务</span>
+                <span>不重复</span>
+              </div>
+            </div>
+            <div class="tag system-badge">系统</div>
+          </div>
+        </div>
+
+        <!-- 自定义模板分区 -->
+        <div class="section">
+          <div class="section-header">我的模板</div>
+          <!-- → wx:for="{{customTemplates}}" -->
+          <div class="template-card" data-id="template-list-item-4">
+            <div class="template-info">
+              <div class="template-name">📋 钢琴课</div>
+              <div class="template-meta">
+                <span class="template-type-badge">课后活动</span>
+                <span>周三 16:00-17:00</span>
+              </div>
+            </div>
+            <div>›</div>
+          </div>
+
+          <div class="template-card" data-id="template-list-item-5">
+            <div class="template-info">
+              <div class="template-name">📋 游泳课</div>
+              <div class="template-meta">
+                <span class="template-type-badge">课后活动</span>
+                <span>周六 09:00-10:30</span>
+              </div>
+            </div>
+            <div>›</div>
+          </div>
+
+          <div class="template-card" data-id="template-list-item-6">
+            <div class="template-info">
+              <div class="template-name">📋 数学作业</div>
+              <div class="template-meta">
+                <span class="template-type-badge">作业任务</span>
+                <span>不重复</span>
+              </div>
+            </div>
+            <div>›</div>
+          </div>
+        </div>
+      </div>
+      <!-- </scroll-view> -->
+
+      <div class="prototype-note">
+        交互说明：点击模板卡片 → 唤起「使用模板弹窗」；预设模板不可编辑/删除，自定义模板点击进入详情/编辑页
+      </div>
+
+      <div class="safe-area-bottom"></div>
+    </div>
+
+    <!-- ===== Loading态 ===== -->
+    <div class="state-loading" style="display:none">
+      <!-- → wx:if="{{loading}}" -->
+      <div class="loading-container">
+        <div class="loading-spinner">加载中...</div>
+      </div>
+    </div>
+
+    <!-- ===== 错误态 ===== -->
+    <div class="state-error" style="display:none">
+      <!-- → wx:if="{{error}}" -->
+      <div class="error-container">
+        <p>加载模板列表失败</p>
+        <button class="btn btn-primary" data-id="template-list-retry-btn">重试</button>
+      </div>
+    </div>
+
+    <!-- ===== 空态（自定义模板）===== -->
+    <div class="state-empty" style="display:none">
+      <!-- → wx:if="{{isEmptyCustom}}" -->
+      <!-- 预设模板始终显示 3 个，空态仅针对自定义模板分区 -->
+      <div class="section">
+        <div class="section-header">预设模板</div>
+        <!-- 预设模板始终可见 -->
+        <div class="template-card">
+          <div class="template-info">
+            <div class="template-name">📋 课后班模板</div>
+            <div class="template-meta">
+              <span class="template-type-badge system-badge">课后活动</span>
+            </div>
+          </div>
+          <div class="tag system-badge">系统</div>
+        </div>
+        <div class="template-card">
+          <div class="template-info">
+            <div class="template-name">📋 日常作息模板</div>
+            <div class="template-meta">
+              <span class="template-type-badge system-badge">日常作息</span>
+            </div>
+          </div>
+          <div class="tag system-badge">系统</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">我的模板</div>
+        <div class="empty-container">
+          <p>还没有自定义模板</p>
+          <p style="font-size: var(--font-size-sm); color: var(--color-text-placeholder);">从日程保存或新建模板开始</p>
+          <button class="btn btn-primary" data-id="template-list-create-first-btn">新建模板</button>
+        </div>
+      </div>
+
+      <div class="safe-area-bottom"></div>
+    </div>
+  </div>
+
+  <!-- 微信原生 TabBar -->
+  <!-- tabBar.list: [{ text: "日历", ... }, { text: "模板", ... }, { text: "我的", ... }] -->
+
+  <script>
+    function setState(state) {
+      document.querySelectorAll('.state-switcher button').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      document.querySelector('.state-normal').style.display = state === 'normal' ? 'block' : 'none';
+      document.querySelector('.state-loading').style.display = state === 'loading' ? 'block' : 'none';
+      document.querySelector('.state-error').style.display = state === 'error' ? 'block' : 'none';
+      document.querySelector('.state-empty').style.display = state === 'empty' ? 'block' : 'none';
+    }
+  </script>
+</body>
+</html>

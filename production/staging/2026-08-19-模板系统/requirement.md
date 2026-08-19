@@ -1,6 +1,6 @@
 # 模板系统模块 · 产品需求文档
 
-<!-- STAGING-STATUS: dev-ready -->
+<!-- STAGING-STATUS: in-progress -->
 <!-- CONFIRMED: 2026-08-19 -->
 
 > 完整内容参见 [production/requirements/module-template.md](../../requirements/module-template.md)
