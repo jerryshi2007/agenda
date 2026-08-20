@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: agenda-api
+  namespace: agenda
+spec:
+  # k3s 的 Klipper LoadBalancer 会把 Service 的端口绑定到节点 IP 上，
+  # 从而对外暴露 80，转发到 Pod 的 8080。
+  type: LoadBalancer
+  selector:
+    app: agenda-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP

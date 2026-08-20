@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agenda-api-config
+  namespace: agenda
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  # 微信 AppId 非机密（客户端本身就会携带），放 ConfigMap；AppSecret 放 Secret。
+  WeChat__AppId: "wxbf3f337f41dfef10"

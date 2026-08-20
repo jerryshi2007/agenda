@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agenda-api
+  namespace: agenda
+  labels:
+    app: agenda-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agenda-api
+  template:
+    metadata:
+      labels:
+        app: agenda-api
+    spec:
+      initContainers:
+        # 非 root 的 app 用户(UID 1654)需要能写挂载的 PVC，先由 root init 容器 chown。
+        - name: fix-uploads-permissions
+          image: busybox:1.36
+          command: ["sh", "-c", "chown -R 1654:1654 /app/uploads && chmod -R 775 /app/uploads"]
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/uploads
+          securityContext:
+            runAsUser: 0
+      containers:
+        - name: agenda-api
+          # 方案 C：服务器本地构建 + 导入，无镜像仓库。image 用本地 tag，pullPolicy 用 Never。
+          image: agenda-api:1.0.0
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: agenda-api-config
+            - secretRef:
+                name: agenda-api-secret
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/uploads
+      # 私有镜像仓库（如 TCR）需配 imagePullSecrets，见 deploy/README.md
+      # imagePullSecrets:
+      #   - name: registry-secret
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: agenda-api-uploads

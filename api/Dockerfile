@@ -22,7 +22,8 @@ USER app
 
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
-ENV ASPNETCORE_ENVIRONMENT=Development
+# 生产环境由 K8s 清单注入 ASPNETCORE_ENVIRONMENT=Production；
+# 本地用 docker 跑可 -e ASPNETCORE_ENVIRONMENT=Development 覆盖。
 
 COPY --from=build /app .
 
