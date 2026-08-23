@@ -51,7 +51,7 @@ public class ChildScheduleQueryService : IChildScheduleQueryService
         if (schedule == null) return null;
 
         // 孩子端只能看自己的数据
-        if (schedule.AssignedChildId != userId)
+        if (schedule.AssignedMemberId != userId)
             throw new UnauthorizedAccessException("CHILD_ACCESS_DENIED");
 
         return new ScheduleInfo
@@ -60,7 +60,7 @@ public class ChildScheduleQueryService : IChildScheduleQueryService
             Name = schedule.Name,
             ScheduleType = schedule.ScheduleType,
             FamilyId = schedule.FamilyId,
-            AssignedChildId = schedule.AssignedChildId,
+            AssignedMemberId = schedule.AssignedMemberId,
             IsDeleted = schedule.IsDeleted
         };
     }
@@ -77,7 +77,7 @@ public class ChildScheduleQueryService : IChildScheduleQueryService
             .Include(s => s.Cancellations)
             .Include(s => s.DateExclusions)
             .Where(s => s.FamilyId == familyId
-                        && s.AssignedChildId == userId
+                        && s.AssignedMemberId == userId
                         && !s.IsDeleted)
             .ToListAsync(ct);
 
@@ -162,7 +162,7 @@ public class ChildScheduleQueryService : IChildScheduleQueryService
         Name = s.Name,
         ScheduleType = s.ScheduleType,
         FamilyId = s.FamilyId,
-        AssignedChildId = s.AssignedChildId,
+        AssignedMemberId = s.AssignedMemberId,
         IsDeleted = s.IsDeleted
     };
 }

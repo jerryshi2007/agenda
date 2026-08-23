@@ -72,7 +72,7 @@ public class ChildScheduleQueryServiceTests
             Name = name,
             ScheduleType = ScheduleType.AfterSchoolActivity,
             FamilyId = familyId,
-            AssignedChildId = childId,
+            AssignedMemberId = childId,
             CreatedBy = childId,
             GroupKey = Guid.NewGuid(),
             RepeatEndDate = null,
@@ -96,7 +96,7 @@ public class ChildScheduleQueryServiceTests
             Name = name,
             ScheduleType = ScheduleType.HomeworkTask,
             FamilyId = familyId,
-            AssignedChildId = childId,
+            AssignedMemberId = childId,
             CreatedBy = childId,
             GroupKey = Guid.NewGuid(),
             DueDate = dueDate,
@@ -117,7 +117,7 @@ public class ChildScheduleQueryServiceTests
             Name = name,
             ScheduleType = ScheduleType.AfterSchoolActivity,
             FamilyId = familyId,
-            AssignedChildId = childId,
+            AssignedMemberId = childId,
             CreatedBy = childId,
             GroupKey = Guid.NewGuid(),
             SourceScheduleId = sourceScheduleId,
@@ -365,7 +365,7 @@ public class ChildScheduleQueryServiceTests
 
         Assert.NotNull(result);
         Assert.Equal(myActivity.Id, result!.ScheduleId);
-        Assert.Equal(childId, result.AssignedChildId);
+        Assert.Equal(childId, result.AssignedMemberId);
     }
 
     [Fact]
@@ -480,7 +480,7 @@ public class ChildScheduleQueryServiceTests
             Name = "已到期课程",
             ScheduleType = ScheduleType.AfterSchoolActivity,
             FamilyId = familyId,
-            AssignedChildId = childId,
+            AssignedMemberId = childId,
             CreatedBy = childId,
             GroupKey = Guid.NewGuid(),
             RepeatEndDate = yesterday,
@@ -518,7 +518,7 @@ public class ChildScheduleQueryServiceTests
             Name = "暑期班",
             ScheduleType = ScheduleType.AfterSchoolActivity,
             FamilyId = familyId,
-            AssignedChildId = childId,
+            AssignedMemberId = childId,
             CreatedBy = childId,
             GroupKey = Guid.NewGuid(),
             RepeatEndDate = saturday,

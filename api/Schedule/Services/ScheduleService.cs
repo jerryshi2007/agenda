@@ -1,6 +1,7 @@
 using Agenda.Api.Domain.Entities;
 using Agenda.Api.Domain.Enums;
 using Agenda.Api.Schedule.Dtos;
+using Agenda.Api.Infrastructure;
 using Agenda.Api.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,12 +19,14 @@ public class ScheduleService : IScheduleService
     }
 
     public async Task<CreateScheduleResponse> CreateAsync(
-        Guid familyId, Guid createdBy, CreateScheduleRequest request, CancellationToken ct = default)
+        Guid familyId, Guid createdBy, Domain.Enums.UserRole role, CreateScheduleRequest request, CancellationToken ct = default)
     {
         if (!Enum.TryParse<ScheduleType>(request.ScheduleType, out var scheduleType))
-            throw new InvalidOperationException("SCHEDULE_TYPE_INVALID");
+            throw new InvalidOperationException(ErrorCodes.ScheduleTypeInvalid);
 
-        ValidateCreateRequest(scheduleType, request);
+        var memberIds = request.GetEffectiveMemberIds();
+        ValidateCreateRequest(scheduleType, request, role, createdBy, memberIds);
+        await ValidateMembersInFamilyAsync(memberIds, familyId, ct);
 
         var groupKey = Guid.NewGuid();
         var now = DateTimeOffset.UtcNow;
@@ -33,7 +36,7 @@ public class ScheduleService : IScheduleService
 
         try
         {
-            foreach (var childId in request.ChildIds)
+            foreach (var memberId in memberIds)
             {
                 var schedule = new Domain.Entities.Schedule
                 {
@@ -41,7 +44,7 @@ public class ScheduleService : IScheduleService
                     Name = request.Name,
                     ScheduleType = scheduleType,
                     FamilyId = familyId,
-                    AssignedChildId = childId,
+                    AssignedMemberId = memberId,
                     CreatedBy = createdBy,
                     GroupKey = groupKey,
                     RepeatEndDate = scheduleType == ScheduleType.HomeworkTask ? null : request.RepeatEndDate,
@@ -85,13 +88,27 @@ public class ScheduleService : IScheduleService
             throw;
         }
 
+        // Resolve member roles + names for the response (assignedMemberRole/assignedMemberName).
+        var responseMemberIds = schedules.Select(s => s.AssignedMemberId).Distinct().ToList();
+        var roleMap = await _db.FamilyMembers
+            .AsNoTracking()
+            .Where(fm => fm.FamilyId == familyId && responseMemberIds.Contains(fm.UserId))
+            .ToDictionaryAsync(fm => fm.UserId, fm => fm.Role, ct);
+        var nameMap = await _db.Users
+            .AsNoTracking()
+            .Where(u => responseMemberIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => u.Nickname, ct);
+
         var response = new CreateScheduleResponse
         {
             GroupKey = groupKey,
             Schedules = schedules.Select(s => new ScheduleSummary
             {
                 ScheduleId = s.Id,
-                AssignedChildId = s.AssignedChildId,
+                AssignedMemberId = s.AssignedMemberId,
+                AssignedChildId = s.AssignedMemberId,
+                AssignedMemberRole = roleMap.TryGetValue(s.AssignedMemberId, out var role) ? role.ToString() : string.Empty,
+                AssignedMemberName = nameMap.TryGetValue(s.AssignedMemberId, out var name) ? name : null,
                 Name = s.Name,
                 ScheduleType = s.ScheduleType.ToString(),
                 TimeSlots = s.TimeSlots.Select(t => new TimeSlotDto
@@ -143,17 +160,25 @@ public class ScheduleService : IScheduleService
         }
 
         // 孩子端只能看自己的数据
-        if (role == Domain.Enums.UserRole.Child && schedule.AssignedChildId != userId)
-            throw new UnauthorizedAccessException("CHILD_ACCESS_DENIED");
+        if (role == Domain.Enums.UserRole.Child && schedule.AssignedMemberId != userId)
+            throw new UnauthorizedAccessException(ErrorCodes.ChildAccessDenied);
 
-        // Resolve child name (IM-4)
-        string? assignedChildName = null;
-        if (schedule.AssignedChildId != Guid.Empty)
+        // Resolve member role + name (dual-label rendering)
+        string assignedMemberRole = string.Empty;
+        string? assignedMemberName = null;
+        if (schedule.AssignedMemberId != Guid.Empty)
         {
-            var childUser = await _db.Users
+            var memberRole = await _db.FamilyMembers
                 .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == schedule.AssignedChildId, ct);
-            assignedChildName = childUser?.Nickname;
+                .Where(fm => fm.FamilyId == familyId && fm.UserId == schedule.AssignedMemberId)
+                .Select(fm => (Domain.Enums.UserRole?)fm.Role)
+                .FirstOrDefaultAsync(ct);
+            assignedMemberRole = memberRole?.ToString() ?? string.Empty;
+
+            var memberUser = await _db.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == schedule.AssignedMemberId, ct);
+            assignedMemberName = memberUser?.Nickname;
         }
 
         var isCancelled = schedule.Cancellations.Any(c => c.CancelDate == targetDate);
@@ -182,8 +207,10 @@ public class ScheduleService : IScheduleService
             RepeatEndDate = schedule.RepeatEndDate,
             RepeatRule = BuildRepeatRule(schedule),
             Location = schedule.Location,
-            AssignedChildId = schedule.AssignedChildId,
-            AssignedChildName = assignedChildName,
+            AssignedMemberId = schedule.AssignedMemberId,
+            AssignedChildId = schedule.AssignedMemberId,
+            AssignedMemberRole = assignedMemberRole,
+            AssignedMemberName = assignedMemberName,
             Notes = schedule.Notes,
             InstanceStatus = status,
             IsCancelled = isCancelled,
@@ -201,7 +228,7 @@ public class ScheduleService : IScheduleService
     }
 
     public async Task<UpdateScheduleResponse> UpdateAsync(
-        Guid scheduleId, UpdateScheduleRequest request, Guid userId, Guid familyId, CancellationToken ct = default)
+        Guid scheduleId, UpdateScheduleRequest request, Guid userId, Guid familyId, Domain.Enums.UserRole role, CancellationToken ct = default)
     {
         ValidateUpdateRequest(request);
 
@@ -210,13 +237,17 @@ public class ScheduleService : IScheduleService
         var schedule = await _db.Schedules
             .Include(e => e.TimeSlots)
             .FirstOrDefaultAsync(e => e.Id == scheduleId && e.FamilyId == familyId && !e.IsDeleted, ct)
-            ?? throw new KeyNotFoundException("SCHEDULE_NOT_FOUND");
+            ?? throw new KeyNotFoundException(ErrorCodes.ScheduleNotFound);
+
+        // 孩子只能编辑自己的日程
+        if (role == Domain.Enums.UserRole.Child && schedule.AssignedMemberId != userId)
+            throw new UnauthorizedAccessException(ErrorCodes.ChildAccessDenied);
 
         // Optimistic lock check
         if (request.RowVersion != null && request.RowVersion.Length > 0)
         {
             if (!schedule.RowVersion.SequenceEqual(request.RowVersion))
-                throw new InvalidOperationException("CONCURRENT_EDIT_CONFLICT");
+                throw new InvalidOperationException(ErrorCodes.ConcurrentEditConflict);
         }
 
         using var transaction = await _db.Database.BeginTransactionAsync(ct);
@@ -256,16 +287,20 @@ public class ScheduleService : IScheduleService
     }
 
     public async Task<DeleteScheduleResponse> DeleteAsync(
-        Guid scheduleId, string scope, DateOnly? date, Guid userId, Guid familyId, bool force = false, CancellationToken ct = default)
+        Guid scheduleId, string scope, DateOnly? date, Guid userId, Guid familyId, Domain.Enums.UserRole role, bool force = false, CancellationToken ct = default)
     {
         if (scope != "ThisOnly" && scope != "ThisAndFuture")
-            throw new InvalidOperationException("INVALID_SCOPE");
+            throw new InvalidOperationException(ErrorCodes.InvalidScope);
 
         var schedule = await _db.Schedules
             .Include(e => e.DateExclusions)
             .Include(e => e.Cancellations)
             .FirstOrDefaultAsync(e => e.Id == scheduleId && e.FamilyId == familyId && !e.IsDeleted, ct)
-            ?? throw new KeyNotFoundException("SCHEDULE_NOT_FOUND");
+            ?? throw new KeyNotFoundException(ErrorCodes.ScheduleNotFound);
+
+        // 孩子只能删除自己的日程
+        if (role == Domain.Enums.UserRole.Child && schedule.AssignedMemberId != userId)
+            throw new UnauthorizedAccessException(ErrorCodes.ChildAccessDenied);
 
         // Force: hard soft-delete for test cleanup (removes from conflict detection via IsDeleted)
         if (force)
@@ -380,12 +415,16 @@ public class ScheduleService : IScheduleService
     }
 
     public async Task<CancelScheduleInstanceResponse> CancelInstanceAsync(
-        Guid scheduleId, DateOnly date, Guid cancelledBy, Guid familyId, CancellationToken ct = default)
+        Guid scheduleId, DateOnly date, Guid cancelledBy, Guid familyId, Domain.Enums.UserRole role, CancellationToken ct = default)
     {
         var schedule = await _db.Schedules
             .Include(e => e.Cancellations)
             .FirstOrDefaultAsync(e => e.Id == scheduleId && e.FamilyId == familyId && !e.IsDeleted, ct)
-            ?? throw new KeyNotFoundException("SCHEDULE_NOT_FOUND");
+            ?? throw new KeyNotFoundException(ErrorCodes.ScheduleNotFound);
+
+        // 孩子只能取消自己的日程
+        if (role == Domain.Enums.UserRole.Child && schedule.AssignedMemberId != cancelledBy)
+            throw new UnauthorizedAccessException(ErrorCodes.ChildAccessDenied);
 
         if (schedule.ScheduleType == ScheduleType.HomeworkTask)
             throw new InvalidOperationException("HOMEWORK_NO_CANCEL");
@@ -414,13 +453,17 @@ public class ScheduleService : IScheduleService
     }
 
     public async Task<RestoreScheduleInstanceResponse> RestoreInstanceAsync(
-        Guid scheduleId, DateOnly date, Guid userId, Guid familyId, CancellationToken ct = default)
+        Guid scheduleId, DateOnly date, Guid userId, Guid familyId, Domain.Enums.UserRole role, CancellationToken ct = default)
     {
         var schedule = await _db.Schedules
             .Include(e => e.Cancellations)
             .Include(e => e.DateExclusions)
             .FirstOrDefaultAsync(e => e.Id == scheduleId && e.FamilyId == familyId, ct)
-            ?? throw new KeyNotFoundException("SCHEDULE_NOT_FOUND");
+            ?? throw new KeyNotFoundException(ErrorCodes.ScheduleNotFound);
+
+        // 孩子只能恢复自己的日程
+        if (role == Domain.Enums.UserRole.Child && schedule.AssignedMemberId != userId)
+            throw new UnauthorizedAccessException(ErrorCodes.ChildAccessDenied);
 
         // Check for cancelled instance
         var cancellation = schedule.Cancellations.FirstOrDefault(c => c.CancelDate == date);
@@ -457,83 +500,102 @@ public class ScheduleService : IScheduleService
 
     // ---- private helpers ----
 
-    private static void ValidateCreateRequest(ScheduleType scheduleType, CreateScheduleRequest request)
+    private static void ValidateCreateRequest(
+        ScheduleType scheduleType, CreateScheduleRequest request, Domain.Enums.UserRole role, Guid createdBy, List<Guid> memberIds)
     {
         // Name
         if (string.IsNullOrWhiteSpace(request.Name))
-            throw new InvalidOperationException("SCHEDULE_NAME_EMPTY");
+            throw new InvalidOperationException(ErrorCodes.ScheduleNameEmpty);
         if (request.Name.Length > 50)
-            throw new InvalidOperationException("SCHEDULE_NAME_TOO_LONG");
+            throw new InvalidOperationException(ErrorCodes.ScheduleNameTooLong);
 
         // ScheduleType
         if (string.IsNullOrWhiteSpace(request.ScheduleType) ||
             !Enum.TryParse<ScheduleType>(request.ScheduleType, out _))
-            throw new InvalidOperationException("SCHEDULE_TYPE_INVALID");
+            throw new InvalidOperationException(ErrorCodes.ScheduleTypeInvalid);
 
-        // ChildIds
-        if (request.ChildIds == null || request.ChildIds.Count == 0)
-            throw new InvalidOperationException("CHILD_NOT_SELECTED");
+        // MemberIds
+        if (memberIds.Count == 0)
+            throw new InvalidOperationException(ErrorCodes.MemberNotSelected);
+
+        // 孩子只能给自己创建
+        if (role == Domain.Enums.UserRole.Child &&
+            (memberIds.Count != 1 || memberIds[0] != createdBy))
+            throw new UnauthorizedAccessException(ErrorCodes.ChildSelfAssignOnly);
 
         // Location
         if (!string.IsNullOrEmpty(request.Location) && request.Location.Length > 100)
-            throw new InvalidOperationException("LOCATION_TOO_LONG");
+            throw new InvalidOperationException(ErrorCodes.LocationTooLong);
 
         // Notes
         if (!string.IsNullOrEmpty(request.Notes) && request.Notes.Length > 500)
-            throw new InvalidOperationException("NOTES_TOO_LONG");
+            throw new InvalidOperationException(ErrorCodes.NotesTooLong);
 
         // RepeatEndDate
         if (request.RepeatEndDate.HasValue &&
             request.RepeatEndDate.Value < DateOnly.FromDateTime(DateTime.Today))
-            throw new InvalidOperationException("REPEAT_END_DATE_INVALID");
+            throw new InvalidOperationException(ErrorCodes.RepeatEndDateInvalid);
 
         if (scheduleType == ScheduleType.HomeworkTask)
         {
             if (request.DueDate == null)
-                throw new InvalidOperationException("DUE_DATE_REQUIRED");
+                throw new InvalidOperationException(ErrorCodes.DueDateRequired);
             if (request.DueDate.Value < DateOnly.FromDateTime(DateTime.Today))
-                throw new InvalidOperationException("DUE_DATE_INVALID");
+                throw new InvalidOperationException(ErrorCodes.DueDateInvalid);
         }
         else
         {
             if (request.TimeSlots == null || request.TimeSlots.Count == 0)
-                throw new InvalidOperationException("NO_DAY_SELECTED");
+                throw new InvalidOperationException(ErrorCodes.NoDaySelected);
 
             foreach (var ts in request.TimeSlots)
             {
                 if (ts.StartTime >= ts.EndTime)
-                    throw new InvalidOperationException("TIME_SLOT_INVALID");
+                    throw new InvalidOperationException(ErrorCodes.TimeSlotInvalid);
             }
         }
+    }
+
+    private async Task ValidateMembersInFamilyAsync(List<Guid> memberIds, Guid familyId, CancellationToken ct)
+    {
+        if (memberIds.Count == 0) return;
+
+        var distinctIds = memberIds.Distinct().ToList();
+        var foundCount = await _db.FamilyMembers
+            .AsNoTracking()
+            .CountAsync(fm => fm.FamilyId == familyId && distinctIds.Contains(fm.UserId), ct);
+
+        if (foundCount != distinctIds.Count)
+            throw new InvalidOperationException(ErrorCodes.MemberNotInFamily);
     }
 
     private static void ValidateUpdateRequest(UpdateScheduleRequest request)
     {
         if (!string.IsNullOrEmpty(request.Scope) &&
             request.Scope != "ThisOnly" && request.Scope != "ThisAndFuture")
-            throw new InvalidOperationException("INVALID_SCOPE");
+            throw new InvalidOperationException(ErrorCodes.InvalidScope);
 
         if (request.Name != null && string.IsNullOrWhiteSpace(request.Name))
-            throw new InvalidOperationException("SCHEDULE_NAME_EMPTY");
+            throw new InvalidOperationException(ErrorCodes.ScheduleNameEmpty);
         if (!string.IsNullOrWhiteSpace(request.Name) && request.Name.Length > 50)
-            throw new InvalidOperationException("SCHEDULE_NAME_TOO_LONG");
+            throw new InvalidOperationException(ErrorCodes.ScheduleNameTooLong);
 
         if (!string.IsNullOrEmpty(request.Location) && request.Location.Length > 100)
-            throw new InvalidOperationException("LOCATION_TOO_LONG");
+            throw new InvalidOperationException(ErrorCodes.LocationTooLong);
 
         if (!string.IsNullOrEmpty(request.Notes) && request.Notes.Length > 500)
-            throw new InvalidOperationException("NOTES_TOO_LONG");
+            throw new InvalidOperationException(ErrorCodes.NotesTooLong);
 
         if (request.RepeatEndDate.HasValue &&
             request.RepeatEndDate.Value < DateOnly.FromDateTime(DateTime.Today))
-            throw new InvalidOperationException("REPEAT_END_DATE_INVALID");
+            throw new InvalidOperationException(ErrorCodes.RepeatEndDateInvalid);
 
         if (request.TimeSlots != null)
         {
             foreach (var ts in request.TimeSlots)
             {
                 if (ts.StartTime >= ts.EndTime)
-                    throw new InvalidOperationException("TIME_SLOT_INVALID");
+                    throw new InvalidOperationException(ErrorCodes.TimeSlotInvalid);
             }
         }
     }
@@ -567,7 +629,7 @@ public class ScheduleService : IScheduleService
             Name = request.Name ?? original.Name,
             ScheduleType = original.ScheduleType,
             FamilyId = original.FamilyId,
-            AssignedChildId = original.AssignedChildId,
+            AssignedMemberId = original.AssignedMemberId,
             CreatedBy = createdBy,
             GroupKey = original.GroupKey,
             RepeatEndDate = request.Date, // single instance — ends on the override date (IM-7)

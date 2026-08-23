@@ -53,6 +53,27 @@ public static class ErrorCodes
     public const string InvitationCannotRevoke = "INVITATION_CANNOT_REVOKE";
     public const string InvitationCodeGenerationFailed = "INVITATION_CODE_GENERATION_FAILED";
 
+    // ---- Schedule module（从 openspec/contracts/schedule/errors.json 生成）----
+    public const string MemberNotSelected = "MEMBER_NOT_SELECTED";
+    public const string ChildNotSelected = "CHILD_NOT_SELECTED"; // deprecated 别名（兼容期保留，V+1 移除）
+    public const string MemberNotInFamily = "MEMBER_NOT_IN_FAMILY";
+    public const string ChildNotInFamily = "CHILD_NOT_IN_FAMILY"; // deprecated 别名（兼容期保留，V+1 移除）
+    public const string ChildSelfAssignOnly = "CHILD_SELF_ASSIGN_ONLY";
+    public const string ChildAccessDenied = "CHILD_ACCESS_DENIED";
+    public const string ScheduleNameEmpty = "SCHEDULE_NAME_EMPTY";
+    public const string ScheduleNameTooLong = "SCHEDULE_NAME_TOO_LONG";
+    public const string ScheduleTypeInvalid = "SCHEDULE_TYPE_INVALID";
+    public const string LocationTooLong = "LOCATION_TOO_LONG";
+    public const string NotesTooLong = "NOTES_TOO_LONG";
+    public const string RepeatEndDateInvalid = "REPEAT_END_DATE_INVALID";
+    public const string DueDateRequired = "DUE_DATE_REQUIRED";
+    public const string DueDateInvalid = "DUE_DATE_INVALID";
+    public const string NoDaySelected = "NO_DAY_SELECTED";
+    public const string TimeSlotInvalid = "TIME_SLOT_INVALID";
+    public const string InvalidScope = "INVALID_SCOPE";
+    public const string ScheduleConflict = "SCHEDULE_CONFLICT";
+    public const string ConcurrentEditConflict = "CONCURRENT_EDIT_CONFLICT";
+
     private static readonly IReadOnlyDictionary<string, string> Messages = new Dictionary<string, string>
     {
         [CodeInvalid] = "微信登录凭证无效，请重试",
@@ -111,7 +132,26 @@ public static class ErrorCodes
         [TemplateChildAccessDenied] = "孩子角色无权访问模板",
         [TemplateChildNotInFamily] = "所选孩子不属于当前家庭",
         [TemplateStartDateInvalid] = "起始日期不能早于今天",
-        [TemplateTypeInvalid] = "模板类型无效"
+        [TemplateTypeInvalid] = "模板类型无效",
+        [MemberNotSelected] = "请至少选择一个成员",
+        [ChildNotSelected] = "请至少选择一个成员",
+        [MemberNotInFamily] = "所选成员不属于当前家庭",
+        [ChildNotInFamily] = "所选成员不属于当前家庭",
+        [ChildSelfAssignOnly] = "孩子只能给自己创建日程",
+        [ChildAccessDenied] = "你只能查看或操作自己的日程",
+        [ScheduleNameEmpty] = "日程名称不能为空",
+        [ScheduleNameTooLong] = "日程名称不能超过 50 个字符",
+        [ScheduleTypeInvalid] = "日程类型无效",
+        [LocationTooLong] = "地点不能超过 100 个字符",
+        [NotesTooLong] = "备注不能超过 500 个字符",
+        [RepeatEndDateInvalid] = "重复结束日期不能早于今天",
+        [DueDateRequired] = "作业任务必须设置截止日期",
+        [DueDateInvalid] = "截止日期不能早于今天",
+        [NoDaySelected] = "请至少选择一个时间槽星期",
+        [TimeSlotInvalid] = "时间槽开始时间不能晚于或等于结束时间",
+        [InvalidScope] = "影响范围参数无效",
+        [ScheduleConflict] = "该时段与已有日程存在时间重叠",
+        [ConcurrentEditConflict] = "日程已被他人修改，请刷新后重试"
     };
 
     // Template module constants
@@ -189,7 +229,26 @@ public static class ErrorCodes
         [TemplateChildAccessDenied] = 403,
         [TemplateChildNotInFamily] = 400,
         [TemplateStartDateInvalid] = 400,
-        [TemplateTypeInvalid] = 400
+        [TemplateTypeInvalid] = 400,
+        [MemberNotSelected] = 400,
+        [ChildNotSelected] = 400,
+        [MemberNotInFamily] = 400,
+        [ChildNotInFamily] = 400,
+        [ChildSelfAssignOnly] = 403,
+        [ChildAccessDenied] = 403,
+        [ScheduleNameEmpty] = 400,
+        [ScheduleNameTooLong] = 400,
+        [ScheduleTypeInvalid] = 400,
+        [LocationTooLong] = 400,
+        [NotesTooLong] = 400,
+        [RepeatEndDateInvalid] = 400,
+        [DueDateRequired] = 400,
+        [DueDateInvalid] = 400,
+        [NoDaySelected] = 400,
+        [TimeSlotInvalid] = 400,
+        [InvalidScope] = 400,
+        [ScheduleConflict] = 409,
+        [ConcurrentEditConflict] = 409
     };
 
     public static string Message(string code) =>

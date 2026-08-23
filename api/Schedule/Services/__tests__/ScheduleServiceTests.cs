@@ -1,5 +1,6 @@
 using Agenda.Api.Domain.Entities;
 using Agenda.Api.Domain.Enums;
+using Agenda.Api.Infrastructure;
 using Agenda.Api.Schedule.Dtos;
 using Agenda.Api.Schedule.Services;
 using Agenda.Api.Infrastructure.Data;
@@ -30,13 +31,16 @@ public class ScheduleServiceTests
     {
         public Guid FamilyId { get; init; }
         public Guid UserId { get; init; }
+        public Guid ChildId { get; init; }
     }
 
     private async Task<SeedResult> SeedFamilyAsync(AppDbContext db)
     {
         var userId = Guid.NewGuid();
+        var childId = Guid.NewGuid();
         var familyId = Guid.NewGuid();
         db.Users.Add(new User { Id = userId, Nickname = "TestParent", Role = UserRole.Parent, OpenId = "test-openid" });
+        db.Users.Add(new User { Id = childId, Nickname = "TestChild", Role = UserRole.Child, OpenId = "test-child-openid" });
         db.Families.Add(new DomainFamily { Id = familyId, Name = "TestFamily" });
         db.FamilyMembers.Add(new DomainFamilyMember
         {
@@ -46,8 +50,32 @@ public class ScheduleServiceTests
             Role = UserRole.Parent,
             JoinedAt = DateTimeOffset.UtcNow
         });
+        db.FamilyMembers.Add(new DomainFamilyMember
+        {
+            Id = Guid.NewGuid(),
+            FamilyId = familyId,
+            UserId = childId,
+            Role = UserRole.Child,
+            JoinedAt = DateTimeOffset.UtcNow
+        });
         await db.SaveChangesAsync();
-        return new SeedResult { FamilyId = familyId, UserId = userId };
+        return new SeedResult { FamilyId = familyId, UserId = userId, ChildId = childId };
+    }
+
+    private static async Task<Guid> AddChildAsync(AppDbContext db, Guid familyId)
+    {
+        var childId = Guid.NewGuid();
+        db.Users.Add(new User { Id = childId, Nickname = "TestChild2", Role = UserRole.Child, OpenId = $"test-child-{childId}" });
+        db.FamilyMembers.Add(new DomainFamilyMember
+        {
+            Id = Guid.NewGuid(),
+            FamilyId = familyId,
+            UserId = childId,
+            Role = UserRole.Child,
+            JoinedAt = DateTimeOffset.UtcNow
+        });
+        await db.SaveChangesAsync();
+        return childId;
     }
 
     [Fact]
@@ -56,7 +84,7 @@ public class ScheduleServiceTests
         var db = CreateDbContext();
         var seed = await SeedFamilyAsync(db);
         var service = new ScheduleService(db, CreateLogger().Object);
-        var childId = Guid.NewGuid();
+        var childId = seed.ChildId;
 
         var request = new CreateScheduleRequest
         {
@@ -73,7 +101,7 @@ public class ScheduleServiceTests
             Notes = "记得带琴谱"
         };
 
-        var result = await service.CreateAsync(seed.FamilyId, seed.UserId, request);
+        var result = await service.CreateAsync(seed.FamilyId, seed.UserId, UserRole.Parent, request);
 
         Assert.NotEqual(Guid.Empty, result.GroupKey);
         Assert.Single(result.Schedules);
@@ -99,14 +127,14 @@ public class ScheduleServiceTests
         {
             Name = "游泳课",
             ScheduleType = "AfterSchoolActivity",
-            ChildIds = [Guid.NewGuid(), Guid.NewGuid()],
+            ChildIds = [seed.ChildId, await AddChildAsync(db, seed.FamilyId)],
             TimeSlots =
             [
                 new TimeSlotDto { DayOfWeek = DayOfWeek.Wednesday, StartTime = new TimeOnly(15, 0), EndTime = new TimeOnly(16, 0) }
             ]
         };
 
-        var result = await service.CreateAsync(seed.FamilyId, seed.UserId, request);
+        var result = await service.CreateAsync(seed.FamilyId, seed.UserId, UserRole.Parent, request);
 
         Assert.Equal(2, result.Schedules.Count);
         Assert.Equal(result.Schedules[0].Name, result.Schedules[1].Name);
@@ -126,12 +154,12 @@ public class ScheduleServiceTests
         {
             Name = "数学作业",
             ScheduleType = "HomeworkTask",
-            ChildIds = [Guid.NewGuid()],
+            ChildIds = [seed.ChildId],
             DueDate = new DateOnly(2026, 12, 31),
             Notes = "第3章习题"
         };
 
-        var result = await service.CreateAsync(seed.FamilyId, seed.UserId, request);
+        var result = await service.CreateAsync(seed.FamilyId, seed.UserId, UserRole.Parent, request);
 
         Assert.Single(result.Schedules);
 
@@ -146,7 +174,7 @@ public class ScheduleServiceTests
         var db = CreateDbContext();
         var seed = await SeedFamilyAsync(db);
         var service = new ScheduleService(db, CreateLogger().Object);
-        var childId = Guid.NewGuid();
+        var childId = seed.ChildId;
 
         var request = new CreateScheduleRequest
         {
@@ -160,7 +188,7 @@ public class ScheduleServiceTests
             RepeatEndDate = new DateOnly(2026, 12, 31)
         };
 
-        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, request);
+        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, UserRole.Parent, request);
         var eventId = created.Schedules[0].ScheduleId;
 
         var result = await service.GetByIdAsync(eventId, null, seed.UserId, seed.FamilyId, UserRole.Parent);
@@ -186,14 +214,14 @@ public class ScheduleServiceTests
         {
             Name = "钢琴课",
             ScheduleType = "AfterSchoolActivity",
-            ChildIds = [Guid.NewGuid()],
+            ChildIds = [seed.ChildId],
             TimeSlots =
             [
                 new TimeSlotDto { DayOfWeek = DayOfWeek.Monday, StartTime = new TimeOnly(16, 0), EndTime = new TimeOnly(17, 0) }
             ]
         };
 
-        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, request);
+        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, UserRole.Parent, request);
         var eventId = created.Schedules[0].ScheduleId;
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(
@@ -211,15 +239,15 @@ public class ScheduleServiceTests
         {
             Name = "数学作业",
             ScheduleType = "HomeworkTask",
-            ChildIds = [Guid.NewGuid()],
+            ChildIds = [seed.ChildId],
             DueDate = new DateOnly(2026, 12, 31)
         };
 
-        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, request);
+        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, UserRole.Parent, request);
         var eventId = created.Schedules[0].ScheduleId;
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => service.CancelInstanceAsync(eventId, new DateOnly(2026, 12, 31), seed.UserId, seed.FamilyId));
+            () => service.CancelInstanceAsync(eventId, new DateOnly(2026, 12, 31), seed.UserId, seed.FamilyId, UserRole.Parent));
         Assert.Equal("HOMEWORK_NO_CANCEL", ex.Message);
     }
 
@@ -235,7 +263,7 @@ public class ScheduleServiceTests
         {
             Name = "钢琴课",
             ScheduleType = "AfterSchoolActivity",
-            ChildIds = [Guid.NewGuid()],
+            ChildIds = [seed.ChildId],
             TimeSlots =
             [
                 new TimeSlotDto { DayOfWeek = date.DayOfWeek, StartTime = new TimeOnly(16, 0), EndTime = new TimeOnly(17, 0) }
@@ -243,13 +271,13 @@ public class ScheduleServiceTests
             RepeatEndDate = new DateOnly(2026, 12, 31)
         };
 
-        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, request);
+        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, UserRole.Parent, request);
         var eventId = created.Schedules[0].ScheduleId;
 
-        await service.CancelInstanceAsync(eventId, date, seed.UserId, seed.FamilyId);
+        await service.CancelInstanceAsync(eventId, date, seed.UserId, seed.FamilyId, UserRole.Parent);
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => service.CancelInstanceAsync(eventId, date, seed.UserId, seed.FamilyId));
+            () => service.CancelInstanceAsync(eventId, date, seed.UserId, seed.FamilyId, UserRole.Parent));
         Assert.Equal("SCHEDULE_ALREADY_CANCELLED", ex.Message);
     }
 
@@ -265,7 +293,7 @@ public class ScheduleServiceTests
         {
             Name = "钢琴课",
             ScheduleType = "AfterSchoolActivity",
-            ChildIds = [Guid.NewGuid()],
+            ChildIds = [seed.ChildId],
             TimeSlots =
             [
                 new TimeSlotDto { DayOfWeek = date.DayOfWeek, StartTime = new TimeOnly(16, 0), EndTime = new TimeOnly(17, 0) }
@@ -273,16 +301,16 @@ public class ScheduleServiceTests
             RepeatEndDate = new DateOnly(2026, 12, 31)
         };
 
-        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, request);
+        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, UserRole.Parent, request);
         var eventId = created.Schedules[0].ScheduleId;
 
-        var cancelResult = await service.CancelInstanceAsync(eventId, date, seed.UserId, seed.FamilyId);
+        var cancelResult = await service.CancelInstanceAsync(eventId, date, seed.UserId, seed.FamilyId, UserRole.Parent);
         Assert.True(cancelResult.Cancelled);
 
         var afterCancel = await service.GetByIdAsync(eventId, date, seed.UserId, seed.FamilyId, UserRole.Parent);
         Assert.True(afterCancel!.IsCancelled);
 
-        var restoreResult = await service.RestoreInstanceAsync(eventId, date, seed.UserId, seed.FamilyId);
+        var restoreResult = await service.RestoreInstanceAsync(eventId, date, seed.UserId, seed.FamilyId, UserRole.Parent);
         Assert.True(restoreResult.Restored);
         Assert.Equal("cancellation", restoreResult.RestoredFrom);
 
@@ -302,7 +330,7 @@ public class ScheduleServiceTests
         {
             Name = "钢琴课",
             ScheduleType = "AfterSchoolActivity",
-            ChildIds = [Guid.NewGuid()],
+            ChildIds = [seed.ChildId],
             TimeSlots =
             [
                 new TimeSlotDto { DayOfWeek = date.DayOfWeek, StartTime = new TimeOnly(16, 0), EndTime = new TimeOnly(17, 0) }
@@ -310,10 +338,10 @@ public class ScheduleServiceTests
             RepeatEndDate = new DateOnly(2026, 12, 31)
         };
 
-        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, request);
+        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, UserRole.Parent, request);
         var eventId = created.Schedules[0].ScheduleId;
 
-        var deleteResult = await service.DeleteAsync(eventId, "ThisOnly", date, seed.UserId, seed.FamilyId);
+        var deleteResult = await service.DeleteAsync(eventId, "ThisOnly", date, seed.UserId, seed.FamilyId, UserRole.Parent);
         Assert.True(deleteResult.Deleted);
         Assert.Equal("exclusion", deleteResult.Method);
 
@@ -335,7 +363,7 @@ public class ScheduleServiceTests
         {
             Name = "钢琴课",
             ScheduleType = "AfterSchoolActivity",
-            ChildIds = [Guid.NewGuid()],
+            ChildIds = [seed.ChildId],
             TimeSlots =
             [
                 new TimeSlotDto { DayOfWeek = date.DayOfWeek, StartTime = new TimeOnly(16, 0), EndTime = new TimeOnly(17, 0) }
@@ -343,10 +371,10 @@ public class ScheduleServiceTests
             RepeatEndDate = new DateOnly(2026, 12, 31)
         };
 
-        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, request);
+        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, UserRole.Parent, request);
         var eventId = created.Schedules[0].ScheduleId;
 
-        var deleteResult = await service.DeleteAsync(eventId, "ThisAndFuture", date, seed.UserId, seed.FamilyId);
+        var deleteResult = await service.DeleteAsync(eventId, "ThisAndFuture", date, seed.UserId, seed.FamilyId, UserRole.Parent);
         Assert.True(deleteResult.Deleted);
         Assert.Equal("truncate", deleteResult.Method);
         Assert.Equal(new DateOnly(2026, 10, 14), deleteResult.TruncatedRepeatEndDate);
@@ -366,14 +394,14 @@ public class ScheduleServiceTests
         {
             Name = "钢琴课",
             ScheduleType = "AfterSchoolActivity",
-            ChildIds = [Guid.NewGuid()],
+            ChildIds = [seed.ChildId],
             TimeSlots =
             [
                 new TimeSlotDto { DayOfWeek = DayOfWeek.Monday, StartTime = new TimeOnly(16, 0), EndTime = new TimeOnly(17, 0) }
             ]
         };
 
-        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, request);
+        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, UserRole.Parent, request);
         var eventId = created.Schedules[0].ScheduleId;
 
         var updateRequest = new UpdateScheduleRequest
@@ -384,7 +412,7 @@ public class ScheduleServiceTests
         };
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => service.UpdateAsync(eventId, updateRequest, seed.UserId, seed.FamilyId));
+            () => service.UpdateAsync(eventId, updateRequest, seed.UserId, seed.FamilyId, UserRole.Parent));
         Assert.Equal("CONCURRENT_EDIT_CONFLICT", ex.Message);
     }
 
@@ -400,7 +428,7 @@ public class ScheduleServiceTests
         {
             Name = "钢琴课",
             ScheduleType = "AfterSchoolActivity",
-            ChildIds = [Guid.NewGuid()],
+            ChildIds = [seed.ChildId],
             TimeSlots =
             [
                 new TimeSlotDto { DayOfWeek = date.DayOfWeek, StartTime = new TimeOnly(16, 0), EndTime = new TimeOnly(17, 0) }
@@ -408,11 +436,11 @@ public class ScheduleServiceTests
             RepeatEndDate = new DateOnly(2026, 12, 31)
         };
 
-        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, request);
+        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, UserRole.Parent, request);
         var eventId = created.Schedules[0].ScheduleId;
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => service.RestoreInstanceAsync(eventId, date, seed.UserId, seed.FamilyId));
+            () => service.RestoreInstanceAsync(eventId, date, seed.UserId, seed.FamilyId, UserRole.Parent));
         Assert.Equal("NOT_CANCELLED_OR_EXCLUDED", ex.Message);
     }
 
@@ -427,18 +455,170 @@ public class ScheduleServiceTests
         {
             Name = "数学作业",
             ScheduleType = "HomeworkTask",
-            ChildIds = [Guid.NewGuid()],
+            ChildIds = [seed.ChildId],
             DueDate = new DateOnly(2026, 12, 31)
         };
 
-        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, request);
+        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, UserRole.Parent, request);
         var eventId = created.Schedules[0].ScheduleId;
 
-        var deleteResult = await service.DeleteAsync(eventId, "ThisOnly", null, seed.UserId, seed.FamilyId);
+        var deleteResult = await service.DeleteAsync(eventId, "ThisOnly", null, seed.UserId, seed.FamilyId, UserRole.Parent);
         Assert.True(deleteResult.Deleted);
         Assert.Equal("soft_delete", deleteResult.Method);
 
         var dbEvent = await db.Schedules.IgnoreQueryFilters().FirstAsync();
         Assert.True(dbEvent.IsDeleted);
+    }
+
+    // ---------- 权限矩阵（Task 5.1） ----------
+
+    [Fact]
+    public async Task CreateAsync_ParentAssignsParentMember_Succeeds()
+    {
+        var db = CreateDbContext();
+        var seed = await SeedFamilyAsync(db);
+        var service = new ScheduleService(db, CreateLogger().Object);
+
+        var request = new CreateScheduleRequest
+        {
+            Name = "家长日程",
+            ScheduleType = "AfterSchoolActivity",
+            MemberIds = [seed.UserId], // 家长角色成员也可被指派（任意成员）
+            TimeSlots =
+            [
+                new TimeSlotDto { DayOfWeek = DayOfWeek.Monday, StartTime = new TimeOnly(16, 0), EndTime = new TimeOnly(17, 0) }
+            ]
+        };
+
+        var result = await service.CreateAsync(seed.FamilyId, seed.UserId, UserRole.Parent, request);
+
+        Assert.Single(result.Schedules);
+        Assert.Equal(seed.UserId, result.Schedules[0].AssignedMemberId);
+    }
+
+    [Fact]
+    public async Task CreateAsync_ChildAssignsSelf_Succeeds()
+    {
+        var db = CreateDbContext();
+        var seed = await SeedFamilyAsync(db);
+        var service = new ScheduleService(db, CreateLogger().Object);
+
+        var request = new CreateScheduleRequest
+        {
+            Name = "孩子自建",
+            ScheduleType = "AfterSchoolActivity",
+            MemberIds = [seed.ChildId],
+            TimeSlots =
+            [
+                new TimeSlotDto { DayOfWeek = DayOfWeek.Monday, StartTime = new TimeOnly(16, 0), EndTime = new TimeOnly(17, 0) }
+            ]
+        };
+
+        var result = await service.CreateAsync(seed.FamilyId, seed.ChildId, UserRole.Child, request);
+
+        Assert.Single(result.Schedules);
+        Assert.Equal(seed.ChildId, result.Schedules[0].AssignedMemberId);
+    }
+
+    [Fact]
+    public async Task CreateAsync_ChildAssignsOther_ThrowsChildSelfAssignOnly()
+    {
+        var db = CreateDbContext();
+        var seed = await SeedFamilyAsync(db);
+        var service = new ScheduleService(db, CreateLogger().Object);
+
+        var request = new CreateScheduleRequest
+        {
+            Name = "孩子越权创建",
+            ScheduleType = "AfterSchoolActivity",
+            MemberIds = [seed.UserId], // 孩子试图给家长创建
+            TimeSlots =
+            [
+                new TimeSlotDto { DayOfWeek = DayOfWeek.Monday, StartTime = new TimeOnly(16, 0), EndTime = new TimeOnly(17, 0) }
+            ]
+        };
+
+        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            () => service.CreateAsync(seed.FamilyId, seed.ChildId, UserRole.Child, request));
+
+        Assert.Equal(ErrorCodes.ChildSelfAssignOnly, ex.Message);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ChildEditsOthersSchedule_ThrowsChildAccessDenied()
+    {
+        var db = CreateDbContext();
+        var seed = await SeedFamilyAsync(db);
+        var otherChildId = await AddChildAsync(db, seed.FamilyId);
+        var service = new ScheduleService(db, CreateLogger().Object);
+
+        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, UserRole.Parent, new CreateScheduleRequest
+        {
+            Name = "钢琴课",
+            ScheduleType = "AfterSchoolActivity",
+            MemberIds = [seed.ChildId],
+            TimeSlots =
+            [
+                new TimeSlotDto { DayOfWeek = DayOfWeek.Monday, StartTime = new TimeOnly(16, 0), EndTime = new TimeOnly(17, 0) }
+            ]
+        });
+        var scheduleId = created.Schedules[0].ScheduleId;
+
+        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            () => service.UpdateAsync(scheduleId, new UpdateScheduleRequest { Scope = "ThisOnly", Name = "改" }, otherChildId, seed.FamilyId, UserRole.Child));
+
+        Assert.Equal(ErrorCodes.ChildAccessDenied, ex.Message);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ChildDeletesOthersSchedule_ThrowsChildAccessDenied()
+    {
+        var db = CreateDbContext();
+        var seed = await SeedFamilyAsync(db);
+        var otherChildId = await AddChildAsync(db, seed.FamilyId);
+        var service = new ScheduleService(db, CreateLogger().Object);
+
+        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, UserRole.Parent, new CreateScheduleRequest
+        {
+            Name = "钢琴课",
+            ScheduleType = "AfterSchoolActivity",
+            MemberIds = [seed.ChildId],
+            TimeSlots =
+            [
+                new TimeSlotDto { DayOfWeek = DayOfWeek.Monday, StartTime = new TimeOnly(16, 0), EndTime = new TimeOnly(17, 0) }
+            ]
+        });
+        var scheduleId = created.Schedules[0].ScheduleId;
+
+        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            () => service.DeleteAsync(scheduleId, "ThisOnly", new DateOnly(2026, 12, 31), otherChildId, seed.FamilyId, UserRole.Child));
+
+        Assert.Equal(ErrorCodes.ChildAccessDenied, ex.Message);
+    }
+
+    [Fact]
+    public async Task CancelInstanceAsync_ChildCancelsOthersSchedule_ThrowsChildAccessDenied()
+    {
+        var db = CreateDbContext();
+        var seed = await SeedFamilyAsync(db);
+        var otherChildId = await AddChildAsync(db, seed.FamilyId);
+        var service = new ScheduleService(db, CreateLogger().Object);
+
+        var created = await service.CreateAsync(seed.FamilyId, seed.UserId, UserRole.Parent, new CreateScheduleRequest
+        {
+            Name = "钢琴课",
+            ScheduleType = "AfterSchoolActivity",
+            MemberIds = [seed.ChildId],
+            TimeSlots =
+            [
+                new TimeSlotDto { DayOfWeek = DayOfWeek.Monday, StartTime = new TimeOnly(16, 0), EndTime = new TimeOnly(17, 0) }
+            ]
+        });
+        var scheduleId = created.Schedules[0].ScheduleId;
+
+        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            () => service.CancelInstanceAsync(scheduleId, new DateOnly(2026, 12, 31), otherChildId, seed.FamilyId, UserRole.Child));
+
+        Assert.Equal(ErrorCodes.ChildAccessDenied, ex.Message);
     }
 }

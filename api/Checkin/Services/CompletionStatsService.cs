@@ -30,7 +30,7 @@ public class CompletionStatsService : ICompletionStatsService
             .Include(s => s.Cancellations)
             .Include(s => s.DateExclusions)
             .Where(s => s.FamilyId == familyId
-                        && s.AssignedChildId == userId
+                        && s.AssignedMemberId == userId
                         && !s.IsDeleted)
             .ToListAsync(ct);
 

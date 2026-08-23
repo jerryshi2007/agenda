@@ -12,7 +12,10 @@ public class Schedule
     public string Name { get; set; } = string.Empty;
     public ScheduleType ScheduleType { get; set; }
     public Guid FamilyId { get; set; }
-    public Guid AssignedChildId { get; set; }
+
+    /// <summary>关联成员 User.Id（家长或孩子）。</summary>
+    public Guid AssignedMemberId { get; set; }
+
     public Guid CreatedBy { get; set; }
 
     /// <summary>多孩子创建的关联批次键（GUID）</summary>

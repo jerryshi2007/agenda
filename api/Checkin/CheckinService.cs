@@ -258,6 +258,10 @@ public class CheckinService : ICheckinService
         if (role == null)
             throw new DomainException(ErrorCodes.NotFamilyMember);
 
+        // 孩子只能打卡/撤销自己的日程（堵「孩子代其他孩子打卡」缺口）
+        if (role.Value == UserRole.Child && schedule.AssignedMemberId != userId)
+            throw new DomainException(ErrorCodes.ChildAccessDenied);
+
         return (schedule, role.Value);
     }
 

@@ -6,7 +6,7 @@ namespace Agenda.Api.Template.Validators;
 
 /// <summary>
 /// 从模板生成日程请求校验：
-/// - ChildId: 非空
+/// - memberIds（归一化后）: 非空
 /// - StartDate: 不早于今天（服务器北京时间）
 /// - 覆盖字段长度限制
 /// - TimeSlots（若提供）：每项 StartTime 小于 EndTime
@@ -15,9 +15,9 @@ public class ApplyTemplateRequestValidator : AbstractValidator<ApplyTemplateRequ
 {
     public ApplyTemplateRequestValidator()
     {
-        RuleFor(x => x.ChildId)
-            .NotEqual(Guid.Empty)
-            .WithErrorCode(ErrorCodes.TemplateChildNotInFamily);
+        RuleFor(x => x)
+            .Must(x => x.GetEffectiveMemberIds().Count > 0)
+            .WithErrorCode(ErrorCodes.MemberNotSelected);
 
         RuleFor(x => x.StartDate)
             .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow.AddHours(8).Date))

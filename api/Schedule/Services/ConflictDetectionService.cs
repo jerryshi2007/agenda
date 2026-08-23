@@ -1,5 +1,6 @@
 using Agenda.Api.Domain.Entities;
 using Agenda.Api.Schedule.Dtos;
+using Agenda.Api.Infrastructure;
 using Agenda.Api.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,14 +15,20 @@ public class ConflictDetectionService : IConflictDetectionService
         _db = db;
     }
 
-    public async Task<ScheduleConflictResponse> CheckConflictAsync(ScheduleConflictCheckRequest request, CancellationToken ct = default)
+    public async Task<ScheduleConflictResponse> CheckConflictAsync(Guid familyId, ScheduleConflictCheckRequest request, CancellationToken ct = default)
     {
+        var memberId = request.GetEffectiveMemberId();
+        if (!memberId.HasValue)
+            throw new InvalidOperationException(ErrorCodes.MemberNotSelected);
+
         var dayOfWeek = request.Date.DayOfWeek;
 
-        // Find events for the same child on the same day of week with overlapping times
+        // Find events for the same member on the same day of week with overlapping times,
+        // scoped to the caller's family (prevents cross-family IDOR).
         var conflictingEvents = await _db.Schedules
             .Include(e => e.TimeSlots)
-            .Where(e => e.AssignedChildId == request.ChildId
+            .Where(e => e.FamilyId == familyId
+                        && e.AssignedMemberId == memberId.Value
                         && !e.IsDeleted
                         && e.TimeSlots.Any(t => t.DayOfWeek == dayOfWeek
                             && t.StartTime < request.EndTime
