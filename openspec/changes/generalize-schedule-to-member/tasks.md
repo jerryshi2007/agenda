@@ -13,7 +13,7 @@
 [第 0 梯队：契约 + 实体]
   Task 0.1 契约 JSON（schedule 域）                ← 无依赖（arch-architect 已交付）
   Task 0.2 app/contracts/schedule.js 镜像 + parity  ← 依赖 0.1
-  Task 0.3 Schedule 实体 AssignedMemberId 改名      ← 无依赖（改属性 + Configuration）
+  Task 0.3 Schedule 实体 AssignedMemberId 改名      ← 无依赖（属性 + Configuration + 5 消费文件机械改名）
   Task 0.4 EF migration 生成（列重命名，可回滚）     ← 依赖 0.3
 
 [第 1 梯队：后端 DTO + 错误码]
@@ -83,7 +83,7 @@
 - **完成标准**：镜像字段与 JSON 一一对应（新码 + deprecated 别名）；无手写字面量；parity 测试通过
 - **验证命令**：`cd app && npx jest __tests__/contracts/schedule.test.js`
 
-#### Task 0.3: Schedule 实体 AssignedMemberId 改名（移除 [Column] 映射）
+#### Task 0.3: Schedule 实体 AssignedMemberId 改名（不加 [Column]，默认约定）
 
 - **负责 agent**：`dev-dotnet`
 - **依赖**：无
@@ -91,7 +91,13 @@
   - `api/Domain/Entities/Schedule.cs`（`AssignedChildId` → `AssignedMemberId`，**不加 `[Column]`**，XML 注释改为「成员 User.Id」，默认约定属性名 = 列名）
   - `api/Infrastructure/Data/Configurations/ScheduleConfiguration.cs`（`Property(e => e.AssignedMemberId)` + `HasIndex(e => e.AssignedMemberId)` + `HasIndex(e => new { e.FamilyId, e.AssignedMemberId })`）
   - `api/Domain/Interfaces/IScheduleQueryService.cs`（`ScheduleInfo.AssignedChildId` → `AssignedMemberId`）
-- **完成标准**：属性改名后 EF 默认映射到 `AssignedMemberId` 列（无 `[Column]` 隐藏列名）；`ScheduleInfo` 同步改名；跨文件机械引用 `AssignedChildId`（`ScheduleQueryService`/`ConflictDetectionService`/`CalendarQueryService`/`CompletionStatsService`/`ChildScheduleQueryService`/`SettlementJob` 等）由各自下游 task 同步
+  - 机械改名 `AssignedChildId` → `AssignedMemberId`（集中在本次一次完成，避免编译断裂）：
+    - `api/Schedule/Services/ScheduleQueryService.cs`
+    - `api/Schedule/Services/ConflictDetectionService.cs`
+    - `api/Schedule/Services/CalendarQueryService.cs`
+    - `api/Checkin/Services/CompletionStatsService.cs`
+    - `api/Schedule/Services/ChildScheduleQueryService.cs`
+- **完成标准**：属性改名后 EF 默认映射到 `AssignedMemberId` 列（不加 `[Column]`，默认约定属性名 = 列名）；`ScheduleInfo` 与上述 5 个消费文件的机械改名集中一次完成；`ScheduleService`/`SettlementJob` 的引用改名在 Task 2.1/2.2/3.2 各自完成
 - **验证命令**：`dotnet build api/Agenda.Api.csproj`
 
 #### Task 0.4: EF migration 生成（列重命名，可回滚）

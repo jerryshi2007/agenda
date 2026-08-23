@@ -19,7 +19,7 @@
 
 | 现状符号 | 位置 | 本次处置 |
 |---------|------|---------|
-| `Schedule.AssignedChildId`（Guid，存 **User.Id**，非 FamilyMember.Id） | `api/Domain/Entities/Schedule.cs:15` | **迁移重命名**：语义泛化为「成员 User.Id」，C# 属性改名 `AssignedMemberId`，DB 列经正式 migration 重命名为 `AssignedMemberId`（移除 `[Column]`，走 EF 默认约定） |
+| `Schedule.AssignedChildId`（Guid，存 **User.Id**，非 FamilyMember.Id） | `api/Domain/Entities/Schedule.cs:15` | **迁移重命名**：语义泛化为「成员 User.Id」，C# 属性改名 `AssignedMemberId`，DB 列经正式 migration 重命名为 `AssignedMemberId`（不加 `[Column]`，用默认约定：属性名 = 列名） |
 | `FamilyMember`（Id/FamilyId/UserId/Role/ChildName/DisplayMode）—— 家长与孩子**同一张表**，靠 `Role`（Parent=1/Child=2）区分 | `api/Domain/Entities/FamilyMember.cs` | **复用**（不新增表，仅用于成员角色解析） |
 | `User.Role` / `FamilyMember.Role`（`UserRole` 枚举 Parent/Child） | `api/Domain/Enums/UserRole.cs` | **复用** |
 | `GroupKey`（N 孩子 = N 条 Schedule，共享 GroupKey） | `Schedule.cs:19` | **复用**：泛化后 N 成员 = N 条 Schedule，天然支持「混合关联」per-member 独立 |
@@ -94,7 +94,7 @@
 **Context**：现状 `AssignedChildId` 存的是 `User.Id`（非 `FamilyMember.Id`），家长与孩子共用 `FamilyMember` 表靠 `Role` 区分。原方案「零迁移 + `[Column("AssignedChildId")]` 保持列名」经用户否决，改为**正常 EF Core 迁移**：属性名与 DB 列名统一为 `AssignedMemberId`。
 
 **Decision**：
-- **代码层改名**：C# 实体属性 `AssignedChildId` → `AssignedMemberId`，**移除 `[Column("AssignedChildId")]` 映射**，让 EF Core 用默认约定（属性名 = 列名）。`ScheduleConfiguration` 同步改 `AssignedMemberId`（`Property(e => e.AssignedMemberId)` + 索引 `HasIndex(e => e.AssignedMemberId)` 与 `HasIndex(e => new { e.FamilyId, e.AssignedMemberId })`）。DTO 内部属性改用新名（`MemberIds`/`AssignedMemberId`/`MemberId`）。**API 边界的新旧并存由 Decision 6 兼容层负责**，内部命名不受兼容层影响。
+- **代码层改名**：C# 实体属性 `AssignedChildId` → `AssignedMemberId`，**不加 `[Column]`（用默认约定，属性名 = 列名）**。`ScheduleConfiguration` 同步改 `AssignedMemberId`（`Property(e => e.AssignedMemberId)` + 索引 `HasIndex(e => e.AssignedMemberId)` 与 `HasIndex(e => new { e.FamilyId, e.AssignedMemberId })`）。DTO 内部属性改用新名（`MemberIds`/`AssignedMemberId`/`MemberId`）。**API 边界的新旧并存由 Decision 6 兼容层负责**，内部命名不受兼容层影响。
 - **数据层迁移**：新增一个 migration `RenameAssignedChildIdToAssignedMemberId`，`Up` 用 `RenameColumn`（`AssignedChildId` → `AssignedMemberId`）+ `RenameIndex`（`IX_Schedules_AssignedChildId` → `IX_Schedules_AssignedMemberId`、`IX_Schedules_FamilyId_AssignedChildId` → `IX_Schedules_FamilyId_AssignedMemberId`）；`Down` 完整反向（可回滚，遵守 dev-dotnet-standards「迁移可回滚」）。**必须手写为 Rename，禁止 drop+add**——EF Core 脚手架默认把列改名生成为 drop column + add column（丢数据），须手工改为 `RenameColumn`/`RenameIndex` 以保留存量数据。
 - **成员角色反查**：`AssignedMemberId(User.Id) + FamilyId → FamilyMembers(Role)`。双文案、打卡权限、streak 排除均需此反查。
 
@@ -104,7 +104,7 @@
 - ❌ 零迁移 + `[Column("AssignedChildId")]`（原方案）：无 DDL 无 backfill，但 DB 列名仍是误导性的 `AssignedChildId`，属「命名表意图」妥协；已被用户否决，改用正式迁移让列名与语义一致。
 
 **Consequences**：
-- ✅ 列名与语义一致（`AssignedMemberId`），无 `[Column]` 映射的「隐藏列名」负担
+- ✅ 列名与语义一致（`AssignedMemberId`），不加 `[Column]` 后无「隐藏列名」负担
 - ✅ 成员角色反查复用 `FamilyMembers` 已有索引（UserId+FamilyId）
 - ⚠️ 需一次 migration + 生产部署执行（见 §部署与回滚）；`RenameColumn` 不改数据，存量孩子日程行完整保留
 
@@ -114,7 +114,7 @@
 
 - **Status**：Accepted（2026-08-23，用户拍板）
 - **Context**：原 Decision 1 在「零迁移」硬约束下用 `[Column("AssignedChildId")]` 让 C# 属性名 `AssignedMemberId` 映射到旧列名，避免 DDL。用户否决该硬约束，要求属性名与 DB 列名统一走正式迁移。
-- **Decision**：移除 `[Column]` 映射，新增 `RenameAssignedChildIdToAssignedMemberId` migration，`Up` 重命名列与索引、`Down` 反向还原。生产环境不自动迁移（`Database.Migrate()` 仅 Development，见 `Program.cs:149`），部署由运维/CI-CD 手动 `dotnet ef database update`。
+- **Decision**：不加 `[Column]`（用默认约定，属性名 = 列名），新增 `RenameAssignedChildIdToAssignedMemberId` migration，`Up` 重命名列与索引、`Down` 反向还原。生产环境不自动迁移（`Database.Migrate()` 仅 Development，见 `Program.cs:149`），部署由运维/CI-CD 手动 `dotnet ef database update`。
 - **改名范围界定（列名 vs 其它字段）**：
   - **唯一改名的落库列**：`Schedules.AssignedChildId` → `AssignedMemberId`（含其两个索引 `IX_Schedules_AssignedChildId`、`IX_Schedules_FamilyId_AssignedChildId` 同步重命名）。
   - **不落库、不受影响**：`ChildIds`/`ChildId`/`childId`/`assignedChildId` 均为请求/响应 DTO 字段（序列化边界），由 Decision 6 兼容层处理新旧并存，不涉及 DB。
@@ -212,7 +212,7 @@
 - **日历查询的孩子强制过滤顺序（安全边界）**：`CalendarController.Query` 绑定 `memberId`（新）+ `childId`（旧，deprecated）双查询参数后，**先归一化、再角色强制**——① 归一化：都传 → `memberId` 优先；仅传 `childId` → 归一化为 `memberId`；都不传 → `memberId=null`（全部成员）；② 角色强制：`role==Child` 时强制 `request.MemberId = User.GetUserId()`（覆盖客户端传入的任何 `memberId`/`childId` 值）。**绝不**在归一化前用 `childId` 做孩子强制，也绝不只强制 `childId` 而不强制 `memberId`——否则孩子传 `memberId=家长Id` 会经「memberId 优先」覆盖强制 self，越权看到家长日程。强制赋值必须落在归一化后的最终成员字段 `MemberId` 上（或同时覆写 `MemberId` + `ChildId` 新旧两个字段）。
 - **响应 DTO（序列化层，API 边界）**：`ScheduleResponse` / `ScheduleSummary` / `CalendarSchedule` 同时输出 `assignedMemberId`（新）+ `assignedChildId`（旧，同值）+ `assignedMemberRole`（新）。旧版小程序读 `assignedChildId` 不报错。
 - **错误码**：新增 `MEMBER_NOT_SELECTED` / `MEMBER_NOT_IN_FAMILY` / `CHILD_SELF_ASSIGN_ONLY` 等新码；旧码 `CHILD_NOT_SELECTED` / `CHILD_NOT_IN_FAMILY` 保留为 **deprecated 别名**，继续返回同一 HTTP 状态。`CHILD_ACCESS_DENIED` 不改名，无别名。契约 `errors.json` 中为旧码加 `deprecated: true`。**运行时行为**：Service 抛新码常量（`ErrorCodes.MemberNotSelected` 等）；schedule 模块的错误处理路径是 `ScheduleController.IsDomainError` 错误码列表 + 各 Action 的 `catch (InvalidOperationException ex) when (IsDomainError(ex.Message))`（**非** `DomainException`/全局中间件——全局 `ExceptionHandlingMiddleware` 处理的是 `DomainException`，而 schedule 模块抛的是 `InvalidOperationException` + 字符串匹配），需把旧码别名（`CHILD_NOT_SELECTED`/`CHILD_NOT_IN_FAMILY`）保留在 `IsDomainError` 列表中并映射到同一 HTTP 状态，防御遗留代码路径仍抛旧字符串；错误响应体 `error` 字段携带新码。旧版客户端若匹配旧码字符串，则优雅降级为通用错误提示（HTTP 状态不变，非崩溃）。
-- **C# 内部**：实体属性 `AssignedMemberId`（DB 列随 migration 同步重命名，无 `[Column]` 映射），DTO 属性用新名 `MemberIds`/`AssignedMemberId`/`MemberId`；旧名只做在 API 边界（DTO 序列化/反序列化），不进 Service/Domain 内部。
+- **C# 内部**：实体属性 `AssignedMemberId`（DB 列随 migration 同步重命名，不加 `[Column]`，默认约定），DTO 属性用新名 `MemberIds`/`AssignedMemberId`/`MemberId`；旧名只做在 API 边界（DTO 序列化/反序列化），不进 Service/Domain 内部。
 - **移除时机**：下一个版本（V+1）移除全部 deprecated 旧字段/旧错误码，同时清理契约 `deprecated` 标记与前端旧字段读取分支。
 
 **Alternatives Considered**：
@@ -446,7 +446,7 @@ SettlementJob.ExecuteAsync
 ## 构建序列
 
 1. **契约层**：`openspec/contracts/schedule/{enums,errors,dto}.json`（含 deprecated 标记）+ `app/contracts/schedule.js` + parity 测试
-2. **后端实体/DTO 改名 + 迁移 + 兼容层**：`Schedule.AssignedMemberId`（移除 `[Column]`）+ `ScheduleConfiguration` 同步 + 列重命名 migration（`RenameAssignedChildIdToAssignedMemberId`）+ DTO 新字段 + API 边界新旧并存（`childIds`/`assignedChildId` deprecated 别名 + 归一化/双输出）
+2. **后端实体/DTO 改名 + 迁移 + 兼容层**：`Schedule.AssignedMemberId`（不加 `[Column]`，默认约定）+ `ScheduleConfiguration` 同步 + 列重命名 migration（`RenameAssignedChildIdToAssignedMemberId`）+ DTO 新字段 + API 边界新旧并存（`childIds`/`assignedChildId` deprecated 别名 + 归一化/双输出）
 3. **后端权限 + 校验**：Controller 放开孩子角色 + `CHILD_SELF_ASSIGN_ONLY`；Service 成员在家庭 + 孩子越权检查；`ErrorCodes` 常量（新码 + deprecated 别名）
 4. **后端打卡/结算**：`CheckinService` 孩子仅自己；`SettlementJob` streak 排除家长
 5. **后端模板**：`ApplyTemplateRequest.MemberIds` 多选 + `childId` 兼容归一化
@@ -482,7 +482,7 @@ SettlementJob.ExecuteAsync
   dotnet ef database update 20260819014740_AddTemplateModule --project api/ --startup-project api/
   ```
   （回退到上一迁移 `AddTemplateModule`，即执行 `RenameAssignedChildIdToAssignedMemberId` 的 `Down`，把列名与索引名改回 `AssignedChildId`。）
-- **验证点（重命名不改数据）**：`RenameColumn`/`RenameIndex` 仅改列/索引名，不改任何行数据。部署后验证：`SELECT count(*) FROM "Schedules"` 行数不变；抽查存量孩子行 `"AssignedMemberId"` 仍等于原 `AssignedChildId` 值；应用层「命名表意图」达成（无 `[Column]` 隐藏列名）。
+- **验证点（重命名不改数据）**：`RenameColumn`/`RenameIndex` 仅改列/索引名，不改任何行数据。部署后验证：`SELECT count(*) FROM "Schedules"` 行数不变；抽查存量孩子行 `"AssignedMemberId"` 仍等于原 `AssignedChildId` 值；应用层「命名表意图」达成（不加 `[Column]` 后无隐藏列名）。
 
 ---
 

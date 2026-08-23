@@ -1,120 +1,135 @@
-# 架构设计审核报告 · 家长日程（generalize-schedule-to-member）
+# 架构设计审核报告 · 家长日程（generalize-schedule-to-member）— 复审（迁移方案）
 
-> 审核对象：`openspec/changes/generalize-schedule-to-member/`（design.md + proposal.md + tasks.md + 6 份 delta spec + contracts/schedule/*）
-> 审核日期：2026-08-23 | 审核人：arch-architect-reviewer
-> 对照真相源：`production/staging/2026-08-23-家长日程/`（requirement.md / epic-story.md / review.md）+ `openspec/specs/` 已归档六域
-> 审核方法：按 `arch-review` skill 11 维度扫描；现状对账清单通过 `codegraph_explore` 逐条独立复核
-
----
-
-## 零、现状对账清单独立复核结果（dev-codegraph 硬 gate）
-
-> 用 codegraph 对 `api/` 与 `app/` 已有代码逐条核验，结论如下。**对账清单核心论断全部属实**，仅一处遗漏（见 B1）。
-
-| 对账清单论断 | 复核结论 | 证据 |
-|------------|:--:|------|
-| `AssignedChildId` 存 **User.Id**（非 FamilyMember.Id） | ✅ 属实 | `ScheduleService.GetByIdAsync` 用 `_db.Users.FirstOrDefaultAsync(u => u.Id == schedule.AssignedChildId)` 解析昵称（ScheduleService.cs:153-155）；`CalendarQueryService` 批量 `Users.Where(u => childIds.Contains(u.Id))`（:65-69）；`TemplateService.ApplyAsync` 用 `fm.UserId == request.ChildId`（:278）；前端 `schedule-create/index.js:214` `childIds: selected.map(c => c.userId \|\| c.childId)` |
-| `FamilyMember`（Id/UserId/Role/ChildName/DisplayMode），家长孩子同表靠 Role 区分 | ✅ 属实 | FamilyMember.cs:13-21；UserRole.cs Parent=1/Child=2 |
-| `SettlementJob` per-child：`GroupBy(AssignedChildId)` + `StreakScope.Schedule`/`StreakScope.Child` | ✅ 属实 | SettlementJob.cs:49 `GroupBy(e => e.AssignedChildId)`；:134 `UpsertStreakAsync(StreakScope.Schedule, routine.Id, …)`；:144 `UpsertStreakAsync(StreakScope.Child, childId, …)` |
-| `ScheduleController` Create/Update/Delete/Cancel/Restore `role != Parent → 403` 一刀切 | ✅ 属实 | ScheduleController.cs:35/95/132/156/180 |
-| `ScheduleService.UpdateAsync/DeleteAsync/Cancel/Restore` 无 role 参数、无孩子越权检查 | ✅ 属实 | UpdateAsync 签名 `(scheduleId, request, userId, familyId, ct)`（ScheduleService.cs:203），体内无 role 判断 |
-| `CheckinService.GetAccessibleScheduleAsync` 仅校验家庭成员、不校验被分配者 | ✅ 属实 | CheckinService.cs:245-262 只查 `fm.UserId == userId && fm.FamilyId == schedule.FamilyId` 取 role，未比对 `AssignedMemberId` |
-| `ErrorCodes.cs` 无 schedule 模块、schedule 全用裸字符串 | ✅ 属实 | ErrorCodes.cs 仅 Auth/Checkin/Family 三节；ScheduleController/ScheduleService 散落 `"CHILD_NOT_SELECTED"` 等字面量 |
-| `TemplateService.ApplyAsync` `Role==Child` 校验 + `ChildIds=[request.ChildId]` | ✅ 属实 | TemplateService.cs:276-283（`fm.Role == UserRole.Child`）+ :314 `ChildIds = new List<Guid>{ request.ChildId }` |
-| `CalendarQueryService` childId 过滤 + 批量解析 User | ✅ 属实 | CalendarQueryService.cs:41-42 `request.ChildId.HasValue → AssignedChildId == childId`；:65-69 批量查 User |
-| `ConflictDetectionService` `AssignedChildId == request.ChildId` | ✅ 属实 | ConflictDetectionService.cs:24 |
-| `CompletionStatsService` 孩子维度、家长日程天然不进入、无需改 | ✅ 属实 | CompletionStatsService.cs:33 `AssignedChildId == userId`（仅孩子自身 User.Id，家长行天然排除） |
-| 孩子端可见性已满足 US-PAR-12、无需改 | ✅ 属实（后端） | `ChildScheduleQueryService` `AssignedChildId == userId` 过滤 + `CalendarController.Query` :48-49 `role==Child → request.ChildId = User.GetUserId()` |
-
-**结论**：`AssignedChildId` 存 User.Id（非 FamilyMember.Id）这一关键论断、以及 `SettlementJob` streak per-child 写，均经独立复核属实。零迁移方案（`[Column("AssignedChildId")]` 保持列名不变）在 EF Core 下成立——列名不改则无 DDL、无迁移，存量孩子日程行完全兼容。**对账清单唯一遗漏：`CalendarController` 的改动未列入**（见 B1）。
+> 审核对象：`openspec/changes/generalize-schedule-to-member/`（design.md + proposal.md + tasks.md + 6 份 delta spec + contracts/schedule/* + contracts/template/errors.json）
+> 审核日期：2026-08-23（复审）| 审核人：arch-architect-reviewer
+> 复审缘起：上一轮审核后，用户否决「零迁移」硬约束，改为正式 EF Core 列重命名迁移，design.md 已重做（commit `fcc41bb`）。本轮聚焦**迁移方案正确性**，并复核上一轮结论是否仍成立。
+> 对照真相源：`production/staging/2026-08-23-家长日程/` + `openspec/specs/` 已归档六域
+> 审核方法：`arch-review` skill 11 维度扫描 + 用 codegraph/grep/Read **独立核验** `api/` 实际数据库结构（`AppDbContext`、`ScheduleConfiguration`、既有 Migration、`AppDbContextModelSnapshot`、`Program.cs`）
 
 ---
 
-## 一、11 维度总览
+## 零、迁移方案独立核验结果（本轮核心）
 
-| # | 维度 | 结论 | 严重度 |
-|---|------|------|:--:|
-| 1 | 需求覆盖 | US-PAR-01~15 逐条落到 delta spec/tasks；BE-01~11 大体覆盖，BE-05/BE-07 未显式落点 | ⚠️ 建议 |
-| 2 | ER 关系可反推 | 关系基数均有 spec 依据；但「FamilyMember—Schedule」经 FamilyId 的画法略偏离实际（Schedule 无 FamilyMember.Id 外键，实为 AssignedMemberId→User.Id 软引用），正文已补说明 | ⚠️ 建议 |
-| 3 | 时序完整 | 6 条时序覆盖正常+异常；创建/编辑/删除/打卡/结算/日历 越权链路均有说明 | ✅ |
-| 4 | ADR 充分 | 6 ADR 均含 Context/Decision/Alternatives/Consequences；存量变更无需新增「认证/UI框架/状态管理」类决策，充分 | ✅ |
-| 5 | 规则合规 | 无 TBD/TODO、无硬编码密钥、无同步阻塞异步、无裸 wx.request；契约 JSON 齐全；对账清单基本准确 | ✅ |
-| 6 | 质量底线 | Risks 识别了越权遗漏/streak 污染/双文案遗漏/混合关联等关键风险；无占位符 | ✅ |
-| 7 | 限界上下文合理 | 不新增 csproj，模块内扩展，跨上下文交互（Template→Schedule、Checkin→ScheduleQuery）已标注 | ✅ |
-| 8 | API 契约完整 | contracts 齐全且大体一致；ScheduleSummary 缺 role、CHILD_NOT_IN_FAMILY 跨域重叠、dto 未覆盖全量 DTO、ScheduleConflictCheckRequest 错误码疑似笔误 | ⚠️ 建议 |
-| 9 | 前端架构对齐 | 沿用 globalData（小程序原生，不引 Pinia）；memberList 改造、data-id、契约镜像均合理 | ✅ |
-| 10 | 构建序列可行 | 8 梯队依赖无环；Task 8.1 依赖图漏列 5.3；Task 4.1 未显式说明 role 参数传递 | ⚠️ 建议 |
-| 11 | 现状对账完整 | **对账清单核心论断全部属实，但遗漏 `CalendarController`**（child 角色强制过滤 + query param 绑定随改名受影响） | ❌ 阻塞 |
+> 用实际代码逐条核验 design.md §Decision 1 + §部署与回滚 + Task 0.4 的迁移声明。**核心论断全部属实，索引名与 design 完全一致**（索引名写错会导致迁移失败，故逐字核对既有 migration 文件）。
+
+| # | design 声明 | 核验结论 | 证据 |
+|---|-----------|:--:|------|
+| 1 | `Schedules` 表当前列名为 `AssignedChildId`（Guid，非 FamilyMember.Id） | ✅ 属实 | `api/Migrations/20260809110306_InitialCreate.cs:36` `AssignedChildId = table.Column<Guid>(type: "uuid", nullable: false)`；表名 `Schedules`（`AppDbContextModelSnapshot.cs:330` `b.ToTable("Schedules")`） |
+| 2 | 索引名 `IX_Schedules_AssignedChildId` 存在 | ✅ 属实 | `InitialCreate.cs:207` `name: "IX_Schedules_AssignedChildId"`（由 `HasIndex(e => e.AssignedChildId)` 自动生成，名称与约定完全一致） |
+| 3 | 索引名 `IX_Schedules_FamilyId_AssignedChildId` 存在 | ✅ 属实 | `InitialCreate.cs:217` `name: "IX_Schedules_FamilyId_AssignedChildId"`（由 `HasIndex(e => new { e.FamilyId, e.AssignedChildId })` 自动生成） |
+| 4 | 仅此两索引引用 `AssignedChildId`（其余 `IX_Schedules_FamilyId`/`GroupKey`/`SourceScheduleId`/`SourceTemplateId` 不含该列） | ✅ 属实 | grep 全量：`InitialCreate.cs` + `AddTemplateModule.cs` 中 `IX_Schedules_*` 仅上述两个含 `AssignedChildId` |
+| 5 | 改名范围界定：唯一改名的落库列为 `Schedules.AssignedChildId` | ✅ 属实 | snapshot 中 child 相关列仅 3 处：`AssignedChildId`（:251）、`ChildName`（:157，FamilyMember）、`TargetChildName`（:223，InvitationCode）；后两者语义为「显示名覆盖/邀请目标」非 User.Id 引用，**正确排除** |
+| 6 | `FamilyMember.ChildName` / `InvitationCode.TargetChildName`/`TargetDisplayMode` 属其它语义、不改 | ✅ 属实 | `FamilyMember.cs:18` `string? ChildName`（显示名覆盖）；`InvitationCode.cs:18-19` `TargetChildName`/`TargetDisplayMode`（邀请孩子专用）。均非成员 User.Id 引用，不属本次泛化 |
+| 7 | `RenameColumn`/`RenameIndex` 不改数据、存量行完整保留 | ✅ 属实 | PostgreSQL `ALTER TABLE ... RENAME COLUMN` / `ALTER INDEX ... RENAME TO` 仅改名称，不动行数据；design 明确「禁止 drop+add」以规避 EF 脚手架默认的丢数据行为，方向正确 |
+| 8 | 生产不自动迁移：`Database.MigrateAsync()` 包在 `IsDevelopment()` 内 | ✅ 属实 | `api/Program.cs:149` `if (app.Environment.IsDevelopment())` 包裹 `:155` `await db.Database.MigrateAsync()`，生产启动不迁移 |
+| 9 | 回滚目标为上一迁移 `20260819014740_AddTemplateModule` | ✅ 属实 | `api/Migrations/` 目录实际迁移列表：`..._AddFamilyExpansion` → `20260819014740_AddTemplateModule`（最后一个）。回退到它即执行 `RenameAssignedChildIdToAssignedMemberId` 的 `Down` |
+| 10 | 枚举值 `UserRole.Child`/`StreakScope.Child`/`CheckinSource.Child` 非列名、不改；`Streak.SubjectId` 多态列语义不变 | ✅ 属实 | `Streak.cs:12-13` `Scope`(枚举)+`SubjectId`(Guid 多态)，无 `Child` 列名 |
+
+**迁移核验结论**：`Up`（`RenameColumn("Schedules", "AssignedChildId", "AssignedMemberId")` + 两个 `RenameIndex`）与 `Down`（反向）**完全正确、可回滚**。索引名经逐字核对与实际既有 migration 一致，无「写错索引名导致迁移失败」风险。改名范围界定完整——除 `Schedules.AssignedChildId` 及其两个索引外，无其它落库的 child 关联列被遗漏。
 
 ---
 
-## 二、问题清单（按严重度排序）
+## 一、上一轮结论复核（B1 + S1~S10 是否已修复）
 
-### 阻塞（Blocking）
+> 上一轮 design-review.md 的 1 阻塞项 + 10 建议项，对照重做后的 design.md / tasks.md / contracts 逐一复核。
 
-**B1｜现状对账清单 + tasks 遗漏 `CalendarController` 的改动，埋下「新字段筛选失效」+「孩子越权」双风险。**
+| 上轮项 | 内容 | 现状 | 证据 |
+|------|------|:--:|------|
+| B1（阻塞） | 现状对账 + Task 1.3 遗漏 `CalendarController` | ✅ 已修复 | design.md:41 对账清单补 `CalendarController`；tasks.md Task 1.3 产出文件加 `CalendarController.cs` + 「先归一化、后角色强制」安全边界 |
+| S1 | `SettlementJob` 角色反查 familyId 语义不精确 | ✅ 已修复 | design.md Decision 4（:177-180）改「逐 schedule 反查 `FamilyMembers(UserId==AssignedMemberId && FamilyId==FamilyId)`」+ 显式说明跨家庭角色误判风险；Task 3.2 同步 |
+| S2 | `ScheduleSummary` 缺 `assignedMemberRole` | ✅ 已修复 | `dto.json` ScheduleSummary 补 `assignedMemberRole` + `assignedMemberName`（:31-32） |
+| S3 | `CHILD_NOT_IN_FAMILY`/`CHILD_ACCESS_DENIED` 跨域重叠未说明 | ✅ 已修复 | design.md §契约覆盖与跨域 deprecate 同步说明（:292-298）；`template/errors.json` `CHILD_NOT_IN_FAMILY` 已标 `deprecated:true`（:14） |
+| S4 | `ScheduleConflictCheckRequest`「都不传」错误码笔误 | ✅ 已修复 | `dto.json` memberId 描述改「都不传报 MEMBER_NOT_SELECTED」（:80） |
+| S5 | dto.json 未覆盖 schedule 域全量 DTO | ✅ 已修复 | design.md:294 显式声明「本契约仅含本次变更 DTO，存量 DTO 以代码 + Swagger 为准」 |
+| S6 | Task 4.1 未说明 `CreateAsync` 新 role 参数传递 | ✅ 已修复 | Task 4.1 补「同步 `CreateAsync(familyId, userId, UserRole.Parent, merged, ct)` 新 role 参数」 |
+| S7 | Decision 6「中间件」措辞与 schedule 实际错误处理不符 | ✅ 已修复 | Decision 6（:214）改「非 DomainException/全局中间件，而是 `IsDomainError` 列表 + catch 字符串匹配」 |
+| S8 | BE-05 / BE-07 未在 delta spec/tasks 显式落点 | ✅ 已修复 | design.md §边界与异常落点说明（BE-05/BE-07）（:460-467） |
+| S9 | `ChildScheduleQueryService`/`CompletionStatsService` 措辞 | ✅ 已修复（措辞） | design.md:38/45 改「无逻辑改动，随实体改名机械同步」 |
+| S10 | Task 8.1 依赖图漏列 5.3 | ✅ 已修复 | tasks.md:55 `Task 8.1 ← 依赖 0.4, 5.1, 5.2, 5.3` |
 
-`CalendarController.Query`（`api/Schedule/Controllers/CalendarController.cs:29,43,48-49`）有三处直接受 `childId`→`memberId` 改名影响，但对账清单只列了 `CalendarQueryService`（扩展），Task 1.3 产出文件只有 `CalendarResponse.cs`：
+**结论**：上一轮 1 阻塞 + 10 建议项**全部修复**。迁移改动未破坏任何上一轮已确认通过的结论（现状对账核心论断、越权两层、双文案按成员角色、streak 孩子维度、模板多选、冲突按成员、无 DisplayMode 门槛、Decision 6 兼容层——均仍成立）。
 
-- :29 `[FromQuery] Guid? childId` —— 新版客户端发 `memberId` 查询参数不会被绑定（controller 仍只绑 `childId`）
-- :43 `ChildId = childId`
-- :48-49 `if (role == Child) request.ChildId = User.GetUserId();` —— **孩子仅见自己的安全强制过滤**
+---
 
-**后果**：
-1. **功能缺陷（US-PAR-13）**：新版客户端 `GET /api/v1/calendar?memberId=…` 的成员筛选被静默忽略，日历按成员筛选对升级后客户端失效。
-2. **潜在越权（US-PAR-12 / BE-08）**：Decision 6 归一化「memberId 优先」。若 dev-dotnet 补绑 `memberId` 但漏改 :49 的角色强制到新字段 `MemberId`（仍强制 `ChildId`），孩子传入 `memberId=<家长Id>` 会经「memberId 优先」覆盖强制 self，从而看到家长日程。
-
-**修复**：对账清单补 `CalendarController`；Task 1.3 产出文件加 `CalendarController.cs`，并明确「绑定 `memberId`+`childId` 双参、归一化后孩子角色强制 `MemberId = User.GetUserId()`（覆盖客户端传入值）」。这是审批前必须补的项。
+## 二、本轮新增发现（迁移方案引入的轻微瑕疵）
 
 ### 建议（Suggestion）
 
-**S1｜`SettlementJob` 角色反查的 familyId 语义不精确（Decision 4）。** `ExecuteAsync` 按 `AssignedChildId`（=User.Id）分组，无 FamilyId 维度（SettlementJob.cs:49）；而同一 User.Id 可同时是家庭 A 的 Parent、家庭 B 的 Child（家长孩子同表 + 多家庭绑定）。Decision 4 写「对每组用 `FamilyMembers(UserId==AssignedMemberId && FamilyId==familyId)` 反查 role」未说明 familyId 从哪来。建议改为**按 schedule.FamilyId 逐条反查**（或按 `(FamilyId, AssignedMemberId)` 分组），Task 3.2 同步明确，避免跨家庭角色误判 streak 排除。当前 streak `SubjectId=User.Id` 本身已跨家庭聚合属既有行为，本次新增的 role 反查应至少绑定 schedule.FamilyId。
+**N1（轻微，措辞不准确）｜「移除 `[Column]` 映射」与实际代码不符。** design.md §Decision 1（:97）、决策变更记录（:117）多处写「移除 `[Column("AssignedChildId")]` 映射」，但实际 `api/Domain/Entities/Schedule.cs:15` 的 `AssignedChildId` **从未有任何 `[Column]` 特性**（就是裸 `public Guid AssignedChildId { get; set; }`）。「移除 [Column]」是上一轮「零迁移」方案（本会**新增** `[Column]`）的残留措辞。Task 0.3 的实际指令「**不加** `[Column]`」才是正确的。
 
-**S2｜`dto.json` 的 `ScheduleSummary` 缺 `assignedMemberRole`/`assignedMemberName`，与 Decision 6 prose 不一致。** Decision 6 写「ScheduleResponse / ScheduleSummary / CalendarSchedule 同时输出 assignedMemberId + assignedChildId + assignedMemberRole」，但 dto.json 的 ScheduleSummary 只有 assignedMemberId + assignedChildId。创建混合关联日程后，若前端要立即按成员角色渲染「待办事项/作业任务」标签，需 create 响应含 role。建议补齐 ScheduleSummary.assignedMemberRole，或显式声明「创建响应不含 role，前端用选成员时的已知角色」。
+**后果**：轻微——dev-dotnet 读「移除 [Column]」可能误以为要去找一个不存在的特性。属零影响（移除不存在属性 = no-op），但措辞应统一为「不加 `[Column]`，走 EF 默认约定」。
 
-**S3｜`CHILD_NOT_IN_FAMILY` / `CHILD_ACCESS_DENIED` 跨域契约重叠未说明。** `CHILD_NOT_IN_FAMILY` 现由 template 契约持有（`template/errors.json:14`，message「所选孩子不属于当前家庭」），本次 schedule 契约将其定义为 deprecated 别名但 message 改为「所选成员不属于当前家庭」；design 的「历史重叠」脚注只提 SCHEDULE_NOT_FOUND/NOT_FAMILY_MEMBER 与 checkin，未提 CHILD_NOT_IN_FAMILY 与 template。Task 4.1 让 TemplateService 改用 `MEMBER_NOT_IN_FAMILY` 后，template 契约的 `CHILD_NOT_IN_FAMILY` 需同步 deprecate，否则三端契约不一致。同理 `CHILD_ACCESS_DENIED` 在 template（「孩子角色无权访问模板」）与 schedule（「只能查看/操作自己的日程」）message 语义不同但同码。建议在 design 补充跨域 deprecate 同步计划。
+**修复**：design.md Decision 1 与决策变更记录中「移除 `[Column]` 映射」统一改为「不加 `[Column]`，属性改名后 EF 默认约定（属性名 = 列名）」。
 
-**S4｜`ScheduleConflictCheckRequest` 的「都不传」错误码疑似笔误。** dto.json 中 memberId 描述写「都不传报 TIME_SLOT_INVALID」，但「缺少冲突检测对象」与「时间槽非法」语义无关。建议改为专门的参数错误码（如 MEMBER_NOT_SELECTED 或新增），或明确该场景预期。
+**N2（需在 Stage 3 前补全）｜Task 0.3 实体改名后，5 个消费文件未列入任何 task 的产出文件，导致 `dotnet build` 失败 + Task 0.4 被阻塞。** Task 0.3 改名 `Schedule.AssignedChildId`（实体）+ `ScheduleInfo.AssignedChildId`（`IScheduleQueryService`），但以下消费该属性的文件**未出现在任何 task 的「产出文件」清单**：
 
-**S5｜schedule 契约 dto.json 仅覆盖「改动的 DTO」，未覆盖 schedule 域全量 DTO。** dev-contracts rule 定义 dto.json 为三端单一真相源，但本次新建的 schedule 契约只含 8 个改动 DTO，未含未改动的 UpdateScheduleRequest/DeleteScheduleRequest/CancelScheduleInstanceRequest/RestoreScheduleInstanceRequest 及对应 Response。作为 schedule 域权威契约覆盖面不完整。建议补全，或显式声明「本契约仅含本次变更 DTO，存量 DTO 不迁入」。
+| 未指派文件 | 引用 `AssignedChildId` 的位置 | 现有处置 |
+|-----------|------------------------------|---------|
+| `api/Schedule/Services/ScheduleQueryService.cs` | :35 `AssignedChildId = schedule.AssignedChildId`（构造 ScheduleInfo） | 无 task 列出 |
+| `api/Schedule/Services/ConflictDetectionService.cs` | :24 `e.AssignedChildId == request.ChildId` | Task 1.2 只列 DTO `ScheduleConflictResponse.cs`，未列 Service |
+| `api/Schedule/Services/CalendarQueryService.cs` | :42/65/114 `s.AssignedChildId` | Task 1.3 只列 `CalendarResponse.cs` + `CalendarController.cs`，未列 Service |
+| `api/Checkin/Services/CompletionStatsService.cs` | :33 `s.AssignedChildId == userId` | 无 task 列出 |
+| `api/Schedule/Services/ChildScheduleQueryService.cs` | :54/63/73/80/165 | 无 task 列出 |
 
-**S6｜Task 4.1 未显式说明 `TemplateService.ApplyAsync → ScheduleService.CreateAsync` 的新 role 参数传递。** Task 2.1 给 CreateAsync 增 role 参数后，ApplyAsync（:322 `_scheduleService.CreateAsync(familyId, userId, merged, ct)`）的调用签名需同步加 role（TemplateController.Apply 已是 parent-only，可传 UserRole.Parent）。Task 4.1 只提「去掉 Role==Child 限制」，未提签名变更。建议在 Task 4.1 产出补一句「同步 CreateAsync 新 role 参数」。
+（`SettlementJob.cs` 由 Task 3.2 覆盖、`ScheduleService.cs` 由 Task 2.1/2.2 覆盖，均 OK。）
 
-**S7｜Decision 6「错误处理中间件将旧码别名映射同一 HTTP 状态」与 schedule 模块实际错误处理机制不符。** schedule 模块当前不用 DomainException/全局中间件，而是 `InvalidOperationException` + `ScheduleController.IsDomainError` 字符串匹配 + 每 Action try/catch。deprecated 别名映射需落在 `IsDomainError` 列表与各 Action catch 路径（Task 2.3 已提「IsDomainError 错误码列表更新」，方向正确），但 prose 的「中间件」措辞易误导 dev-dotnet。建议修正措辞。
+Task 0.3 完成标准写「跨文件机械引用 … 由各自下游 task 同步」，但**上述 5 个文件没有任何「下游 task」同步**。直接后果：
+1. Task 0.3 验证命令 `dotnet build api/Agenda.Api.csproj` 会因这 5 处编译错误而**失败**。
+2. Task 0.4（`dotnet ef migrations add`）依赖 0.3，且脚手架需项目**可编译 + 可运行**，故被阻塞——迁移本身无法生成，直到这些文件被改名。
 
-**S8｜BE-05（成员被移出家庭的「已离群」打卡标记）与 BE-07（废止「无孩子」空态）未在 delta spec / tasks 显式落点。** 需求要求「沿用 module-event BE-18/BE-23」，但 design 只通过 `MEMBER_NOT_IN_FAMILY`（创建时校验）覆盖了「编辑提交校验成员在家庭」，未显式说明「已离群」打卡标记是否真的无需新代码、以及前端「无孩子」空态的废止落在哪个 task。建议在 tasks 或 design 显式标注「沿用既有逻辑、不新增」，避免下游遗漏 US-PAR 之外的两条边界。
+> 说明：design.md 现状对账清单（:38/45）已**正确**标注这些文件「随实体改名机械同步」，问题仅在于 tasks.md 未把它们落到具体 task 的产出文件。属任务拆分完整性缺口，非设计正确性错误。
 
-**S9（轻微）｜Task 0.3 实体改名会机械影响对账清单标记为「复用/无需改」的 `ChildScheduleQueryService`、`CompletionStatsService`。** `Schedule.AssignedChildId → AssignedMemberId` 是跨文件机械改名（ChildScheduleQueryService.cs:54/80/165、CompletionStatsService.cs:33 等）。对账清单对这些文件写「复用/无需改」指「无逻辑改动」，但实体改名仍强制机械同步。建议措辞改为「无逻辑改动，随实体改名机械同步」，避免 dev-dotnet 误以为这些文件完全不碰。
-
-**S10（轻微）｜Task 8.1 依赖图漏列 Task 5.3。** 依赖关系图写「Task 8.1 后端全量测试 ← 依赖 5.1, 5.2」，但 `dotnet test api/` 会跑含 5.3（兼容层测试）在内的全部测试，8.1 应依赖 5.3。
+**修复**：将上述 5 个文件补入 Task 0.3 的产出文件清单（Task 0.3 本就是「实体改名」任务，机械改名应集中在此一次性完成、`dotnet build` 作为完成标准），或将 `ConflictDetectionService.cs` 并入 Task 1.2、`CalendarQueryService.cs` 并入 Task 1.3、`CompletionStatsService.cs`/`ChildScheduleQueryService.cs`/`ScheduleQueryService.cs` 补入 Task 0.3。任选其一，但必须保证每个文件有明确 owner。
 
 ---
 
-## 三、三判决
+## 三、11 维度总览（复审后）
+
+| # | 维度 | 结论 | 严重度 |
+|---|------|------|:--:|
+| 1 | 需求覆盖 | US-PAR-01~15 + BE-01~11 均有落点（BE-05/BE-07 已显式标注） | ✅ |
+| 2 | ER 关系可反推 | 关系基数均有 spec 依据；`AssignedMemberId→User.Id` 软引用已说明 | ✅ |
+| 3 | 时序完整 | 6 时序覆盖正常+异常，越权链路多级拒绝清晰 | ✅ |
+| 4 | ADR 充分 | 6 ADR + 决策变更记录（零迁移→正式迁移）均含四要素 | ✅ |
+| 5 | 规则合规 | 无 TBD/硬编码密钥/同步阻塞异步/裸 wx.request；迁移可回滚（dev-dotnet-standards）；契约 JSON 齐全 | ✅ |
+| 6 | 质量底线 | Risks 识别迁移失败/越权遗漏/streak 污染等关键风险；无占位符 | ✅ |
+| 7 | 限界上下文合理 | 不新增 csproj，模块内扩展，跨上下文交互已标注 | ✅ |
+| 8 | API 契约完整 | contracts 齐全且与 design 一致；跨域 deprecate 同步已说明 | ✅ |
+| 9 | 前端架构对齐 | 沿用 globalData、memberList 改造、data-id、契约镜像合理 | ✅ |
+| 10 | 构建序列可行 | 8 梯队无环；Task 0.4 依赖 0.3（迁移需先编译，见 N2） | ⚠️ 建议 |
+| 11 | 现状对账完整 | 对账清单核心论断经独立核验全部属实（含本轮迁移核验） | ✅ |
+
+---
+
+## 四、三判决
 
 | 判决 | 结论 |
 |------|------|
-| 设计质量 | ⚠️ 有保留（现状对账核心论断准确、契约大体一致、任务可执行，但 CalendarController 遗漏 + 数处契约/结算细节不一致） |
-| 规则合规 | ✅ 合规（无 TBD/TODO、无硬编码密钥、无同步阻塞异步、契约文件齐全、对账清单基本准确，未发现 rule 违规） |
-| 审批建议 | ⚠️ 建议有条件批准（修复 B1 CalendarController 后批准） |
+| 设计质量 | ✅ 合格（迁移方案经独立核验正确，索引名与既有 migration 完全一致，改名范围完整；上一轮 10 项全部修复；余 N1/N2 两处轻微瑕疵） |
+| 规则合规 | ✅ 合规（无 TBD/TODO、无硬编码密钥、无同步阻塞异步、契约文件齐全、迁移可回滚、生产不自动迁移——未发现 rule 违规） |
+| 审批建议 | ⚠️ 建议有条件批准（进入 Stage 3 前修复 N2「Task 0.3 产出文件补全 5 个机械改名消费文件」，顺手修正 N1「移除 [Column]」措辞） |
 
 ---
 
-## 四、待澄清问题及结果
+## 五、待澄清问题及结果
 
 | 问题 | 结论 | 状态 |
 |------|------|------|
-| 零迁移是否成立 | 成立：`AssignedChildId` 存 User.Id（已复核），`[Column("AssignedChildId")]` 保列名即无 DDL/迁移 | ✅ 已复核 |
-| 后端是否做 DisplayMode 门槛 | 不做，只做「成员==自己」越权校验（Decision 2 已确认接受的有意边界） | ✅ 已确认（非缺陷） |
-| 双文案按关联成员角色（非查看者） | 是（Decision 3，与用户拍板决策 #7 一致） | ✅ 已确认 |
-| streak 是否仅孩子维度 | 是（Decision 4，SettlementJob per-child 已复核） | ✅ 已复核 |
-| 兼容层新旧并存一个版本、error 返回新码 | 是（Decision 6，与用户拍板一致） | ✅ 已确认 |
+| 迁移 Up/Down 是否正确可回滚 | 正确：`RenameColumn` + 两 `RenameIndex`，`Down` 反向，索引名与实际既有 migration 逐字一致 | ✅ 已核验 |
+| 索引名是否真是 `IX_Schedules_AssignedChildId` / `IX_Schedules_FamilyId_AssignedChildId` | 是，EF Core 自动生成，与 design 一致（InitialCreate.cs:207/217） | ✅ 已核验 |
+| 改名范围是否遗漏其它 child 列 | 无遗漏：仅 `Schedules.AssignedChildId`；`FamilyMember.ChildName`/`InvitationCode.TargetChildName` 正确排除 | ✅ 已核验 |
+| `RenameColumn` 是否不改数据 | 是（PG `ALTER TABLE RENAME COLUMN` 仅改名，不动行数据） | ✅ 已核验 |
+| 生产是否不自动迁移 | 是（`Program.cs:149` 包在 `IsDevelopment()` 内） | ✅ 已核验 |
+| 后端是否做 DisplayMode 门槛 | 不做（Decision 2 已确认接受的有意边界） | ✅ 已确认（非缺陷） |
+| 双文案按关联成员角色 | 是（Decision 3，与用户拍板决策 #7 一致） | ✅ 已确认 |
+| streak 是否仅孩子维度 | 是（Decision 4，逐 schedule 反查 role，已复核） | ✅ 已复核 |
+| 兼容层新旧并存、error 返回新码 | 是（Decision 6，与用户拍板一致） | ✅ 已确认 |
 
-无新增需人工拍板的疑问项——用户已拍板的 6 项约束在设计中均正确落档，未发现违反。
+无新增需人工拍板的阻塞项——用户已拍板的 6 项约束 + 本轮「否决零迁移、改正式迁移」均在设计中正确落档，未发现违反。
 
 ---
 
-## 五、审核备注
+## 六、审核备注
 
 - 本报告**不代替人工审批**。三层人审批（架构审核）是硬 Gate，本报告仅给出建议，最终由主代理呈交用户决策。
-- **结论性意见**：本设计整体质量高，现状对账清单经 codegraph 独立复核**核心论断全部属实**（尤其「AssignedChildId=User.Id 非 FamilyMember.Id」与「SettlementJob streak per-child」），零迁移方案成立；契约 JSON 齐全、任务拆解可执行、越权拦截两层覆盖了创建/编辑/删除/取消/恢复/打卡/模板全部写入路径（TemplateService.ApplyAsync 复用 CreateAsync，孩子越权兜底一致）。唯一阻塞项 B1（CalendarController 遗漏）是局部、可快速补齐的缺口；其余 S1~S10 为建议级，不阻塞审批但建议在进入 Stage 3 前由 arch-architect 一并修订 design.md/tasks.md/contracts 后定稿。
+- **结论性意见**：本轮复审聚焦的迁移方案**成立**——`RenameColumn` + 两 `RenameIndex` 的 Up/Down 正确可回滚，索引名与实际既有 migration 逐字一致，改名范围界定完整（唯一落库 child 列为 `Schedules.AssignedChildId`，`FamilyMember.ChildName`/`InvitationCode.TargetChildName` 正确排除），「RenameColumn 不改数据」与「生产不自动迁移」论断均经代码核验属实。上一轮 1 阻塞 + 10 建议项全部修复。仅余 N1（措辞「移除 [Column]」应为「不加 [Column]」）与 N2（Task 0.3 产出文件缺 5 个机械改名消费文件，会导致 `dotnet build` 失败并阻塞 Task 0.4）两处轻微瑕疵，均为局部、可快速补齐，建议 arch-architect 在进入 Stage 3 前一并修订后定稿。
