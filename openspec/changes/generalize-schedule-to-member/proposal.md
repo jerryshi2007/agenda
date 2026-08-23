@@ -8,7 +8,7 @@
 
 ## What Changes
 
-- **关联对象泛化**：`Schedule.AssignedChildId` 语义从「孩子的 User.Id」扩展为「成员的 User.Id」（家长或孩子）。家长孩子共用同一模型（非并列新增），`AssignedChildId` 列零迁移（仍是 Guid，无需 DDL / 数据回填）。
+- **关联对象泛化**：`Schedule.AssignedChildId` 语义从「孩子的 User.Id」扩展为「成员的 User.Id」（家长或孩子）。家长孩子共用同一模型（非并列新增），`AssignedChildId` 属性与 DB 列经一次正式 migration 重命名为 `AssignedMemberId`（列仍为 Guid，不改数据、不回填）。
 - **创建/编辑/删除/打卡权限矩阵泛化**：家长可给任意成员创建/编辑/删除/代打卡；孩子（高年级）仅能给自己创建、编辑、删除、打卡，不能给家长创建（新增越权拦截）。
 - **类型双文案**：`ScheduleType.HomeworkTask` 在关联对象为家长时前端显示「待办事项」，为孩子时显示「作业任务」。后端枚举值与数据不变，label 按关联成员角色渲染（与查看者无关）。
 - **打卡泛化到成员**：家长给自己打卡 + 代任意成员打卡；孩子仅给自己打卡。打卡时间窗口/逾期判定规则不变。
@@ -47,7 +47,7 @@
 
 | 路径 | 变更类型 | 说明 |
 |------|---------|------|
-| `api/Domain/Entities/Schedule.cs` | 扩展 | `AssignedChildId` → `AssignedMemberId`（`[Column("AssignedChildId")]` 保持零迁移） |
+| `api/Domain/Entities/Schedule.cs` | 扩展 | `AssignedChildId` → `AssignedMemberId`（属性与 DB 列经 migration 重命名，无 `[Column]` 映射） |
 | `api/Schedule/Dtos/` | 扩展 | `CreateScheduleRequest.MemberIds`、`ScheduleResponse.AssignedMemberId+AssignedMemberRole`、`ScheduleConflictCheckRequest.MemberId`、`CalendarQueryRequest.MemberId` |
 | `api/Schedule/Services/ScheduleService.cs` | 扩展 | 创建校验成员在家庭 + 孩子仅自己；编辑/删除加孩子越权检查 |
 | `api/Schedule/Services/ConflictDetectionService.cs` | 扩展 | 冲突过滤字段改名 |
@@ -74,4 +74,4 @@
 
 **安全影响**：新增孩子越权拦截（服务端强制，前端仅做隐藏）；创建时新增「成员在家庭」校验（补现有缺口）；打卡权限收紧（孩子仅自己，堵住「孩子代其他孩子打卡」的潜在越权）。
 
-**零迁移保证**：`AssignedChildId` 列不改名、不改类型、不回填；仅语义扩展为「成员 User.Id」。存量孩子日程行完全兼容（`AssignedChildId` 仍是孩子的 User.Id）。
+**迁移保证**：`AssignedChildId` 列经一次可回滚的 `RenameColumn` migration 重命名为 `AssignedMemberId`（不改类型、不回填、不改数据）。存量孩子日程行完全兼容（重命名后 `AssignedMemberId` 仍是孩子的 User.Id）。

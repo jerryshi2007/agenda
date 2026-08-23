@@ -1,7 +1,7 @@
 # Tasks: 日程关联对象泛化（generalize-schedule-to-member）
 
 > 日期：2026-08-23
-> 总 task 数：25（按 8 梯队分组）
+> 总 task 数：26（按 8 梯队分组）
 > 上游：design.md（generalize-schedule-to-member）
 > 下游执行：dev-dotnet / dev-miniapp
 
@@ -13,7 +13,8 @@
 [第 0 梯队：契约 + 实体]
   Task 0.1 契约 JSON（schedule 域）                ← 无依赖（arch-architect 已交付）
   Task 0.2 app/contracts/schedule.js 镜像 + parity  ← 依赖 0.1
-  Task 0.3 Schedule 实体 AssignedMemberId 改名      ← 无依赖（仅改属性 + [Column]）
+  Task 0.3 Schedule 实体 AssignedMemberId 改名      ← 无依赖（改属性 + Configuration）
+  Task 0.4 EF migration 生成（列重命名，可回滚）     ← 依赖 0.3
 
 [第 1 梯队：后端 DTO + 错误码]
   Task 1.1 ErrorCodes.cs 新增 schedule 常量         ← 依赖 0.1
@@ -51,7 +52,7 @@
   Task 7.6 use-template-dialog 多选成员              ← 依赖 6.2, 7.1
 
 [第 8 梯队：联调回归]
-  Task 8.1 后端全量测试                             ← 依赖 5.1, 5.2, 5.3
+  Task 8.1 后端全量测试                             ← 依赖 0.4, 5.1, 5.2, 5.3
   Task 8.2 前端 Jest 回归                            ← 依赖 7.x 全部
 ```
 
@@ -82,15 +83,31 @@
 - **完成标准**：镜像字段与 JSON 一一对应（新码 + deprecated 别名）；无手写字面量；parity 测试通过
 - **验证命令**：`cd app && npx jest __tests__/contracts/schedule.test.js`
 
-#### Task 0.3: Schedule 实体 AssignedMemberId 改名（零迁移）
+#### Task 0.3: Schedule 实体 AssignedMemberId 改名（移除 [Column] 映射）
 
 - **负责 agent**：`dev-dotnet`
 - **依赖**：无
 - **产出文件**：
-  - `api/Domain/Entities/Schedule.cs`（`AssignedChildId` → `AssignedMemberId`，加 `[Column("AssignedChildId")]` + 注释说明该列存成员 User.Id）
+  - `api/Domain/Entities/Schedule.cs`（`AssignedChildId` → `AssignedMemberId`，**不加 `[Column]`**，XML 注释改为「成员 User.Id」，默认约定属性名 = 列名）
+  - `api/Infrastructure/Data/Configurations/ScheduleConfiguration.cs`（`Property(e => e.AssignedMemberId)` + `HasIndex(e => e.AssignedMemberId)` + `HasIndex(e => new { e.FamilyId, e.AssignedMemberId })`）
   - `api/Domain/Interfaces/IScheduleQueryService.cs`（`ScheduleInfo.AssignedChildId` → `AssignedMemberId`）
-- **完成标准**：属性改名后 EF 仍映射到 `AssignedChildId` 列（零迁移）；`ScheduleInfo` 同步改名；现有测试编译通过
+- **完成标准**：属性改名后 EF 默认映射到 `AssignedMemberId` 列（无 `[Column]` 隐藏列名）；`ScheduleInfo` 同步改名；跨文件机械引用 `AssignedChildId`（`ScheduleQueryService`/`ConflictDetectionService`/`CalendarQueryService`/`CompletionStatsService`/`ChildScheduleQueryService`/`SettlementJob` 等）由各自下游 task 同步
 - **验证命令**：`dotnet build api/Agenda.Api.csproj`
+
+#### Task 0.4: EF migration 生成（列重命名，可回滚）
+
+- **负责 agent**：`dev-dotnet`
+- **依赖**：Task 0.3
+- **输入**：design.md §Decision 1 + §部署与回滚（Up/Down 内容）
+- **产出文件**：
+  - `api/Migrations/20260823000000_RenameAssignedChildIdToAssignedMemberId.cs`（`Up`：`RenameColumn("Schedules", "AssignedChildId", "AssignedMemberId")` + `RenameIndex("IX_Schedules_AssignedChildId", "IX_Schedules_AssignedMemberId")` + `RenameIndex("IX_Schedules_FamilyId_AssignedChildId", "IX_Schedules_FamilyId_AssignedMemberId")`；`Down` 反向还原列名与索引名）
+  - `api/Migrations/20260823000000_RenameAssignedChildIdToAssignedMemberId.Designer.cs`
+  - `api/Migrations/AppDbContextModelSnapshot.cs`（同步 `AssignedMemberId` 属性 + 索引名）
+- **完成标准**：迁移为 `RenameColumn`/`RenameIndex`（**非 drop+add**，不改数据）；`Down` 完整还原列名与索引名；`AppDbContextModelSnapshot` 与实体/配置一致（`AssignedMemberId`）；开发库应用后 `Schedules` 表列名为 `AssignedMemberId`、存量行数不变
+- **验证命令**：
+  1. `dotnet ef migrations add RenameAssignedChildIdToAssignedMemberId --project api/ --startup-project api/`（生成后人工检查 `Up` 为 Rename 而非 drop+add，`Down` 反向）
+  2. `dotnet ef database update --project api/ --startup-project api/`（开发库应用）
+  3. `dotnet ef migrations script --project api/ --startup-project api/`（核对生成 SQL 为 `ALTER TABLE "Schedules" RENAME COLUMN` 而非 DROP/ADD）
 
 ---
 
@@ -332,8 +349,8 @@
 #### Task 8.1: 后端全量测试
 
 - **负责 agent**：`dev-dotnet`
-- **依赖**：Task 5.1, 5.2, 5.3
-- **完成标准**：`dotnet test api/` 全绿，无回归
+- **依赖**：Task 0.4, 5.1, 5.2, 5.3
+- **完成标准**：`dotnet test api/` 全绿，无回归；migration 已生成且 `Up`/`Down` 可回滚（列重命名不改数据，开发库应用后行数不变）
 - **验证命令**：`dotnet test api/`
 
 #### Task 8.2: 前端 Jest 回归
@@ -348,6 +365,7 @@
 ## 跨模块集成点
 
 - **前后端联调**（Task 8.1 + 8.2 之后）：字段已走兼容层（Decision 6），后端同时接受/输出新旧字段，**非破坏性**——升级前的旧版小程序可继续运行。仍建议前后端同批合并，避免「前端发新名、后端尚未支持新名」的过渡窗口（虽然旧名仍可用）。
+- **迁移部署门**：`RenameAssignedChildIdToAssignedMemberId`（Task 0.4）是部署前置——生产环境不自动迁移（`Program.cs:149` 仅 Development 自动 `MigrateAsync`），部署前 MUST 手动 `dotnet ef database update`（回滚见 design.md §部署与回滚）。列重命名不改数据，与 Decision 6 兼容层解耦，旧版小程序在迁移前/后均可运行。
 - **跨上下文**：`TemplateService.ApplyAsync`（Template）依赖 `ScheduleService.CreateAsync`（Schedule）的 `MemberIds` + 成员校验，Task 4.1 依赖 Task 2.1。
 - **跨模块消费**：`CheckinService` / `SettlementJob` 依赖 `IScheduleQueryService.ScheduleInfo.AssignedMemberId` 改名，Task 3.1/3.2 依赖 Task 0.3。
 - **兼容层移除时机**：`childIds`/`childId`/`assignedChildId` 旧字段 + `CHILD_NOT_SELECTED`/`CHILD_NOT_IN_FAMILY` 旧错误码为 deprecated，V+1 统一移除（含契约 `deprecated` 标记 + 前端旧字段读取分支清理），本次不移除。
