@@ -11,7 +11,7 @@ const STORAGE_KEYS = {
   // Calendar
   CALENDAR_VIEW: 'calendar_view',
   CALENDAR_DATE: 'calendar_date',
-  CALENDAR_FILTER_CHILD: 'calendar_filter_child',
+  CALENDAR_FILTER_MEMBER: 'calendar_filter_member',
   CALENDAR_FILTER_TYPES: 'calendar_filter_types',
 
   // Family

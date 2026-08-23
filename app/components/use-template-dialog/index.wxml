@@ -25,20 +25,17 @@
       </view>
     </view>
 
-    <!-- 必填：孩子选择 -->
+    <!-- 必填：成员多选 -->
     <view class="modal__section">
-      <view class="section-label">关联孩子 <text class="required">*</text></view>
-      <view wx:if="{{hasNoChild}}" class="empty-state-desc">当前家庭还没有孩子，请先邀请家人加入</view>
-      <view wx:else>
-        <view class="selected-child" data-id="use-template-dialog-child-picker">
-          <text>{{childName}}</text>
-        </view>
-        <!-- 简化为单选：实际可选展开 picker 或多个 child -->
-        <view wx:for="{{template.childList}}" wx:key="userId" wx:if="{{false}}"
-              data-id="use-template-dialog-child-{{item.userId}}"
-              data-child-id="{{item.userId}}" data-child-name="{{item.childName}}"
-              bindtap="onSelectChild" />
-      </view>
+      <view class="section-label">关联成员 <text class="required">*</text></view>
+      <member-selector
+        data-id="use-template-dialog-member-selector"
+        members="{{memberList}}"
+        role="{{role}}"
+        userId="{{userId}}"
+        selectedIds="{{selectedMemberIds}}"
+        bind:change="onMemberChange"
+      />
     </view>
 
     <!-- 必填：起始日期 -->

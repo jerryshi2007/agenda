@@ -7,13 +7,8 @@ const templateService = require('../../services/template');
 const dateUtils = require('../../utils/date-utils');
 const { CheckinStatus, Reason } = require('../../contracts/checkin');
 const { ErrorMessages } = require('../../contracts/template');
+const { ScheduleType, getScheduleTypeLabel, UserRole } = require('../../contracts/schedule');
 const app = getApp();
-
-const TYPE_LABELS = {
-  'AfterSchoolActivity': '课后活动',
-  'DailyRoutine': '日常作息',
-  'HomeworkTask': '作业任务'
-};
 
 // 状态中文标签（fallback；窗口返回的 statusLabel 为权威值）
 const STATUS_LABELS = {
@@ -42,6 +37,7 @@ Page({
     isHomework: false,
     stripeClass: 'activity',
     typeLabel: '',
+    memberName: '',
     statusClass: 'pending',
     statusLabel: '未完成',
     checkinStatus: CheckinStatus.Incomplete,
@@ -125,11 +121,11 @@ Page({
       .then(res => {
         const d = res.data;
         const scheduleType = d.scheduleType || '';
-        const isHomework = scheduleType === 'HomeworkTask';
+        const isHomework = scheduleType === ScheduleType.HomeworkTask;
         let stripeClass = 'activity';
-        if (scheduleType === 'AfterSchoolActivity') stripeClass = 'activity';
-        else if (scheduleType === 'DailyRoutine') stripeClass = 'routine';
-        else if (scheduleType === 'HomeworkTask') stripeClass = 'homework';
+        if (scheduleType === ScheduleType.AfterSchoolActivity) stripeClass = 'activity';
+        else if (scheduleType === ScheduleType.DailyRoutine) stripeClass = 'routine';
+        else if (scheduleType === ScheduleType.HomeworkTask) stripeClass = 'homework';
 
         // 时间文本
         let timeText = '';
@@ -145,12 +141,13 @@ Page({
           scheduleType: scheduleType,
           isHomework: isHomework,
           stripeClass: stripeClass,
-          typeLabel: TYPE_LABELS[scheduleType] || '',
+          typeLabel: getScheduleTypeLabel(scheduleType, d.assignedMemberRole) || '',
+          memberName: d.assignedMemberName || d.assignedChildName || '',
           timeText: timeText,
           canEdit: d.canEdit || false,
           canCancel: d.canCancel || false,
           canDelete: d.canDelete || false,
-          canRestore: (d.isCancelled || d.isExcluded) && (app.globalData.userRole !== 'Child'),
+          canRestore: (d.isCancelled || d.isExcluded) && (app.globalData.userRole !== UserRole.Child),
           loading: false,
           targetDateText: dateUtils.formatDateChinese(this.data.targetDate)
         });

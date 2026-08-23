@@ -5,7 +5,9 @@ const STORAGE_KEYS = require('./utils/storage-keys');
 const privacy = require('./utils/privacy');
 const crypto = require('./utils/crypto');
 const authService = require('./services/auth');
+const familyService = require('./services/family');
 const { ErrorCodes } = require('./contracts/auth');
+const { UserRole } = require('./contracts/schedule');
 
 App({
   globalData: {
@@ -23,11 +25,11 @@ App({
     calendarState: {
       currentView: 'week',    // 'month' | 'week' | 'day'
       currentDate: null,      // 当前浏览日期
-      selectedChildId: null,  // 筛选的孩子 ID
+      selectedMemberId: null,  // 筛选的成员 ID
       selectedScheduleTypes: [] // 筛选的日程类型
     },
     familyList: [],
-    childList: [],
+    memberList: [],
 
     // 系统信息
     systemInfo: null,
@@ -99,6 +101,8 @@ App({
           }
           authService.login(loginRes.code).then((res) => {
             this.setLoginData(res.jwt, res.userId);
+            // 登录态就绪后加载家庭成员上下文（不阻塞 login resolve）
+            this.refreshFamilyContext();
 
             if (res.isDeleted) {
               this.globalData.pendingDeletedRecovery = { remainingDays: res.remainingDays || 0 };
@@ -133,6 +137,53 @@ App({
   },
 
   /**
+   * 加载家庭成员上下文：memberList + userRole
+   * 读 currentFamilyId -> getMembers -> 在 parents/children 中按 userId 匹配自身角色
+   * 孩子视角仅保留自身；无家庭/无 userId/自身不在列表/接口失败 -> 清空（防多家庭切换残留）
+   */
+  refreshFamilyContext() {
+    const familyId = wx.getStorageSync(STORAGE_KEYS.CURRENT_FAMILY_ID) || this.globalData.currentFamilyId;
+    if (!familyId || !this.globalData.userId) {
+      this.globalData.memberList = [];
+      this.globalData.userRole = null;
+      return Promise.resolve();
+    }
+    return this.loadFamilyMembers(familyId);
+  },
+
+  /**
+   * 拉取并归一化家庭成员
+   */
+  loadFamilyMembers(familyId) {
+    return familyService.getMembers(familyId).then((res) => {
+      const all = [...(res.parents || []), ...(res.children || [])];
+      const self = all.find(m => m.userId === this.globalData.userId);
+      this.globalData.currentFamilyId = familyId;
+
+      if (!self) {
+        this.globalData.memberList = [];
+        this.globalData.userRole = null;
+        return;
+      }
+
+      const normalize = (m) => ({
+        userId: m.userId,
+        role: m.role,
+        name: m.childName || m.nickname,
+        avatarUrl: m.avatarUrl
+      });
+
+      this.globalData.userRole = self.role;
+      this.globalData.memberList = self.role === UserRole.Child
+        ? [normalize(self)]
+        : all.map(normalize);
+    }).catch(() => {
+      this.globalData.memberList = [];
+      this.globalData.userRole = null;
+    });
+  },
+
+  /**
    * 登录态就绪后通知当前页面刷新认证弹窗（隐私弹窗 / 资料收集）
    * 仅 index 页实现了 _checkAuthOverlays，其余页面安全跳过
    */
@@ -150,12 +201,12 @@ App({
   _restoreCalendarState() {
     const view = wx.getStorageSync(STORAGE_KEYS.CALENDAR_VIEW);
     const date = wx.getStorageSync(STORAGE_KEYS.CALENDAR_DATE);
-    const childId = wx.getStorageSync(STORAGE_KEYS.CALENDAR_FILTER_CHILD);
+    const memberId = wx.getStorageSync(STORAGE_KEYS.CALENDAR_FILTER_MEMBER);
     const types = wx.getStorageSync(STORAGE_KEYS.CALENDAR_FILTER_TYPES);
 
     if (view) this.globalData.calendarState.currentView = view;
     if (date) this.globalData.calendarState.currentDate = date;
-    if (childId) this.globalData.calendarState.selectedChildId = childId;
+    if (memberId) this.globalData.calendarState.selectedMemberId = memberId;
     if (types) this.globalData.calendarState.selectedScheduleTypes = types;
 
     if (!this.globalData.calendarState.currentDate) {
@@ -170,7 +221,7 @@ App({
     const state = this.globalData.calendarState;
     wx.setStorageSync(STORAGE_KEYS.CALENDAR_VIEW, state.currentView);
     wx.setStorageSync(STORAGE_KEYS.CALENDAR_DATE, state.currentDate);
-    wx.setStorageSync(STORAGE_KEYS.CALENDAR_FILTER_CHILD, state.selectedChildId);
+    wx.setStorageSync(STORAGE_KEYS.CALENDAR_FILTER_MEMBER, state.selectedMemberId);
     wx.setStorageSync(STORAGE_KEYS.CALENDAR_FILTER_TYPES, state.selectedScheduleTypes);
   },
 
@@ -198,7 +249,7 @@ App({
   },
 
   isParent() {
-    return this.globalData.userRole === 'parent';
+    return this.globalData.userRole === UserRole.Parent;
   },
 
   getCurrentFamilyId() {

@@ -1,15 +1,21 @@
 // app/__tests__/app.test.js
 const mockAuth = require('./helpers/auth-mock');
+const mockFamily = { getMembers: jest.fn() };
 jest.mock('../services/auth', () => mockAuth);
+jest.mock('../services/family', () => mockFamily);
 jest.mock('../utils/crypto', () => ({ encrypt: (s) => s, decrypt: (s) => s }));
 
 const auth = require('../services/auth');
+const family = require('../services/family');
 const { installWxMock } = require('./helpers/wx-mock');
 
 let wx;
 beforeEach(() => {
   wx = installWxMock();
   jest.resetAllMocks();
+  // 默认空家庭：既有 doLogin 用例中 getStorageSync 返回统一对象，familyId 会命中 truthy 分支，
+  // 需保证 getMembers 返回 Promise 而非 undefined，否则 loadFamilyMembers 的 .then 同步抛错
+  family.getMembers.mockResolvedValue({ parents: [], children: [] });
   // 必须在 resetAllMocks 之后注册，否则实现会被清空（resetAllMocks 移除实现）
   global.getCurrentPages = jest.fn(() => []);
 });
@@ -123,5 +129,129 @@ describe('app.js 隐私检查与静默登录', () => {
     const ctx = createAppContext(loadApp());
     await ctx._bootstrapLogin();
     expect(ctx.globalData.needsProfileCollection).toBe(true);
+  });
+});
+
+describe('app.js 家庭上下文加载（memberList + userRole）', () => {
+  test('家长视角：memberList 含全体成员且 userRole 派生为 Parent', async () => {
+    family.getMembers.mockResolvedValue({
+      familyName: '我家',
+      creatorId: 'u1',
+      parents: [{ userId: 'u1', role: 'Parent', nickname: '爸爸', avatarUrl: 'a1' }],
+      children: [
+        { userId: 'u2', role: 'Child', childName: '小明', nickname: '小明', avatarUrl: 'a2' },
+        { userId: 'u3', role: 'Child', childName: '小红', nickname: '小红', avatarUrl: 'a3' }
+      ]
+    });
+    const ctx = createAppContext(loadApp());
+    ctx.globalData.userId = 'u1';
+    ctx.globalData.currentFamilyId = 'f1';
+
+    await ctx.refreshFamilyContext();
+
+    expect(family.getMembers).toHaveBeenCalledWith('f1');
+    expect(ctx.globalData.userRole).toBe('Parent');
+    expect(ctx.globalData.memberList).toEqual([
+      { userId: 'u1', role: 'Parent', name: '爸爸', avatarUrl: 'a1' },
+      { userId: 'u2', role: 'Child', name: '小明', avatarUrl: 'a2' },
+      { userId: 'u3', role: 'Child', name: '小红', avatarUrl: 'a3' }
+    ]);
+    expect(ctx.globalData.currentFamilyId).toBe('f1');
+  });
+
+  test('孩子视角：memberList 仅自身且 userRole 派生为 Child', async () => {
+    family.getMembers.mockResolvedValue({
+      familyName: '我家',
+      creatorId: 'u1',
+      parents: [{ userId: 'u1', role: 'Parent', nickname: '爸爸' }],
+      children: [
+        { userId: 'u2', role: 'Child', childName: '小明', nickname: '小明', avatarUrl: 'a2' },
+        { userId: 'u3', role: 'Child', childName: '小红', nickname: '小红', avatarUrl: 'a3' }
+      ]
+    });
+    const ctx = createAppContext(loadApp());
+    ctx.globalData.userId = 'u2';
+    ctx.globalData.currentFamilyId = 'f1';
+
+    await ctx.refreshFamilyContext();
+
+    expect(ctx.globalData.userRole).toBe('Child');
+    expect(ctx.globalData.memberList).toEqual([
+      { userId: 'u2', role: 'Child', name: '小明', avatarUrl: 'a2' }
+    ]);
+  });
+
+  test('无家庭时清空 memberList 与 userRole 且不请求', async () => {
+    const ctx = createAppContext(loadApp());
+    ctx.globalData.userId = 'u1';
+    ctx.globalData.currentFamilyId = null;
+    ctx.globalData.memberList = [{ userId: 'u9', role: 'Parent', name: '残留' }];
+    ctx.globalData.userRole = 'Parent';
+
+    await ctx.refreshFamilyContext();
+
+    expect(ctx.globalData.memberList).toEqual([]);
+    expect(ctx.globalData.userRole).toBeNull();
+    expect(family.getMembers).not.toHaveBeenCalled();
+  });
+
+  test('无 userId 时清空 memberList 与 userRole 且不请求', async () => {
+    const ctx = createAppContext(loadApp());
+    ctx.globalData.userId = null;
+    ctx.globalData.currentFamilyId = 'f1';
+    ctx.globalData.memberList = [{ userId: 'u9', role: 'Child', name: '残留' }];
+    ctx.globalData.userRole = 'Child';
+
+    await ctx.refreshFamilyContext();
+
+    expect(ctx.globalData.memberList).toEqual([]);
+    expect(ctx.globalData.userRole).toBeNull();
+    expect(family.getMembers).not.toHaveBeenCalled();
+  });
+
+  test('自身不在成员列表时清空 memberList 与 userRole（防残留）', async () => {
+    family.getMembers.mockResolvedValue({
+      parents: [{ userId: 'u1', role: 'Parent', nickname: '爸爸' }],
+      children: []
+    });
+    const ctx = createAppContext(loadApp());
+    ctx.globalData.userId = 'u-ghost';
+    ctx.globalData.currentFamilyId = 'f1';
+    ctx.globalData.memberList = [{ userId: 'u1', role: 'Parent', name: '爸爸' }];
+    ctx.globalData.userRole = 'Parent';
+
+    await ctx.refreshFamilyContext();
+
+    expect(ctx.globalData.memberList).toEqual([]);
+    expect(ctx.globalData.userRole).toBeNull();
+  });
+
+  test('接口失败时清空 memberList 与 userRole', async () => {
+    family.getMembers.mockRejectedValue({ error: 'NETWORK_ERROR', message: '网络请求失败' });
+    const ctx = createAppContext(loadApp());
+    ctx.globalData.userId = 'u1';
+    ctx.globalData.currentFamilyId = 'f1';
+    ctx.globalData.memberList = [{ userId: 'u1', role: 'Parent', name: '爸爸' }];
+    ctx.globalData.userRole = 'Parent';
+
+    await ctx.refreshFamilyContext();
+
+    expect(ctx.globalData.memberList).toEqual([]);
+    expect(ctx.globalData.userRole).toBeNull();
+  });
+
+  test('doLogin 成功后触发家庭成员上下文加载', async () => {
+    wx.getStorageSync.mockImplementation((key) => key === 'current_family_id' ? 'f1' : null);
+    wx.login.mockImplementation(({ success }) => success({ code: 'code-8' }));
+    auth.login.mockResolvedValue({ jwt: 'j8', userId: 'u8', isNewUser: false, needsProfileCollection: false });
+    family.getMembers.mockResolvedValue({
+      parents: [{ userId: 'u8', role: 'Parent', nickname: '爸爸' }],
+      children: []
+    });
+    const ctx = createAppContext(loadApp());
+
+    await ctx.doLogin();
+
+    expect(family.getMembers).toHaveBeenCalledWith('f1');
   });
 });

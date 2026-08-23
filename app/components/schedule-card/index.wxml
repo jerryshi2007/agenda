@@ -43,15 +43,15 @@
         {{typeLabel}}
       </text>
 
-      <!-- 孩子信息 -->
-      <view wx:if="{{schedule.childName}}" class="schedule-card-child">
-        <view wx:if="{{schedule.childAvatarUrl}}" class="schedule-card-child-avatar">
-          <image src="{{schedule.childAvatarUrl}}" style="width:36rpx;height:36rpx;border-radius:50%;" />
+      <!-- 成员信息 -->
+      <view wx:if="{{memberName}}" class="schedule-card-child">
+        <view wx:if="{{memberAvatarUrl}}" class="schedule-card-child-avatar">
+          <image src="{{memberAvatarUrl}}" style="width:36rpx;height:36rpx;border-radius:50%;" />
         </view>
         <view wx:else class="schedule-card-child-avatar">
-          {{schedule.childName.charAt(0)}}
+          {{memberName.charAt(0)}}
         </view>
-        <text>{{schedule.childName}}</text>
+        <text>{{memberName}}</text>
       </view>
 
       <!-- 地点（日视图显示） -->

@@ -1,5 +1,5 @@
 // app/__tests__/components/use-template-dialog.test.js
-// use-template-dialog 组件测试 —— props/visible/childId/startDate 初始化 + apply 成功事件 + 错误 toast
+// use-template-dialog 组件测试 —— props/visible/memberIds/startDate 初始化 + apply 成功事件 + 错误 toast
 
 const { loadPage, createPageContext } = require('../helpers/page');
 const { installWxMock } = require('../helpers/wx-mock');
@@ -19,16 +19,17 @@ let wx;
 beforeEach(() => {
   wx = installWxMock();
   jest.resetAllMocks();
-  // 默认无 children
   wx.getStorageSync.mockReturnValue(null);
 });
 
 function setup(props = {}, appOverrides = {}) {
   const app = {
     globalData: {
-      childList: [
-        { userId: 'c1', childName: '小明' },
-        { userId: 'c2', childName: '小红' }
+      userRole: 'Parent',
+      userId: 'p1',
+      memberList: [
+        { userId: 'c1', role: 'Child', name: '小明' },
+        { userId: 'c2', role: 'Child', name: '小红' }
       ],
       ...appOverrides.globalData
     }
@@ -49,8 +50,6 @@ function setup(props = {}, appOverrides = {}) {
   return ctx;
 }
 
-const flush = () => new Promise(resolve => setImmediate(resolve));
-
 function sampleTemplate(overrides = {}) {
   return {
     templateId: 't1',
@@ -61,6 +60,16 @@ function sampleTemplate(overrides = {}) {
     notes: '每周三',
     ...overrides
   };
+}
+
+/** 模拟 member-selector 的 change 事件回传选中成员 */
+function selectMembers(ctx, ids, selectedMembers) {
+  ctx.onMemberChange({
+    detail: {
+      memberIds: ids,
+      selectedMembers: selectedMembers || ids.map(id => ({ userId: id, role: 'Child', name: id === 'c1' ? '小明' : '小红' }))
+    }
+  });
 }
 
 describe('use-template-dialog 组件', () => {
@@ -75,16 +84,16 @@ describe('use-template-dialog 组件', () => {
       expect(ctx.data.showDialog).toBe(true);
     });
 
-    test('childId 默认取第一个孩子', () => {
+    test('selectedMemberIds 默认空（家长视角需显式多选）', () => {
       const ctx = setup({ template: sampleTemplate(), visible: true });
-      expect(ctx.data.childId).toBe('c1');
-      expect(ctx.data.childName).toBe('小明');
+      expect(ctx.data.selectedMemberIds).toEqual([]);
+      expect(ctx.data.memberList.length).toBe(2);
     });
 
-    test('无孩子时 childId 留空 + 提示', () => {
-      const ctx = setup({ template: sampleTemplate(), visible: true }, { globalData: { childList: [] } });
-      expect(ctx.data.childId).toBe('');
-      expect(ctx.data.hasNoChild).toBe(true);
+    test('无成员时 hasNoMember=true', () => {
+      const ctx = setup({ template: sampleTemplate(), visible: true }, { globalData: { memberList: [] } });
+      expect(ctx.data.selectedMemberIds).toEqual([]);
+      expect(ctx.data.hasNoMember).toBe(true);
     });
 
     test('startDate 默认今天', () => {
@@ -93,26 +102,15 @@ describe('use-template-dialog 组件', () => {
     });
   });
 
-  describe('visible 变化（observer）', () => {
-    test('visible 从 false 变 true → showDialog=true', () => {
-      const ctx = setup({ template: sampleTemplate(), visible: false });
-      ctx.properties.visible = true;
-      // 触发 observer
-      if (config => config.observers) {
-        // observers are auto-triggered when data changes
-      }
-      // 直接 setData 模拟 observer
-      ctx.setData({ showDialog: true });
-      expect(ctx.data.showDialog).toBe(true);
-    });
-  });
-
-  describe('onSelectChild', () => {
-    test('切换 childId + childName', () => {
+  describe('onMemberChange', () => {
+    test('更新 selectedMemberIds + selectedMembers', () => {
       const ctx = setup({ template: sampleTemplate(), visible: true });
-      ctx.onSelectChild({ currentTarget: { dataset: { childId: 'c2', childName: '小红' } } });
-      expect(ctx.data.childId).toBe('c2');
-      expect(ctx.data.childName).toBe('小红');
+      selectMembers(ctx, ['c1', 'c2'], [
+        { userId: 'c1', role: 'Child', name: '小明' },
+        { userId: 'c2', role: 'Child', name: '小红' }
+      ]);
+      expect(ctx.data.selectedMemberIds).toEqual(['c1', 'c2']);
+      expect(ctx.data.selectedMembers.length).toBe(2);
     });
   });
 
@@ -150,27 +148,30 @@ describe('use-template-dialog 组件', () => {
   });
 
   describe('onConfirm', () => {
-    test('校验：未选孩子 → Toast', async () => {
-      const ctx = setup({ template: sampleTemplate(), visible: true }, { globalData: { childList: [] } });
+    test('校验：未选成员 → Toast', async () => {
+      const ctx = setup({ template: sampleTemplate(), visible: true });
+      ctx.setData({ selectedMemberIds: [] });
       await ctx.onConfirm();
-      expect(wx.showToast).toHaveBeenCalledWith({ title: '请先选择孩子', icon: 'none' });
+      expect(wx.showToast).toHaveBeenCalledWith({ title: '请至少选择一个成员', icon: 'none' });
       expect(mockTemplate.apply).not.toHaveBeenCalled();
     });
 
     test('校验：startDate 为空 → Toast', async () => {
       const ctx = setup({ template: sampleTemplate(), visible: true });
+      selectMembers(ctx, ['c1']);
       ctx.setData({ startDate: '' });
       await ctx.onConfirm();
       expect(wx.showToast).toHaveBeenCalledWith({ title: '请选择起始日期', icon: 'none' });
       expect(mockTemplate.apply).not.toHaveBeenCalled();
     });
 
-    test('成功：调 template.apply + 触发 success 事件', async () => {
+    test('成功：调 template.apply（memberIds）+ 触发 success 事件', async () => {
       mockTemplate.apply.mockResolvedValue({ data: { scheduleId: 's-new', groupKey: 'g1' } });
       const ctx = setup({ template: sampleTemplate(), visible: true });
+      selectMembers(ctx, ['c1', 'c2']);
       await ctx.onConfirm();
       expect(mockTemplate.apply).toHaveBeenCalledWith('t1', expect.objectContaining({
-        childId: 'c1',
+        memberIds: ['c1', 'c2'],
         startDate: expect.any(String)
       }));
       expect(ctx.triggerEvent).toHaveBeenCalledWith('success', {
@@ -182,6 +183,7 @@ describe('use-template-dialog 组件', () => {
     test('成功：overrideName 透传', async () => {
       mockTemplate.apply.mockResolvedValue({ data: { scheduleId: 's-new' } });
       const ctx = setup({ template: sampleTemplate(), visible: true });
+      selectMembers(ctx, ['c1']);
       ctx.setData({ overrideName: '钢琴课（实例）' });
       await ctx.onConfirm();
       expect(mockTemplate.apply).toHaveBeenCalledWith('t1', expect.objectContaining({
@@ -192,6 +194,7 @@ describe('use-template-dialog 组件', () => {
     test('成功：overrideNotes 透传', async () => {
       mockTemplate.apply.mockResolvedValue({ data: { scheduleId: 's-new' } });
       const ctx = setup({ template: sampleTemplate(), visible: true });
+      selectMembers(ctx, ['c1']);
       ctx.setData({ overrideNotes: '新备注' });
       await ctx.onConfirm();
       expect(mockTemplate.apply).toHaveBeenCalledWith('t1', expect.objectContaining({
@@ -206,6 +209,7 @@ describe('use-template-dialog 组件', () => {
         message: ErrorMessages.START_DATE_INVALID
       });
       const ctx = setup({ template: sampleTemplate(), visible: true });
+      selectMembers(ctx, ['c1']);
       await ctx.onConfirm();
       expect(wx.showToast).toHaveBeenCalledWith({ title: ErrorMessages.START_DATE_INVALID, icon: 'none' });
     });
@@ -217,6 +221,7 @@ describe('use-template-dialog 组件', () => {
         message: ErrorMessages.CHILD_NOT_IN_FAMILY
       });
       const ctx = setup({ template: sampleTemplate(), visible: true });
+      selectMembers(ctx, ['c1']);
       await ctx.onConfirm();
       expect(wx.showToast).toHaveBeenCalledWith({ title: ErrorMessages.CHILD_NOT_IN_FAMILY, icon: 'none' });
     });
@@ -224,6 +229,7 @@ describe('use-template-dialog 组件', () => {
     test('失败：未知错误 → Toast 显示后端 message', async () => {
       mockTemplate.apply.mockRejectedValue({ statusCode: 500, message: '服务器内部错误' });
       const ctx = setup({ template: sampleTemplate(), visible: true });
+      selectMembers(ctx, ['c1']);
       await ctx.onConfirm();
       expect(wx.showToast).toHaveBeenCalledWith({ title: '服务器内部错误', icon: 'none' });
     });
@@ -231,6 +237,7 @@ describe('use-template-dialog 组件', () => {
     test('submitting=true → 重复点击不重复提交', async () => {
       mockTemplate.apply.mockReturnValue(new Promise(() => {}));
       const ctx = setup({ template: sampleTemplate(), visible: true });
+      selectMembers(ctx, ['c1']);
       ctx.setData({ submitting: true });
       await ctx.onConfirm();
       expect(mockTemplate.apply).not.toHaveBeenCalled();
@@ -244,9 +251,9 @@ describe('use-template-dialog 组件', () => {
       return fs.readFileSync(path.resolve(__dirname, '../../components/use-template-dialog/index.wxml'), 'utf8');
     }
 
-    test('WXML 含 child-picker / start-date-picker / confirm-btn / cancel-btn data-id', () => {
+    test('WXML 含 member-selector / start-date-picker / confirm-btn / cancel-btn data-id', () => {
       const wxml = readWxml();
-      expect(wxml).toContain('data-id="use-template-dialog-child-picker"');
+      expect(wxml).toContain('data-id="use-template-dialog-member-selector"');
       expect(wxml).toContain('data-id="use-template-dialog-start-date-picker"');
       expect(wxml).toContain('data-id="use-template-dialog-confirm-btn"');
       expect(wxml).toContain('data-id="use-template-dialog-cancel-btn"');

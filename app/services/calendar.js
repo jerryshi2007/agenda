@@ -14,12 +14,12 @@ function query(params) {
 /**
  * 查询月视图数据
  */
-function queryMonth(startDate, endDate, childId, scheduleTypes) {
+function queryMonth(startDate, endDate, memberId, scheduleTypes) {
   return query({
     view: 'month',
     startDate: startDate,
     endDate: endDate,
-    childId: childId || undefined,
+    memberId: memberId || undefined,
     eventTypes: scheduleTypes ? scheduleTypes.join(',') : undefined
   });
 }
@@ -27,12 +27,12 @@ function queryMonth(startDate, endDate, childId, scheduleTypes) {
 /**
  * 查询周视图数据
  */
-function queryWeek(startDate, endDate, childId, scheduleTypes) {
+function queryWeek(startDate, endDate, memberId, scheduleTypes) {
   return query({
     view: 'week',
     startDate: startDate,
     endDate: endDate,
-    childId: childId || undefined,
+    memberId: memberId || undefined,
     eventTypes: scheduleTypes ? scheduleTypes.join(',') : undefined
   });
 }
@@ -40,12 +40,12 @@ function queryWeek(startDate, endDate, childId, scheduleTypes) {
 /**
  * 查询日视图数据
  */
-function queryDay(startDate, endDate, childId, scheduleTypes) {
+function queryDay(startDate, endDate, memberId, scheduleTypes) {
   return query({
     view: 'day',
     startDate: startDate,
     endDate: endDate,
-    childId: childId || undefined,
+    memberId: memberId || undefined,
     eventTypes: scheduleTypes ? scheduleTypes.join(',') : undefined
   });
 }

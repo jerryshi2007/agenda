@@ -1,0 +1,24 @@
+<!-- components/member-selector/index.wxml
+     关联成员选择器 —— 家长视角全体成员多选；孩子视角仅自己、锁定 -->
+
+<view class="member-select">
+  <view wx:if="{{displayMembers.length === 0}}" class="empty-state" data-id="member-selector-empty">
+    <view class="empty-state-desc">还没有关联成员，请先邀请家人加入</view>
+  </view>
+
+  <view wx:for="{{displayMembers}}" wx:key="userId"
+        class="member-select-item {{item._selected ? 'selected' : ''}} {{item._locked ? 'locked' : ''}}"
+        data-id="member-selector-item-{{item.userId}}"
+        data-index="{{index}}" bindtap="onToggle">
+    <view class="member-select-check">
+      <text wx:if="{{item._selected}}">✓</text>
+    </view>
+    <view class="member-select-avatar" style="background:{{item._color || '#10AEFF'}};">
+      <text>{{item.name ? item.name.charAt(0) : '?'}}</text>
+    </view>
+    <view class="member-select-info">
+      <text class="member-select-name">{{item.name}}</text>
+      <text wx:if="{{item.roleLabel}}" class="member-select-role">{{item.roleLabel}}</text>
+    </view>
+  </view>
+</view>

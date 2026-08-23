@@ -14,9 +14,9 @@ beforeEach(() => {
 function setup(props = {}, appOverrides = {}) {
   const app = {
     globalData: {
-      childList: [
-        { userId: 'c1', childName: '小明' },
-        { userId: 'c2', childName: '小红' }
+      memberList: [
+        { userId: 'c1', name: '小明' },
+        { userId: 'c2', name: '小红' }
       ],
       ...appOverrides.globalData
     }
@@ -134,23 +134,23 @@ describe('schedule-form 组件', () => {
     });
   });
 
-  describe('孩子多选', () => {
-    test('_loadChildList 加载 childList（带 _selected）', () => {
+  describe('成员多选', () => {
+    test('_loadMemberList 加载 memberList（带 _selected）', () => {
       const ctx = setup({ childSelectorVisible: true });
-      ctx._loadChildList();
-      expect(ctx.data.childList.length).toBe(2);
-      expect(ctx.data.childList[0].userId).toBe('c1');
+      ctx._loadMemberList();
+      expect(ctx.data.memberList.length).toBe(2);
+      expect(ctx.data.memberList[0].userId).toBe('c1');
     });
 
-    test('onToggleChild 切换 _selected 状态并同步 childIds', () => {
+    test('onToggleMember 切换 _selected 状态并同步 memberIds', () => {
       const ctx = setup({ childSelectorVisible: true });
-      ctx._loadChildList();
-      ctx.onToggleChild({ currentTarget: { dataset: { index: 0 } } });
-      expect(ctx.data.childList[0]._selected).toBe(true);
-      expect(ctx.data.formData.childIds).toEqual(['c1']);
-      ctx.onToggleChild({ currentTarget: { dataset: { index: 0 } } });
-      expect(ctx.data.childList[0]._selected).toBe(false);
-      expect(ctx.data.formData.childIds).toEqual([]);
+      ctx._loadMemberList();
+      ctx.onToggleMember({ currentTarget: { dataset: { index: 0 } } });
+      expect(ctx.data.memberList[0]._selected).toBe(true);
+      expect(ctx.data.formData.memberIds).toEqual(['c1']);
+      ctx.onToggleMember({ currentTarget: { dataset: { index: 0 } } });
+      expect(ctx.data.memberList[0]._selected).toBe(false);
+      expect(ctx.data.formData.memberIds).toEqual([]);
     });
   });
 
@@ -216,14 +216,14 @@ describe('schedule-form 组件', () => {
       expect(ctx.data.errors.dueDate).toBeTruthy();
     });
 
-    test('childSelectorVisible=true 但 childIds 为空 → valid=false', () => {
+    test('childSelectorVisible=true 但 memberIds 为空 → valid=false', () => {
       const ctx = setupForValidate({ childSelectorVisible: true, startDateVisible: false });
       ctx.data.scheduleType = ScheduleType.AfterSchoolActivity;
       ctx.data.formData.name = '钢琴课';
       ctx.data.formData.timeSlots = [{ dayOfWeek: 1, startTime: '08:00', endTime: '09:00' }];
-      ctx.data.formData.childIds = [];
+      ctx.data.formData.memberIds = [];
       expect(ctx._validate()).toBe(false);
-      expect(ctx.data.errors.childIds).toBeTruthy();
+      expect(ctx.data.errors.memberIds).toBeTruthy();
     });
 
     test('startDateVisible=true 但 startDate 为空 → valid=false', () => {
@@ -231,7 +231,7 @@ describe('schedule-form 组件', () => {
       ctx.data.scheduleType = ScheduleType.AfterSchoolActivity;
       ctx.data.formData.name = '钢琴课';
       ctx.data.formData.timeSlots = [{ dayOfWeek: 1, startTime: '08:00', endTime: '09:00' }];
-      ctx.data.formData.childIds = ['c1'];
+      ctx.data.formData.memberIds = ['c1'];
       ctx.data.formData.startDate = '';
       expect(ctx._validate()).toBe(false);
       expect(ctx.data.errors.startDate).toBeTruthy();
@@ -307,9 +307,9 @@ describe('schedule-form 组件', () => {
       expect(wxml).toContain('data-id="schedule-form-suggest-end"');
     });
 
-    test('WXML 含 child-selector / start-date data-id', () => {
+    test('WXML 含 member-selector / start-date data-id', () => {
       const wxml = readWxml();
-      expect(wxml).toContain('data-id="schedule-form-child-');
+      expect(wxml).toContain('data-id="schedule-form-member-');
       expect(wxml).toContain('data-id="schedule-form-start-date"');
     });
   });

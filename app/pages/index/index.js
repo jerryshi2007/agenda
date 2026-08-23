@@ -13,8 +13,8 @@ Page({
     currentView: 'week',       // 'month' | 'week' | 'day'
     currentDate: '',           // yyyy-MM-dd
     navTitle: '',              // 导航栏标题
-    selectedChildId: null,
-    selectedChildName: '',
+    selectedMemberId: null,
+    selectedMemberName: '',
     selectedScheduleTypes: [],
     selectedTypeLabel: '',
     monthCells: [],            // 月视图 42 格数据
@@ -28,7 +28,7 @@ Page({
     _lastSwipeTime: 0,
 
     // 子组件数据
-    childList: [],
+    memberList: [],
 
     // 认证模块弹窗宿主（隐私弹窗 + 资料收集）
     showPrivacyDialog: false,
@@ -42,7 +42,7 @@ Page({
     this.setData({
       currentView: state.currentView || 'week',
       currentDate: state.currentDate || dateUtils.formatDate(new Date()),
-      selectedChildId: state.selectedChildId || null,
+      selectedMemberId: state.selectedMemberId || null,
       selectedScheduleTypes: state.selectedScheduleTypes || []
     });
     this.setData({ navTitle: this._buildNavTitle() });
@@ -59,15 +59,18 @@ Page({
     const state = app.globalData.calendarState;
     const needsRefresh = this.data.currentView !== state.currentView ||
                          this.data.currentDate !== state.currentDate ||
-                         this.data.selectedChildId !== state.selectedChildId ||
+                         this.data.selectedMemberId !== state.selectedMemberId ||
                          JSON.stringify(this.data.selectedScheduleTypes) !== JSON.stringify(state.selectedScheduleTypes);
 
     this.setData({
       currentView: state.currentView || this.data.currentView,
       currentDate: state.currentDate || this.data.currentDate,
-      selectedChildId: state.selectedChildId,
+      selectedMemberId: state.selectedMemberId,
       selectedScheduleTypes: state.selectedScheduleTypes || []
     });
+
+    // 家庭切换 / 返回首页刷新成员上下文（不阻塞日历数据拉取）
+    app.refreshFamilyContext();
 
     if (needsRefresh || this.data.schedules.length === 0) {
       this._fetchData();
@@ -81,7 +84,7 @@ Page({
     app.updateCalendarState({
       currentView: this.data.currentView,
       currentDate: this.data.currentDate,
-      selectedChildId: this.data.selectedChildId,
+      selectedMemberId: this.data.selectedMemberId,
       selectedScheduleTypes: this.data.selectedScheduleTypes
     });
   },
@@ -219,29 +222,29 @@ Page({
   },
 
   /**
-   * 孩子筛选
+   * 成员筛选
    */
-  onChildFilter() {
+  onMemberFilter() {
     const that = this;
-    const items = ['全部孩子'];
-    const childList = app.globalData.childList || [];
-    const names = childList.map(c => c.childName || c.name);
+    const items = ['全部成员'];
+    const memberList = app.globalData.memberList || [];
+    const names = memberList.map(c => c.childName || c.name || c.nickname);
     items.push(...names);
 
     wx.showActionSheet({
       itemList: items,
       success(res) {
-        let childId = null;
-        let childName = '';
+        let memberId = null;
+        let memberName = '';
         if (res.tapIndex > 0) {
-          const child = childList[res.tapIndex - 1];
-          childId = child.childId || child.userId;
-          childName = child.childName || child.name;
+          const member = memberList[res.tapIndex - 1];
+          memberId = member.userId || member.childId || member.memberId;
+          memberName = member.childName || member.name || member.nickname;
         }
-        app.updateCalendarState({ selectedChildId: childId });
+        app.updateCalendarState({ selectedMemberId: memberId });
         that.setData({
-          selectedChildId: childId,
-          selectedChildName: childName,
+          selectedMemberId: memberId,
+          selectedMemberName: memberName,
           loading: true,
           error: false
         });
@@ -357,7 +360,7 @@ Page({
       view: this.data.currentView,
       startDate: startDate,
       endDate: endDate,
-      childId: this.data.selectedChildId || undefined,
+      memberId: this.data.selectedMemberId || undefined,
       eventTypes: this.data.selectedScheduleTypes.length > 0
         ? this.data.selectedScheduleTypes.join(',')
         : undefined
@@ -414,12 +417,12 @@ Page({
    * 更新筛选标签文本
    */
   _updateSelectedLabels() {
-    if (this.data.selectedChildId && app.globalData.childList) {
-      const child = app.globalData.childList.find(c =>
-        (c.childId || c.userId) === this.data.selectedChildId
+    if (this.data.selectedMemberId && app.globalData.memberList) {
+      const member = app.globalData.memberList.find(c =>
+        (c.userId || c.childId || c.memberId) === this.data.selectedMemberId
       );
-      if (child) {
-        this.setData({ selectedChildName: child.childName || child.name });
+      if (member) {
+        this.setData({ selectedMemberName: member.childName || member.name || member.nickname });
       }
     }
   },

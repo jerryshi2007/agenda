@@ -3,7 +3,7 @@
 
 const scheduleService = require('../../services/schedule');
 const dateUtils = require('../../utils/date-utils');
-const { ScheduleType, ScheduleTypeLabels } = require('../../contracts/template');
+const { ScheduleType, getScheduleTypeLabel, ErrorCodes, ErrorMessages } = require('../../contracts/schedule');
 
 Page({
   data: {
@@ -25,7 +25,7 @@ Page({
       suggestedStartTime: '',
       suggestedEndTime: '',
       notes: '',
-      childIds: [],
+      memberIds: [],
       startDate: ''
     },
     typeLabel: '',
@@ -63,7 +63,7 @@ Page({
         this.setData({
           scheduleType: d.scheduleType || '',
           isHomework: isHomework,
-          typeLabel: ScheduleTypeLabels[d.scheduleType] || '',
+          typeLabel: getScheduleTypeLabel(d.scheduleType, d.assignedMemberRole) || '',
           rowVersion: d.rowVersion || '',
           formData: {
             name: d.name || '',
@@ -75,13 +75,13 @@ Page({
             suggestedStartTime: d.suggestedStartTime || '',
             suggestedEndTime: d.suggestedEndTime || '',
             notes: d.notes || '',
-            childIds: d.childIds || [],
+            memberIds: [d.assignedMemberId || d.assignedChildId].filter(Boolean),
             startDate: d.startDate || ''
           }
         });
       })
       .catch(err => {
-        if (err && err.data && err.data.error === 'SCHEDULE_NOT_FOUND') {
+        if (err && err.data && err.data.error === ErrorCodes.SCHEDULE_NOT_FOUND) {
           wx.showToast({ title: '该日程已被删除', icon: 'none' });
           wx.navigateBack();
         } else {
@@ -174,7 +174,7 @@ Page({
       .catch(err => {
         this.setData({ saving: false });
 
-        if (err.statusCode === 409 || (err.data && err.data.error === 'CONCURRENT_EDIT_CONFLICT')) {
+        if (err.statusCode === 409 || (err.data && err.data.error === ErrorCodes.CONCURRENT_EDIT_CONFLICT)) {
           wx.showModal({
             title: '编辑冲突',
             content: '该日程已被其他用户修改，请刷新后重新编辑',
@@ -184,8 +184,8 @@ Page({
               this._loadSchedule();
             }
           });
-        } else if (err.data && err.data.error === 'CHILD_NOT_IN_FAMILY') {
-          wx.showToast({ title: '关联孩子已不在家庭中', icon: 'none' });
+        } else if (err.data && (err.data.error === ErrorCodes.MEMBER_NOT_IN_FAMILY || err.data.error === ErrorCodes.CHILD_NOT_IN_FAMILY)) {
+          wx.showToast({ title: ErrorMessages.MEMBER_NOT_IN_FAMILY, icon: 'none' });
         } else {
           wx.showToast({ title: (err && err.message) || '保存失败，请刷新重试', icon: 'none' });
         }

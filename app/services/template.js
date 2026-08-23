@@ -59,7 +59,7 @@ function remove(templateId) {
  * 从模板生成日程：POST /api/v1/templates/{id}/apply
  * @param {string} templateId
  * @param {Object} data 符合 ApplyTemplateRequest（dto.json）
- *   - childId       Guid 必填
+ *   - memberIds     Guid[] 必填（多选成员）
  *   - startDate     DateOnly 必填
  *   - name/timeSlots/repeatEndDate/location/notes 可选覆盖
  */
