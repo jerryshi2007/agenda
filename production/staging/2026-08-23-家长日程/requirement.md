@@ -1,9 +1,9 @@
 # 家长日程 · 需求变更
 
-<!-- STAGING-STATUS: dev-ready -->
+<!-- STAGING-STATUS: in-progress -->
 <!-- CONFIRMED: 2026-08-23 -->
 
-> 版本：v1.0 | 日期：2026-08-23 | 状态：dev-ready
+> 版本：v1.0 | 日期：2026-08-23 | 状态：in-progress
 >
 > 所属产品：[家庭日程协作工具](../../requirements/index.md)
 >

@@ -1,7 +1,7 @@
 # Tasks: 日程关联对象泛化（generalize-schedule-to-member）
 
 > 日期：2026-08-23
-> 总 task 数：26（按 8 梯队分组）
+> 总 task 数：27（按 8 梯队分组）
 > 上游：design.md（generalize-schedule-to-member）
 > 下游执行：dev-dotnet / dev-miniapp
 
@@ -39,15 +39,16 @@
   Task 5.2 Checkin + Settlement 单测                ← 依赖 3.1, 3.2
   Task 5.3 兼容层测试（旧字段名请求仍成功）           ← 依赖 1.2, 1.3, 1.4, 2.1
 
-[第 6 梯队：前端 service/契约]
+[第 6 梯队：前端 service/契约 + 全局状态上下文]
   Task 6.1 services/schedule.js + calendar.js 改名  ← 依赖 0.2
   Task 6.2 services/template.js + checkin.js 改名   ← 依赖 0.2
+  Task 6.3 app.js 家庭上下文加载（memberList + userRole） ← 依赖 0.2
 
 [第 7 梯队：前端组件/页面]
-  Task 7.1 member-selector 组件（新建）             ← 依赖 0.2
+  Task 7.1 member-selector 组件（新建）             ← 依赖 0.2, 6.3
   Task 7.2 schedule-create 选成员 + 双文案           ← 依赖 6.1, 7.1
   Task 7.3 schedule-detail + schedule-edit 关联成员   ← 依赖 6.1
-  Task 7.4 filter-bar + calendar-view 成员筛选       ← 依赖 6.1
+  Task 7.4 filter-bar + calendar-view 成员筛选       ← 依赖 6.1, 6.3
   Task 7.5 type-selector 双文案                      ← 依赖 0.2
   Task 7.6 use-template-dialog 多选成员              ← 依赖 6.2, 7.1
 
@@ -266,7 +267,7 @@
 
 ---
 
-### 第 6 梯队：前端 service/契约
+### 第 6 梯队：前端 service/契约 + 全局状态上下文
 
 #### Task 6.1: services/schedule.js + calendar.js 改名
 
@@ -288,6 +289,23 @@
 - **完成标准**：模板 apply 多选成员参数正确
 - **验证命令**：`cd app && npx jest`
 
+#### Task 6.3: app.js 家庭上下文加载（memberList + userRole 派生）
+
+- **负责 agent**：`dev-miniapp`
+- **依赖**：Task 0.2
+- **输入**：`app/services/family.js` 的 `getMembers(familyId)`（`GET /api/v1/families/{id}/members`，返回 `{ parents: [], children: [] }`，成员项 `FamilyMemberInfo` 含 `userId`/`role`/`childName`/`nickname`/`avatarUrl`/`memberId`）；`app/contracts/schedule.js` 的 `UserRole`（Task 0.2 交付）；design.md §438 数据流
+- **产出文件**：
+  - `app/app.js`（顶部新增 `const familyService = require('./services/family')`；新增 `refreshFamilyContext()`：读 `wx.getStorageSync(STORAGE_KEYS.CURRENT_FAMILY_ID)`（回退 `globalData.currentFamilyId`），无家庭 id 或无 `globalData.userId` 时清空 `memberList=[]`、`userRole=null` 并 return，有家庭 id 时 `return this.loadFamilyMembers(familyId)`；新增 `loadFamilyMembers(familyId)`：`familyService.getMembers(familyId)` → 合并 `parents`+`children` → `find(m => m.userId === globalData.userId)` 取自身成员 → `userRole = 自身?.role ?? null` → 归一化 `memberList = 全体.map(m => ({ userId, role, name: childName || nickname, avatarUrl }))`，`userRole === UserRole.Child` 时仅保留自身一项，自身找不到时 `memberList=[]`/`userRole=null`（防残留）；同步 `globalData.currentFamilyId = familyId`；`catch` 时清空 `memberList`/`userRole`。在 `doLogin` 成功分支 `setLoginData(res.jwt, res.userId)` 之后调用 `this.refreshFamilyContext()`，不阻塞 login 的 resolve）
+  - `app/pages/index/index.js`（`onShow` 中在 `_fetchData()` 之前调用 `app.refreshFamilyContext()`，家庭切换/返回首页时刷新成员上下文，多家庭角色变化不残留）
+  - `app/__tests__/app.test.js`（顶部新增 `jest.mock('../services/family', ...)` 供既有 doLogin 用例与新用例使用；新增用例：家长视角 memberList=全体且 userRole=Parent、孩子视角 memberList 仅自身且 userRole=Child、无家庭/无 userId 时清空、自身不在成员列表时清空、doLogin 成功后触发 getMembers）
+- **完成标准**：
+  1. 登录成功 / 进入首页后 `globalData.memberList` 被填充为归一化成员数组 `[{ userId, role, name, avatarUrl }]`
+  2. 家长视角 `memberList` = 全体家长+孩子；孩子视角 `memberList` 仅自身一项，不出现家长成员
+  3. `globalData.userRole` 按 `userId` 在 parents/children 中匹配正确派生为 `Parent`/`Child`
+  4. 家庭切换 / 返回首页后刷新，无家庭或自身不在成员列表时清空，不残留旧角色
+  5. 成员选择器 / 筛选栏能读到 `memberList`（家庭无孩子仅家长时 `memberList` 仍含家长自身，满足 BE-07）
+- **验证命令**：`cd app && npx jest`
+
 ---
 
 ### 第 7 梯队：前端组件/页面
@@ -295,7 +313,7 @@
 #### Task 7.1: member-selector 组件（新建）
 
 - **负责 agent**：`dev-miniapp`
-- **依赖**：Task 0.2
+- **依赖**：Task 0.2, 6.3
 - **产出文件**：
   - `app/components/member-selector/index.{js,wxml,wxss,json}`（家长视角全体成员多选；孩子视角仅自己不可改、不出现家长；`data-id="member-selector-*"`）
 - **完成标准**：多选/单选按角色正确；可交互元素含 `data-id`；家长视角 `memberList` 至少含当前用户（家庭无孩子、仅家长时仍有成员可选，废止「无孩子」空态，BE-07）
@@ -323,7 +341,7 @@
 #### Task 7.4: filter-bar + calendar-view 成员筛选
 
 - **负责 agent**：`dev-miniapp`
-- **依赖**：Task 6.1
+- **依赖**：Task 6.1, 6.3
 - **产出文件**：
   - `app/components/filter-bar/index.{js,wxml}`（「按孩子」→「按成员」，默认「全部成员」）
   - `app/components/calendar-view/index.{js,wxml}`（卡片成员头像/名 + 角色感知 label）
