@@ -50,17 +50,6 @@
       "notes": { "type": "string?", "required": false, "maxLength": 500 }
     }
   },
-  "ApplyTemplateRequest": {
-    "fields": {
-      "childId": { "type": "Guid", "required": true, "description": "目标孩子，必须是当前家庭成员" },
-      "startDate": { "type": "DateOnly", "required": true, "description": "起始日期，不能早于今天" },
-      "name": { "type": "string?", "required": false, "maxLength": 50, "description": "覆盖模板的默认名称" },
-      "timeSlots": { "type": "TemplateTimeSlotDto[]", "required": false, "description": "覆盖模板的时间槽" },
-      "repeatEndDate": { "type": "DateOnly?", "required": false, "description": "覆盖模板的重复结束日期" },
-      "location": { "type": "string?", "required": false, "maxLength": 100, "description": "覆盖模板的地点" },
-      "notes": { "type": "string?", "required": false, "maxLength": 500, "description": "覆盖模板的备注" }
-    }
-  },
   "ListTemplatesResponse": {
     "fields": {
       "items": { "type": "TemplateSummary[]", "required": true },
