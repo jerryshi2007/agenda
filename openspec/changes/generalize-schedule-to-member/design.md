@@ -35,13 +35,14 @@
 | `ScheduleService.UpdateAsync/DeleteAsync/CancelInstanceAsync/RestoreInstanceAsync`（**无角色参数，无孩子越权检查**，靠 Controller 拦） | `ScheduleService.cs:203+` | **扩展**：增传 role，加孩子越权检查（与 GetByIdAsync 对齐） |
 | `ScheduleController.Create/Update/Delete/Cancel/Restore`（`role != Parent → 403` 一刀切） | `api/Schedule/Controllers/ScheduleController.cs` | **扩展**：放开孩子角色（仅自己），新增 `CHILD_SELF_ASSIGN_ONLY` 越权拦截 |
 | `ChildScheduleController`（只读，`EnsureChildAsync` + `AssignedChildId==userId` 过滤） | `api/Schedule/Controllers/ChildScheduleController.cs` | **复用**（孩子端可见性已满足 US-PAR-12，无需改） |
-| `ChildScheduleQueryService`（`AssignedChildId==userId` 过滤） | `api/Schedule/Services/ChildScheduleQueryService.cs` | **复用**（过滤语义不变） |
+| `ChildScheduleQueryService`（`AssignedChildId==userId` 过滤） | `api/Schedule/Services/ChildScheduleQueryService.cs` | **复用**（无逻辑改动，随实体改名机械同步 `AssignedChildId`→`AssignedMemberId`） |
 | `ScheduleQueryService`（`IScheduleQueryService.GetScheduleAsync` 返回 `ScheduleInfo.AssignedChildId`） | `api/Schedule/Services/ScheduleQueryService.cs` | **扩展**：`ScheduleInfo` 字段改名（供 checkin 模块消费） |
 | `CalendarQueryService`（`CalendarQueryRequest.ChildId` 过滤 + 批量解析 User 名/头像） | `api/Schedule/Services/CalendarQueryService.cs` | **扩展**：`childId`→`memberId`；批量解析成员名/头像/角色 |
+| `CalendarController.Query`（`[FromQuery] Guid? childId` 绑定 + `ChildId=childId` 赋值 + `role==Child → request.ChildId=User.GetUserId()` 孩子强制 self） | `api/Schedule/Controllers/CalendarController.cs:29,43,48-49` | **扩展**：绑定 `memberId`+`childId` 双参归一化；孩子强制过滤作用在归一化后的 `MemberId`（安全边界，见 Decision 6） |
 | `ConflictDetectionService.CheckConflictAsync`（`AssignedChildId == request.ChildId`） | `api/Schedule/Services/ConflictDetectionService.cs` | **扩展**：`childId`→`memberId`（改名，逻辑不变） |
 | `CheckinService.GetAccessibleScheduleAsync`（**仅校验家庭成员，不校验被分配者**） | `api/Checkin/CheckinService.cs:245` | **扩展**：孩子仅能打卡自己的日程（堵越权） |
 | `SettlementJob`（`GroupBy(AssignedChildId)` per-child 事务；`UpdateStreaksAsync` 写 `StreakScope.Schedule` + `StreakScope.Child`） | `api/Infrastructure/Jobs/SettlementJob.cs` | **扩展**：状态结算保留全部；streak 更新排除家长成员 |
-| `CompletionStatsService`（完成率/看板，孩子维度） | `api/Checkin/Services/CompletionStatsService.cs` | **复用**（仍孩子维度，家长日程天然不进入，无需改） |
+| `CompletionStatsService`（完成率/看板，孩子维度） | `api/Checkin/Services/CompletionStatsService.cs` | **复用**（仍孩子维度，家长日程天然不进入；无逻辑改动，随实体改名机械同步 `AssignedChildId`→`AssignedMemberId`） |
 | `TemplateService.ApplyAsync`（`fm.Role == UserRole.Child` 校验 + `ChildIds=[request.ChildId]`） | `api/Template/Services/TemplateService.cs:260` | **扩展**：单选孩子 → 多选成员，去掉「仅孩子」校验 |
 
 #### 后端基础设施
@@ -160,7 +161,7 @@
 
 **Decision**：
 - **状态结算**（写 `CheckinSettlement` 终态）：对**所有**日程执行，不分成员角色（家长日程照常「未完成→已结束/未完成/逾期未完成」）。
-- **streak 更新**：仅当该分组的成员是**孩子**时执行。实现：`ExecuteAsync` 分组后，对每组用 `FamilyMembers(UserId==AssignedMemberId && FamilyId==familyId)` 反查 role，仅 `role==Child` 才调用 `UpdateStreaksAsync`。家长分组跳过 streak（含 `StreakScope.Child` 整体 streak，其 SubjectId 是家长 User.Id，本就不该存在 streak 记录）。
+- **streak 更新**：仅当日程关联的成员在该日程所属家庭中是**孩子**时执行。实现：**逐 schedule 反查角色**——对每条待结算日程用 `FamilyMembers(UserId==schedule.AssignedMemberId && FamilyId==schedule.FamilyId)` 反查 `Role`，仅 `role==Child` 的日程参与 `UpdateStreaksAsync`（含单日程 `StreakScope.Schedule` streak）；分组内若均为家长日程则跳过。**必须绑定 `schedule.FamilyId`，不能只按 `AssignedMemberId` 分组后对每组反查单一 role**——同一 `User.Id` 可在不同家庭扮演不同角色（在自己家是 Parent、在父母家是 Child），按组反查会把「家庭 A 的家长日程」误判为「家庭 B 的孩子日程」从而错误写入 streak（跨家庭角色误判）。`StreakScope.Child` 整体 streak（`SubjectId=User.Id`）的跨家庭聚合属既有行为，本次不重构。
 - **完成率/看板**：`CompletionStatsService` 本就按孩子维度查询（`AssignedChildId` 关联孩子），家长日程天然不进入，无需改（US-PAR-11/BE-03）。
 
 **Alternatives Considered**：
@@ -170,7 +171,7 @@
 **Consequences**：
 - ✅ 家长日程状态正确终态化，UI 完整
 - ✅ streak 数据不被家长日程污染，统计口径不变
-- ⚠️ `SettlementJob` 增加一次 `FamilyMembers` 反查（按组，量小）
+- ⚠️ `SettlementJob` 增加一次 `FamilyMembers` 反查（逐 schedule，量小）
 
 ---
 
@@ -193,8 +194,9 @@
 
 **Decision**：
 - **请求 DTO（反序列化层，API 边界）**：`CreateScheduleRequest` 同时接受 `childIds`（旧，deprecated）与 `memberIds`（新）。归一化优先级：**两者都传 → `memberIds` 为准**；仅传旧 → 归一化为 `memberIds`；**都不传 → 400 `MEMBER_NOT_SELECTED`**。同理 `CalendarQueryRequest.childId`/`memberId`、`ScheduleConflictCheckRequest.childId`/`memberId`、`ApplyTemplateRequest.childId`（旧单选）→ `memberIds`（新多选）。归一化实现放反序列化边界（独立旧属性 + 归一化方法，或自定义 converter），保证「memberIds 优先」与 JSON 字段顺序无关。
+- **日历查询的孩子强制过滤顺序（安全边界）**：`CalendarController.Query` 绑定 `memberId`（新）+ `childId`（旧，deprecated）双查询参数后，**先归一化、再角色强制**——① 归一化：都传 → `memberId` 优先；仅传 `childId` → 归一化为 `memberId`；都不传 → `memberId=null`（全部成员）；② 角色强制：`role==Child` 时强制 `request.MemberId = User.GetUserId()`（覆盖客户端传入的任何 `memberId`/`childId` 值）。**绝不**在归一化前用 `childId` 做孩子强制，也绝不只强制 `childId` 而不强制 `memberId`——否则孩子传 `memberId=家长Id` 会经「memberId 优先」覆盖强制 self，越权看到家长日程。强制赋值必须落在归一化后的最终成员字段 `MemberId` 上（或同时覆写 `MemberId` + `ChildId` 新旧两个字段）。
 - **响应 DTO（序列化层，API 边界）**：`ScheduleResponse` / `ScheduleSummary` / `CalendarSchedule` 同时输出 `assignedMemberId`（新）+ `assignedChildId`（旧，同值）+ `assignedMemberRole`（新）。旧版小程序读 `assignedChildId` 不报错。
-- **错误码**：新增 `MEMBER_NOT_SELECTED` / `MEMBER_NOT_IN_FAMILY` / `CHILD_SELF_ASSIGN_ONLY` 等新码；旧码 `CHILD_NOT_SELECTED` / `CHILD_NOT_IN_FAMILY` 保留为 **deprecated 别名**，继续返回同一 HTTP 状态。`CHILD_ACCESS_DENIED` 不改名，无别名。契约 `errors.json` 中为旧码加 `deprecated: true`。**运行时行为**：Service 抛新码常量（`ErrorCodes.MemberNotSelected` 等），错误处理中间件将旧码别名也映射到同一 HTTP 状态（防御遗留代码路径仍抛旧字符串）；错误响应体 `error` 字段携带新码。旧版客户端若匹配旧码字符串，则优雅降级为通用错误提示（HTTP 状态不变，非崩溃）。
+- **错误码**：新增 `MEMBER_NOT_SELECTED` / `MEMBER_NOT_IN_FAMILY` / `CHILD_SELF_ASSIGN_ONLY` 等新码；旧码 `CHILD_NOT_SELECTED` / `CHILD_NOT_IN_FAMILY` 保留为 **deprecated 别名**，继续返回同一 HTTP 状态。`CHILD_ACCESS_DENIED` 不改名，无别名。契约 `errors.json` 中为旧码加 `deprecated: true`。**运行时行为**：Service 抛新码常量（`ErrorCodes.MemberNotSelected` 等）；schedule 模块的错误处理路径是 `ScheduleController.IsDomainError` 错误码列表 + 各 Action 的 `catch (InvalidOperationException ex) when (IsDomainError(ex.Message))`（**非** `DomainException`/全局中间件——全局 `ExceptionHandlingMiddleware` 处理的是 `DomainException`，而 schedule 模块抛的是 `InvalidOperationException` + 字符串匹配），需把旧码别名（`CHILD_NOT_SELECTED`/`CHILD_NOT_IN_FAMILY`）保留在 `IsDomainError` 列表中并映射到同一 HTTP 状态，防御遗留代码路径仍抛旧字符串；错误响应体 `error` 字段携带新码。旧版客户端若匹配旧码字符串，则优雅降级为通用错误提示（HTTP 状态不变，非崩溃）。
 - **C# 内部**：实体属性仍 `AssignedMemberId` + `[Column("AssignedChildId")]`，DTO 属性用新名 `MemberIds`/`AssignedMemberId`/`MemberId`；旧名只做在 API 边界（DTO 序列化/反序列化），不进 Service/Domain 内部。
 - **移除时机**：下一个版本（V+1）移除全部 deprecated 旧字段/旧错误码，同时清理契约 `deprecated` 标记与前端旧字段读取分支。
 
@@ -271,6 +273,13 @@
 | `CONCURRENT_EDIT_CONFLICT` | 409 | 日程已被他人修改，请刷新 | 保留 |
 
 > 完整列表见 `openspec/contracts/schedule/errors.json`。`SCHEDULE_NOT_FOUND`/`NOT_FAMILY_MEMBER` 与 `checkin` 契约存在历史重叠，本次不强制去重（schedule 契约作为 schedule 域权威定义，checkin 契约保留其面向 checkin 的引用）。
+
+### 契约覆盖与跨域 deprecate 同步说明
+
+- **dto.json 覆盖范围**：`openspec/contracts/schedule/dto.json` 本次仅收录**本次变更触及的 DTO**（`CreateScheduleRequest`/`TimeSlotDto`/`ScheduleSummary`/`CreateScheduleResponse`/`ScheduleResponse`/`ScheduleConflictCheckRequest`/`CalendarQueryRequest`/`CalendarSchedule`/`ApplyTemplateRequest`）。存量未改动 DTO（`UpdateScheduleRequest`/`UpdateScheduleResponse`/`CancelScheduleInstanceRequest`/`CancelScheduleInstanceResponse`/`RestoreScheduleInstanceRequest`/`RestoreScheduleInstanceResponse`/`DeleteScheduleResponse`——均已复核**不含任何 `childId`/`memberId` 关联字段**，本次不迁移入 schedule 契约），仍以 `api/Schedule/Dtos/` 后端代码 + Swagger 为准，待后续「契约全量补全」独立变更统一迁入。schedule 域 DTO 的权威定义以本契约已收录子集为准。
+- **跨域错误码 deprecate 同步**（`CHILD_NOT_IN_FAMILY` / `CHILD_ACCESS_DENIED`）：
+  - `CHILD_NOT_IN_FAMILY` 同时存在于 `template` 契约（`template/errors.json`，message「所选孩子不属于当前家庭」）与本次新建的 `schedule` 契约（deprecated 别名）。Task 4.1 让 `TemplateService` 改用 `MEMBER_NOT_IN_FAMILY`（schedule 契约新码）后，`template/errors.json` 的 `CHILD_NOT_IN_FAMILY` 已同步标记 `deprecated: true`，V+1 与 schedule 契约的 deprecated 别名一并移除。
+  - `CHILD_ACCESS_DENIED` 在 `schedule`（「你只能查看或操作自己的日程」）与 `template`（「孩子角色无权访问模板」）契约同码不同 message，属历史同码复用、语义各自独立。本次不强制合并：两契约各自保留其域内语义，schedule 域错误码以 `schedule/errors.json` 为准，template 域以 `template/errors.json` 为准。
 
 ---
 
@@ -371,18 +380,25 @@
 ```
 SettlementJob.ExecuteAsync
   → 昨日日程 GroupBy(AssignedMemberId)
-  → 每组：反查 FamilyMembers(UserId,FamilyId).Role
-  → 状态结算（写 CheckinSettlement 终态）：所有成员
-  → streak 更新（UpdateStreaksAsync）：仅 role==Child 的组
+  → 状态结算（写 CheckinSettlement 终态）：所有成员（不分角色）
+  → streak 更新（UpdateStreaksAsync）：逐 schedule 反查 FamilyMembers(UserId==schedule.AssignedMemberId && FamilyId==schedule.FamilyId).Role，仅 role==Child 的日程参与
 ```
 
 ### 6. 日历按成员筛选 + 双文案（US-PAR-13 / US-PAR-07/08）
 
 ```
-家长 → CalendarQueryService.QueryAsync({ memberId=爸爸, ... })
-  → 过滤 AssignedMemberId == memberId
+家长 → CalendarController.Query
+  → [FromQuery] 绑定 memberId（新）+ childId（旧 deprecated）
+  → 归一化（API 边界）：都传以 memberId 为准；仅 childId → 归一化为 memberId；都不传 → memberId=null（全部成员）
+  → role==Parent：memberId 作为筛选条件（null=全部成员）
+  → CalendarQueryService.QueryAsync：过滤 AssignedMemberId == memberId
   → 批量解析成员 User 名/头像 + 角色 → CalendarSchedule{ assignedMemberId, assignedMemberRole }
   → 前端：HomeworkTask + assignedMemberRole=Parent → "待办事项"；Child → "作业任务"
+
+孩子（越权安全分支，US-PAR-12 / BE-08）：
+  → 归一化后，role==Child → 强制 request.MemberId = User.GetUserId()（覆盖客户端传入的 memberId/childId）
+  → CalendarQueryService 过滤 AssignedMemberId == 自己的 User.Id
+  → 结果仅含自己的日程；孩子传 memberId=家长Id 也看不到家长日程
 ```
 
 ---
@@ -423,6 +439,17 @@ SettlementJob.ExecuteAsync
 7. **前端 service/契约**：`services/*.js` 参数改名 + `contracts/schedule.js`（新字段名，兼容旧响应字段）
 8. **前端组件/页面**：`member-selector` + 各页面双文案/成员筛选
 9. **联调 + 回归**：`dotnet test api/` + `cd app && npx jest`
+
+---
+
+## 边界与异常落点说明（BE-05 / BE-07）
+
+> 这两条边界不在 US-PAR 主流程内，但属 requirement §11 明确要求的验收项，在此显式标注落点，避免下游遗漏。
+
+- **BE-05（关联成员被移出家庭）**：分两段落点——
+  - 「编辑提交时校验成员仍在家庭」→ 由本次新增的 `MEMBER_NOT_IN_FAMILY` 校验覆盖（创建 Task 2.1、编辑 Task 2.2）。
+  - 「已移除成员打卡条目标记"已离群"、不接收新打卡」→ **沿用 checkin 模块既有逻辑（`NOT_FAMILY_MEMBER` 403 拦截），不新增代码**。本次只需确保 `CheckinService.GetAccessibleScheduleAsync` 的孩子越权检查（Task 3.1）不与既有家庭成员校验冲突，无需为「已离群」写新分支。
+- **BE-07（家庭无孩子、仅家长，废止「无孩子」空态）**：**纯前端改动，后端无「无孩子」阻塞逻辑**（后端创建从不要求家庭必须存在孩子，只校验「所选成员在家庭」）。落点在 Task 7.1（`member-selector` 组件：家长视角 `memberList` 至少含当前用户，永远有成员可选）+ Task 7.2（`schedule-create` 空态文案从「无孩子」改为「无成员」，且仅当 `memberList` 为空时出现）。原 `module-event BE-08`「无孩子」空态不再适用。
 
 ---
 
