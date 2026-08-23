@@ -100,6 +100,8 @@ describe('schedule-create 页面 - 4 步向导', () => {
       expect(ctx.data.scheduleType).toBe('HomeworkTask');
       expect(ctx.data.formData.name).toBe('数学作业');
       expect(ctx.data.formData.dueDate).toBe('2026-08-30');
+      // 旧草稿缺 formData.scheduleType 时从 draft.scheduleType 回填
+      expect(ctx.data.formData.scheduleType).toBe('HomeworkTask');
       expect(ctx.data.currentStep).toBe(3);
     });
   });
@@ -159,6 +161,13 @@ describe('schedule-create 页面 - 4 步向导', () => {
       expect(ctx.data.scheduleType).toBe('AfterSchoolActivity');
       expect(ctx.data.stripeClass).toBe('activity');
       expect(ctx.data.typeLabel).toBe('课后活动');
+    });
+
+    test('onSelectType 同步写入 formData.scheduleType（Step 3 schedule-form 校验依赖）', () => {
+      const ctx = setup();
+      ctx.onLoad({});
+      ctx.onSelectType({ currentTarget: { dataset: { type: 'AfterSchoolActivity' } } });
+      expect(ctx.data.formData.scheduleType).toBe('AfterSchoolActivity');
     });
 
     test('onSelectType=DailyRoutine → stripeClass=routine', () => {

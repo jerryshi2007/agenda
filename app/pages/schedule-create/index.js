@@ -74,9 +74,14 @@ Page({
     // 恢复草稿
     const draft = wx.getStorageSync(STORAGE_KEYS.SCHEDULE_DRAFT);
     if (draft) {
+      const restoredFormData = Object.assign({}, this.data.formData, draft.formData || {});
+      // 旧草稿可能缺 formData.scheduleType（历史 bug 未写入），从 draft.scheduleType 回填
+      if (draft.scheduleType && !restoredFormData.scheduleType) {
+        restoredFormData.scheduleType = draft.scheduleType;
+      }
       this.setData({
         scheduleType: draft.scheduleType || '',
-        formData: Object.assign({}, this.data.formData, draft.formData || {}),
+        formData: restoredFormData,
         currentStep: draft.currentStep || 1
       });
     }
@@ -153,7 +158,10 @@ Page({
     this.setData({
       scheduleType: type,
       stripeClass: stripeClass,
-      typeLabel: getScheduleTypeLabel(type, this._representativeRole()) || ''
+      typeLabel: getScheduleTypeLabel(type, this._representativeRole()) || '',
+      // 同步写入 formData.scheduleType：Step 3 的 schedule-form 通过
+      // initial-values 初始化 data.scheduleType 并据此校验，缺写则校验静默失败
+      'formData.scheduleType': type
     });
   },
 
