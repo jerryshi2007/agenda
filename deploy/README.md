@@ -168,7 +168,7 @@ sudo docker run -d \
   -p 8080:8080 \
   -v /opt/agenda/uploads:/app/uploads \
   -e ASPNETCORE_ENVIRONMENT=Production \
-  -e Storage__AvatarBaseUrl='http://www.paiban.live/uploads/avatars' \
+  -e Storage__AvatarBaseUrl='https://paiban.live/uploads/avatars' \
   -e JWT_SECRET_KEY='<JWT密钥>' \
   -e WeChat__AppId='wxbf3f337f41dfef10' \
   -e WeChat__AppSecret='<AppSecret>' \
@@ -183,9 +183,10 @@ sudo docker run -d \
   --name nginx \
   --restart unless-stopped \
   --network host \
-  -v /opt/agenda/nginx/nginx.conf:/etc/nginx/nginx.conf:ro \
-  -v /opt/agenda/uploads:/opt/agenda/uploads:ro \
-  nginx:1.27-alpine
+  -v /opt/agenda/nginx/config/nginx.conf:/etc/nginx/nginx.conf:ro \
+  -v /opt/agenda/nginx/ssl:/etc/nginx/ssl:ro \
+  -v /opt/agenda/uploads:/etc/agenda/uploads:ro \
+  nginx:latest
 ```
 
 > `--network host` 让 nginx 直接占用宿主 80，`proxy_pass http://127.0.0.1:8080` 打到 API 发布的 8080；Linux（Ubuntu）上为标准用法。
@@ -198,22 +199,20 @@ sudo docker logs agenda-api          # 看 API 启动日志有无异常
 sudo docker logs nginx               # 看 nginx 启动日志有无异常
 curl http://127.0.0.1/health         # 服务器内（绕过 nginx 直连 8080：curl http://127.0.0.1:8080/health）
 curl http://www.paiban.live/health   # 公网，应返回 {"status":"healthy",...}
-# 上传头像后，curl -I http://www.paiban.live/uploads/avatars/<userId>.png 应返回 200，而非 404
+# 上传头像后，curl -I https://paiban.live/uploads/avatars/<userId>.png 应返回 200，而非 404
 ```
 
 ---
 
 ## 4. 小程序配置
 
-[app/services/api.js](../../app/services/api.js) 的 `BASE_URL` 按微信环境自动切换：
+[app/services/api.js](../../app/services/api.js) 的 `BASE_URL` 统一指向 HTTPS 根地址：
 
 ```js
-const BASE_URL = ENV_VERSION === 'release'
-  ? 'https://www.paiban.live'   // 生产（须 HTTPS + 备案 + 合法域名）
-  : 'http://www.paiban.live';   // 开发/体验版（HTTP，工具勾「不校验合法域名」）
+const BASE_URL = 'https://paiban.live';
 ```
 
-开发调试时，微信开发者工具 →「详情」→「本地设置」→ 勾选 **「不校验合法域名…」**。
+开发调试时，微信开发者工具 →「详情」→「本地设置」→ 勾选 **「不校验合法域名…」**，或在小程序后台配置「request 合法域名」为 `https://paiban.live`。
 
 ---
 
@@ -245,7 +244,7 @@ sudo docker rm -f agenda-api
 | `JWT_SECRET_KEY` | JWT 签名密钥（`openssl rand -base64 48` 生成） | 机密 |
 | `WeChat__AppId` | `wxbf3f337f41dfef10` | 半公开 |
 | `WeChat__AppSecret` | 微信小程序 AppSecret | **机密**（已随 git 泄露，上线前重置） |
-| `Storage__AvatarBaseUrl` | `http://www.paiban.live/uploads/avatars`（SSL 后改 https） | 配置 |
+| `Storage__AvatarBaseUrl` | `https://paiban.live/uploads/avatars` | 配置 |
 | `ConnectionStrings__DefaultConnection` | `Host=10.0.0.15;...;Database=agenda` | 含 DB 密码 |
 
 ⚠️ **密钥管理**：AppSecret、JWT 密钥、DB 密码均经 `docker run -e` 注入，**不要**写进 git。`appsettings.Development.json` 里的 AppSecret 已泄露，正式上线前去微信公众平台重置。
@@ -263,7 +262,7 @@ sudo docker rm -f agenda-api
 sudo docker run -d --name agenda-api --restart unless-stopped -p 8080:8080 \
   -v /opt/agenda/uploads:/app/uploads \
   -e ASPNETCORE_ENVIRONMENT=Production \
-  -e Storage__AvatarBaseUrl='http://www.paiban.live/uploads/avatars' \
+  -e Storage__AvatarBaseUrl='https://paiban.live/uploads/avatars' \
   -e JWT_SECRET_KEY='<原密钥>' -e WeChat__AppId='...' -e WeChat__AppSecret='...' \
   -e ConnectionStrings__DefaultConnection='Host=10.0.0.15;...' \
   agenda-api:<旧tag>
@@ -302,7 +301,7 @@ sudo docker run -d --name agenda-api --restart unless-stopped \
   -p 8080:8080 \
   -v /opt/agenda/uploads:/app/uploads \
   -e ASPNETCORE_ENVIRONMENT=Production \
-  -e Storage__AvatarBaseUrl='http://www.paiban.live/uploads/avatars' \
+  -e Storage__AvatarBaseUrl='https://paiban.live/uploads/avatars' \
   -e JWT_SECRET_KEY='<JWT密钥>' \
   -e WeChat__AppId='wxbf3f337f41dfef10' \
   -e WeChat__AppSecret='<AppSecret>' \
