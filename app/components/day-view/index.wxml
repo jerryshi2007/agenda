@@ -9,13 +9,10 @@
             data-id="calendar-day-create-btn" bindtap="onCreate">创建日程</view>
     </view>
 
-    <!-- 时间标注 + 日程卡片 -->
+    <!-- 日程卡片（全宽，时间在卡片内部左侧） -->
     <view wx:for="{{sortedSchedules}}" wx:key="scheduleId" wx:for-item="schedule" class="day-schedule-item">
-      <view class="day-time-marker">
-        <text class="day-time-text">{{schedule.startTime || '--:--'}} - {{schedule.endTime || '--:--'}}</text>
-        <view class="day-time-line"></view>
-      </view>
       <schedule-card
+        class="day-schedule-card"
         schedule="{{schedule}}"
         viewType="day"
         data-id="calendar-schedule-card-{{schedule.scheduleId}}"

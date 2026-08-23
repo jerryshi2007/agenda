@@ -1,22 +1,22 @@
-// components/schedule-card/index.js
+// components/mini-schedule-card/index.js
+// 周视图迷你卡片 —— 颜色条 + 时间 + 名称 + 头像 + 完成状态图标（紧凑，7 列网格用）
 
-const { ScheduleType, getScheduleTypeLabel } = require('../../contracts/schedule');
+const { ScheduleType } = require('../../contracts/schedule');
 
 Component({
   properties: {
     schedule: {
       type: Object,
       value: {}
-    },
-    viewType: {
-      type: String,
-      value: 'week'  // 'week' | 'day'
     }
   },
 
   data: {
+    stripeClass: 'activity',
+    timeText: '',
     memberName: '',
-    memberAvatarUrl: ''
+    memberInitial: '',
+    statusKey: '' // 'completed' | 'incomplete' | 'cancelled' | 'overdue' | ''
   },
 
   observers: {
@@ -27,25 +27,22 @@ Component({
         else if (schedule.scheduleType === ScheduleType.DailyRoutine) stripeClass = 'routine';
         else if (schedule.scheduleType === ScheduleType.HomeworkTask) stripeClass = 'homework';
       }
-      const typeLabel = getScheduleTypeLabel(schedule.scheduleType, schedule.assignedMemberRole) || '';
-      const memberName = (schedule && (schedule.assignedMemberName || schedule.childName)) || '';
-      const memberAvatarUrl = (schedule && (schedule.assignedMemberAvatarUrl || schedule.childAvatarUrl)) || '';
 
-      // 时间列：优先时间段（起/止两行），其次截止日期（日期 + "截止"标签）
-      let timeMain = '';
-      let timeSub = '';
+      let timeText = '';
       if (schedule && schedule.startTime && schedule.endTime) {
-        timeMain = schedule.startTime;
-        timeSub = schedule.endTime;
+        timeText = `${schedule.startTime} - ${schedule.endTime}`;
       } else if (schedule && schedule.dueDate) {
-        timeMain = schedule.dueDate;
-        timeSub = '截止';
-      } else if (schedule && schedule.startTime) {
-        timeMain = schedule.startTime;
-        timeSub = '';
+        timeText = `截止 ${schedule.dueDate}`;
       }
 
-      this.setData({ stripeClass, typeLabel, memberName, memberAvatarUrl, timeMain, timeSub });
+      const memberName = (schedule && (schedule.assignedMemberName || schedule.childName)) || '';
+      const memberInitial = memberName ? memberName.charAt(0) : '';
+
+      const statusKey = schedule && schedule.status
+        ? String(schedule.status).toLowerCase()
+        : '';
+
+      this.setData({ stripeClass, timeText, memberName, memberInitial, statusKey });
     }
   },
 

@@ -368,15 +368,19 @@ Page({
       const data = res.data;
       let schedules = [];
       let isEmpty = true;
+      // 按日期分组（周视图 7 列网格用），也用于展开扁平列表
+      const byDate = {};
 
       if (data && data.dates) {
         // 展开所有日期的 schedules 到一个扁平数组
         data.dates.forEach(d => {
           if (d.schedules && d.schedules.length > 0) {
-            schedules = schedules.concat(d.schedules.map(s => ({
+            const daySchedules = d.schedules.map(s => ({
               ...s,
               instanceDate: d.date
-            })));
+            }));
+            byDate[d.date] = daySchedules;
+            schedules = schedules.concat(daySchedules);
             isEmpty = false;
           }
         });
@@ -403,6 +407,12 @@ Page({
         this.setData({ monthCells: cells, schedules: schedules, loading: false, isEmpty: isEmpty, error: false });
       } else if (this.data.currentView === 'week') {
         const weekDays = dateUtils.generateWeekDays(cur);
+        // 按天分组，每天列内按开始时间升序
+        weekDays.forEach(day => {
+          const list = (byDate[day.date] || []).slice().sort((a, b) =>
+            (a.startTime || '').localeCompare(b.startTime || ''));
+          day.schedules = list;
+        });
         this.setData({ weekDays: weekDays, schedules: schedules, loading: false, isEmpty: isEmpty, error: false });
       } else {
         this.setData({ schedules: schedules, loading: false, isEmpty: isEmpty, error: false });
