@@ -19,6 +19,9 @@ beforeEach(() => {
 
 const flush = () => new Promise(resolve => setImmediate(resolve));
 
+// 未来 1 天的 ISO 时间：避免硬编码 expiresAt 过期导致 Pending 被误归入 expired 分组（时间炸弹）
+const futureExpiry = () => new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString();
+
 function setup(opts = {}) {
   const { type, config } = loadPage('pages/family-invite-list/index.js', opts);
   expect(type).toBe('page');
@@ -29,9 +32,9 @@ describe('family-invite-list 页面', () => {
   test('onLoad 拉取邀请列表并按状态分组', async () => {
     family.getInvites.mockResolvedValue({
       invites: [
-        { id: 'c1', code: '234567', status: 'Pending', canRevoke: true, createdAt: '2026-08-18T00:00:00Z', expiresAt: '2026-08-19T00:00:00Z' },
-        { id: 'c2', code: '345678', status: 'Used', canRevoke: false, createdAt: '2026-08-18T00:00:00Z', expiresAt: '2026-08-19T00:00:00Z' },
-        { id: 'c3', code: '456789', status: 'Redeemed', canRevoke: false, createdAt: '2026-08-18T00:00:00Z', expiresAt: '2026-08-19T00:00:00Z' }
+        { id: 'c1', code: '234567', status: 'Pending', canRevoke: true, createdAt: '2026-08-18T00:00:00Z', expiresAt: futureExpiry() },
+        { id: 'c2', code: '345678', status: 'Used', canRevoke: false, createdAt: '2026-08-18T00:00:00Z', expiresAt: futureExpiry() },
+        { id: 'c3', code: '456789', status: 'Redeemed', canRevoke: false, createdAt: '2026-08-18T00:00:00Z', expiresAt: futureExpiry() }
       ]
     });
     const ctx = setup();
@@ -81,7 +84,7 @@ describe('family-invite-list 页面', () => {
   test('onRevoke 撤销邀请后刷新列表', async () => {
     family.getInvites
       .mockResolvedValueOnce({
-        invites: [{ id: 'c1', code: '234567', status: 'Pending', canRevoke: true, createdAt: '2026-08-18T00:00:00Z', expiresAt: '2026-08-19T00:00:00Z' }]
+        invites: [{ id: 'c1', code: '234567', status: 'Pending', canRevoke: true, createdAt: '2026-08-18T00:00:00Z', expiresAt: futureExpiry() }]
       })
       .mockResolvedValueOnce({ invites: [] });
     family.revokeInvite.mockResolvedValue({ revoked: true });
