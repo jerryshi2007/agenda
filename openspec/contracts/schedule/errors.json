@@ -1,0 +1,22 @@
+{
+  "MEMBER_NOT_SELECTED": { "httpStatus": 400, "message": "请至少选择一个成员" },
+  "CHILD_NOT_SELECTED": { "httpStatus": 400, "message": "请至少选择一个成员", "deprecated": true, "description": "兼容期保留，下一个版本移除。MEMBER_NOT_SELECTED 的旧别名，返回同一 HTTP 状态。" },
+  "MEMBER_NOT_IN_FAMILY": { "httpStatus": 400, "message": "所选成员不属于当前家庭" },
+  "CHILD_NOT_IN_FAMILY": { "httpStatus": 400, "message": "所选成员不属于当前家庭", "deprecated": true, "description": "兼容期保留，下一个版本移除。MEMBER_NOT_IN_FAMILY 的旧别名，返回同一 HTTP 状态。" },
+  "CHILD_SELF_ASSIGN_ONLY": { "httpStatus": 403, "message": "孩子只能给自己创建日程" },
+  "CHILD_ACCESS_DENIED": { "httpStatus": 403, "message": "你只能查看或操作自己的日程" },
+  "SCHEDULE_NOT_FOUND": { "httpStatus": 404, "message": "日程不存在" },
+  "SCHEDULE_NAME_EMPTY": { "httpStatus": 400, "message": "日程名称不能为空" },
+  "SCHEDULE_NAME_TOO_LONG": { "httpStatus": 400, "message": "日程名称不能超过 50 个字符" },
+  "SCHEDULE_TYPE_INVALID": { "httpStatus": 400, "message": "日程类型无效" },
+  "LOCATION_TOO_LONG": { "httpStatus": 400, "message": "地点不能超过 100 个字符" },
+  "NOTES_TOO_LONG": { "httpStatus": 400, "message": "备注不能超过 500 个字符" },
+  "REPEAT_END_DATE_INVALID": { "httpStatus": 400, "message": "重复结束日期不能早于今天" },
+  "DUE_DATE_REQUIRED": { "httpStatus": 400, "message": "作业任务必须设置截止日期" },
+  "DUE_DATE_INVALID": { "httpStatus": 400, "message": "截止日期不能早于今天" },
+  "NO_DAY_SELECTED": { "httpStatus": 400, "message": "请至少选择一个时间槽星期" },
+  "TIME_SLOT_INVALID": { "httpStatus": 400, "message": "时间槽开始时间不能晚于或等于结束时间" },
+  "INVALID_SCOPE": { "httpStatus": 400, "message": "影响范围参数无效" },
+  "SCHEDULE_CONFLICT": { "httpStatus": 409, "message": "该时段与已有日程存在时间重叠" },
+  "CONCURRENT_EDIT_CONFLICT": { "httpStatus": 409, "message": "日程已被他人修改，请刷新后重试" }
+}

@@ -1,0 +1,17 @@
+{
+  "ScheduleType": {
+    "values": ["AfterSchoolActivity", "DailyRoutine", "HomeworkTask"],
+    "description": "日程类型枚举（复用 api/Domain/Enums/ScheduleType.cs）。HomeworkTask 关联成员为家长时前端显示「待办事项」，为孩子时显示「作业任务」——label 按关联成员角色渲染，枚举值与数据不变。",
+    "dualLabelByMemberRole": {
+      "HomeworkTask": { "Parent": "待办事项", "Child": "作业任务" }
+    }
+  },
+  "Scope": {
+    "values": ["ThisOnly", "ThisAndFuture"],
+    "description": "编辑/删除的影响范围。ThisOnly=仅本次；ThisAndFuture=本次及之后所有。"
+  },
+  "UserRole": {
+    "values": ["Parent", "Child"],
+    "description": "成员角色（复用 api/Domain/Enums/UserRole.cs，Parent=1/Child=2）。用于双文案切换、权限判断、streak 排除。"
+  }
+}
