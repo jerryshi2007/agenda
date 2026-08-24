@@ -37,9 +37,10 @@ public class CalendarQueryService : ICalendarQueryService
             .Include(s => s.DateExclusions)
             .Where(s => s.FamilyId == familyId && !s.IsDeleted);
 
-        // Apply filters
-        if (request.ChildId.HasValue)
-            query = query.Where(s => s.AssignedChildId == request.ChildId.Value);
+        // Apply member filter (normalized: MemberId ?? ChildId)
+        var memberId = request.GetEffectiveMemberId();
+        if (memberId.HasValue)
+            query = query.Where(s => s.AssignedMemberId == memberId.Value);
 
         if (request.ScheduleTypes?.Count > 0)
         {
@@ -61,12 +62,18 @@ public class CalendarQueryService : ICalendarQueryService
 
         var schedules = await query.AsNoTracking().ToListAsync(ct);
 
-        // Resolve child names and avatars in a single batch (IM-5)
-        var childIds = schedules.Select(s => s.AssignedChildId).Distinct().ToList();
+        // Resolve member names and avatars in a single batch (IM-5)
+        var memberIds = schedules.Select(s => s.AssignedMemberId).Distinct().ToList();
         var users = await _db.Users
             .AsNoTracking()
-            .Where(u => childIds.Contains(u.Id))
+            .Where(u => memberIds.Contains(u.Id))
             .ToDictionaryAsync(u => u.Id, u => u, ct);
+
+        // Resolve member roles for AssignedMemberRole (dual-label rendering)
+        var roles = await _db.FamilyMembers
+            .AsNoTracking()
+            .Where(fm => fm.FamilyId == familyId && memberIds.Contains(fm.UserId))
+            .ToDictionaryAsync(fm => fm.UserId, fm => fm.Role, ct);
 
         // Virtual instance expansion (ADR-015)
         var dates = new List<CalendarDate>();
@@ -111,7 +118,7 @@ public class CalendarQueryService : ICalendarQueryService
                     var status = ScheduleStatusHelper.DeriveInstanceStatus(s, date, isCancelled, isExcluded);
 
                     var slot = s.TimeSlots.FirstOrDefault(t => t.DayOfWeek == dayOfWeek);
-                    users.TryGetValue(s.AssignedChildId, out var childUser);
+                    users.TryGetValue(s.AssignedMemberId, out var childUser);
 
                     var calSchedule = new CalendarSchedule
                     {
@@ -120,9 +127,12 @@ public class CalendarQueryService : ICalendarQueryService
                         ScheduleType = s.ScheduleType.ToString(),
                         StartTime = slot?.StartTime,
                         EndTime = slot?.EndTime,
+                        AssignedMemberId = s.AssignedMemberId,
+                        AssignedChildId = s.AssignedMemberId,
+                        AssignedMemberRole = roles.TryGetValue(s.AssignedMemberId, out var role) ? role.ToString() : string.Empty,
                         Status = status,
-                        ChildName = childUser?.Nickname,
-                        ChildAvatarUrl = childUser?.AvatarUrl
+                        ChildAvatarUrl = childUser?.AvatarUrl,
+                        AssignedMemberName = childUser?.Nickname
                     };
 
                     if (view == "day")

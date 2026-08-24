@@ -246,11 +246,18 @@ describe('schedule-edit 页面', () => {
       }));
     });
 
-    test('CHILD_NOT_IN_FAMILY → Toast', async () => {
+    test('MEMBER_NOT_IN_FAMILY → Toast', async () => {
+      schedule.update.mockRejectedValue({ statusCode: 400, data: { error: 'MEMBER_NOT_IN_FAMILY' } });
+      const ctx = await setupLoaded();
+      await ctx.onSave();
+      expect(wx.showToast).toHaveBeenCalledWith({ title: '所选成员不属于当前家庭', icon: 'none' });
+    });
+
+    test('CHILD_NOT_IN_FAMILY（deprecated 别名）→ Toast', async () => {
       schedule.update.mockRejectedValue({ statusCode: 400, data: { error: 'CHILD_NOT_IN_FAMILY' } });
       const ctx = await setupLoaded();
       await ctx.onSave();
-      expect(wx.showToast).toHaveBeenCalledWith({ title: '关联孩子已不在家庭中', icon: 'none' });
+      expect(wx.showToast).toHaveBeenCalledWith({ title: '所选成员不属于当前家庭', icon: 'none' });
     });
 
     test('其他错误：Toast 显示后端 message', async () => {

@@ -10,8 +10,16 @@ public record ScheduleResponse
     public DateOnly? RepeatEndDate { get; init; }
     public string? RepeatRule { get; init; }
     public string? Location { get; init; }
+    public Guid AssignedMemberId { get; init; }
+
+    /// <summary>deprecated 兼容字段（V+1 移除），值与 AssignedMemberId 相同。</summary>
     public Guid AssignedChildId { get; init; }
-    public string? AssignedChildName { get; init; }
+
+    /// <summary>关联成员角色（Parent/Child），用于前端双文案 label 渲染。</summary>
+    public string AssignedMemberRole { get; init; } = string.Empty;
+
+    /// <summary>关联成员昵称，便于详情直接渲染成员名。</summary>
+    public string? AssignedMemberName { get; init; }
     public string? Notes { get; init; }
     public string InstanceStatus { get; init; } = string.Empty;
     public bool IsCancelled { get; init; }

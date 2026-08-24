@@ -12,7 +12,7 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Domain.Entities.Sc
         builder.Property(e => e.Name).IsRequired().HasMaxLength(50);
         builder.Property(e => e.ScheduleType).IsRequired().HasConversion<int>();
         builder.Property(e => e.FamilyId).IsRequired();
-        builder.Property(e => e.AssignedChildId).IsRequired();
+        builder.Property(e => e.AssignedMemberId).IsRequired();
         builder.Property(e => e.CreatedBy).IsRequired();
         builder.Property(e => e.GroupKey).IsRequired();
         builder.Property(e => e.Notes).HasMaxLength(500);
@@ -23,8 +23,8 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Domain.Entities.Sc
         builder.Property(e => e.UpdatedAt).IsRequired();
 
         builder.HasIndex(e => e.FamilyId);
-        builder.HasIndex(e => e.AssignedChildId);
-        builder.HasIndex(e => new { e.FamilyId, e.AssignedChildId });
+        builder.HasIndex(e => e.AssignedMemberId);
+        builder.HasIndex(e => new { e.FamilyId, e.AssignedMemberId });
         builder.HasIndex(e => e.GroupKey);
         builder.HasIndex(e => e.SourceTemplateId);
 

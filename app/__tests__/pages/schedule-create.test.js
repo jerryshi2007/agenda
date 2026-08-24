@@ -1,5 +1,5 @@
 // app/__tests__/pages/schedule-create.test.js
-// schedule-create 页面测试 —— 4 步向导 + schedule-form 子组件集成 + 冲突处理
+// schedule-create 页面测试 —— 4 步向导 + member-selector 集成 + 冲突处理
 
 const mockSchedule = require('../helpers/schedule-mock');
 jest.mock('../../services/schedule', () => mockSchedule);
@@ -8,6 +8,7 @@ const schedule = require('../../services/schedule');
 const STORAGE_KEYS = require('../../utils/storage-keys');
 const { loadPage, createPageContext } = require('../helpers/page');
 const { installWxMock } = require('../helpers/wx-mock');
+const { ScheduleType, UserRole } = require('../../contracts/schedule');
 
 let wx;
 beforeEach(() => {
@@ -21,9 +22,9 @@ const flush = () => new Promise(resolve => setImmediate(resolve));
 
 function setup(appDataOverrides = {}) {
   const appData = {
-    childList: [
-      { userId: 'c1', childName: '小明' },
-      { userId: 'c2', childName: '小红' }
+    memberList: [
+      { userId: 'c1', role: 'Child', childName: '小明' },
+      { userId: 'c2', role: 'Child', childName: '小红' }
     ],
     ...appDataOverrides
   };
@@ -42,14 +43,33 @@ function setup(appDataOverrides = {}) {
   return ctx;
 }
 
+// 模拟 member-selector change 事件：选中 c1（孩子）
+function selectMember(ctx, memberIds = ['c1'], selectedMembers) {
+  ctx.onMemberChange({
+    detail: {
+      memberIds,
+      selectedMembers: selectedMembers || memberIds.map(id => ({
+        userId: id,
+        role: 'Child',
+        name: id === 'c1' ? '小明' : '小红'
+      }))
+    }
+  });
+}
+
 describe('schedule-create 页面 - 4 步向导', () => {
   describe('onLoad 初始化', () => {
-    test('加载孩子列表（来自 app.globalData.childList）', () => {
+    test('加载成员列表（来自 app.globalData.memberList）', () => {
       const ctx = setup();
       ctx.onLoad({});
-      expect(ctx.data.childList.length).toBe(2);
-      expect(ctx.data.childList[0].childName).toBe('小明');
-      expect(ctx.data.childList[0]._color).toBeDefined();
+      expect(ctx.data.memberList.length).toBe(2);
+      expect(ctx.data.memberList[0].childName).toBe('小明');
+    });
+
+    test('兼容旧 globalData.childList', () => {
+      const ctx = setup({ memberList: undefined, childList: [{ userId: 'c1', childName: '小明' }] });
+      ctx.onLoad({});
+      expect(ctx.data.memberList.length).toBe(1);
     });
 
     test('minDate 初始化为今天', () => {
@@ -80,34 +100,56 @@ describe('schedule-create 页面 - 4 步向导', () => {
       expect(ctx.data.scheduleType).toBe('HomeworkTask');
       expect(ctx.data.formData.name).toBe('数学作业');
       expect(ctx.data.formData.dueDate).toBe('2026-08-30');
+      // 旧草稿缺 formData.scheduleType 时从 draft.scheduleType 回填
+      expect(ctx.data.formData.scheduleType).toBe('HomeworkTask');
       expect(ctx.data.currentStep).toBe(3);
     });
   });
 
   describe('onShow', () => {
-    test('重新加载孩子列表', () => {
+    test('重新加载成员列表', () => {
       const ctx = setup();
       ctx.onLoad({});
-      // 模拟 app.globalData.childList 更新
+      // 模拟 app.globalData.memberList 更新
       const app = getApp ? getApp() : { globalData: {} };
-      app.globalData.childList = [
-        { userId: 'c1', childName: '小明' },
-        { userId: 'c3', childName: '小刚' }
+      app.globalData.memberList = [
+        { userId: 'c1', role: 'Child', childName: '小明' },
+        { userId: 'c3', role: 'Child', childName: '小刚' }
       ];
       ctx.onShow();
-      // 子组件无法直接改 getApp，验证 _loadChildList 被调用
-      expect(ctx.data.childList.length).toBeGreaterThanOrEqual(1);
+      expect(ctx.data.memberList.length).toBeGreaterThanOrEqual(1);
     });
   });
 
-  describe('Step 1 孩子多选', () => {
-    test('onToggleChild 切换选中状态', () => {
+  describe('Step 1 成员选择', () => {
+    test('onMemberChange 记录选中成员', () => {
       const ctx = setup();
       ctx.onLoad({});
-      ctx.onToggleChild({ currentTarget: { dataset: { index: 0 } } });
-      expect(ctx.data.childList[0]._selected).toBe(true);
-      ctx.onToggleChild({ currentTarget: { dataset: { index: 0 } } });
-      expect(ctx.data.childList[0]._selected).toBe(false);
+      selectMember(ctx, ['c1'], [{ userId: 'c1', role: 'Child', name: '小明' }]);
+      expect(ctx.data.selectedMemberIds).toEqual(['c1']);
+      expect(ctx.data.selectedMemberNames).toBe('小明');
+    });
+
+    test('onMemberChange 更新 HomeworkTask 双文案（全孩子 → 作业任务）', () => {
+      const ctx = setup();
+      ctx.onLoad({});
+      selectMember(ctx, ['c1'], [{ userId: 'c1', role: UserRole.Child, name: '小明' }]);
+      expect(ctx.data.homeworkTypeLabel).toBe('作业任务');
+    });
+
+    test('onMemberChange 全家长 → 待办事项', () => {
+      const ctx = setup({
+        memberList: [
+          { userId: 'p1', role: 'Parent', name: '爸爸' },
+          { userId: 'p2', role: 'Parent', name: '妈妈' }
+        ]
+      });
+      ctx.onLoad({});
+      selectMember(ctx, ['p1', 'p2'], [
+        { userId: 'p1', role: UserRole.Parent, name: '爸爸' },
+        { userId: 'p2', role: UserRole.Parent, name: '妈妈' }
+      ]);
+      expect(ctx.data.homeworkTypeLabel).toBe('待办事项');
     });
   });
 
@@ -119,6 +161,13 @@ describe('schedule-create 页面 - 4 步向导', () => {
       expect(ctx.data.scheduleType).toBe('AfterSchoolActivity');
       expect(ctx.data.stripeClass).toBe('activity');
       expect(ctx.data.typeLabel).toBe('课后活动');
+    });
+
+    test('onSelectType 同步写入 formData.scheduleType（Step 3 schedule-form 校验依赖）', () => {
+      const ctx = setup();
+      ctx.onLoad({});
+      ctx.onSelectType({ currentTarget: { dataset: { type: 'AfterSchoolActivity' } } });
+      expect(ctx.data.formData.scheduleType).toBe('AfterSchoolActivity');
     });
 
     test('onSelectType=DailyRoutine → stripeClass=routine', () => {
@@ -134,22 +183,32 @@ describe('schedule-create 页面 - 4 步向导', () => {
       ctx.onSelectType({ currentTarget: { dataset: { type: 'HomeworkTask' } } });
       expect(ctx.data.stripeClass).toBe('homework');
     });
+
+    test('HomeworkTask 类型 label 随选中成员角色切换', () => {
+      const ctx = setup({
+        memberList: [{ userId: 'p1', role: 'Parent', name: '爸爸' }]
+      });
+      ctx.onLoad({});
+      selectMember(ctx, ['p1'], [{ userId: 'p1', role: UserRole.Parent, name: '爸爸' }]);
+      ctx.onSelectType({ currentTarget: { dataset: { type: 'HomeworkTask' } } });
+      expect(ctx.data.typeLabel).toBe('待办事项');
+    });
   });
 
   describe('Step 1 → 2 校验', () => {
-    test('未选孩子时阻止 + 提示', () => {
+    test('未选成员时阻止 + 提示', () => {
       const ctx = setup();
       ctx.onLoad({});
       ctx.data.currentStep = 1;
       ctx.onNextStep();
-      expect(wx.showToast).toHaveBeenCalledWith({ title: '请至少选择一个孩子', icon: 'none' });
+      expect(wx.showToast).toHaveBeenCalledWith({ title: '请至少选择一个成员', icon: 'none' });
       expect(ctx.data.currentStep).toBe(1);
     });
 
-    test('已选孩子时进入 Step 2', () => {
+    test('已选成员时进入 Step 2', () => {
       const ctx = setup();
       ctx.onLoad({});
-      ctx.onToggleChild({ currentTarget: { dataset: { index: 0 } } });
+      selectMember(ctx);
       ctx.data.currentStep = 1;
       ctx.onNextStep();
       expect(ctx.data.currentStep).toBe(2);
@@ -239,7 +298,7 @@ describe('schedule-create 页面 - 提交', () => {
   function setupReady() {
     const ctx = setup();
     ctx.onLoad({});
-    ctx.onToggleChild({ currentTarget: { dataset: { index: 0 } } });
+    selectMember(ctx, ['c1'], [{ userId: 'c1', role: 'Child', name: '小明' }]);
     ctx.onSelectType({ currentTarget: { dataset: { type: 'AfterSchoolActivity' } } });
     ctx.data.currentStep = 4;
     ctx.data.formData = {
@@ -258,7 +317,7 @@ describe('schedule-create 页面 - 提交', () => {
     expect(schedule.create).toHaveBeenCalledWith(expect.objectContaining({
       name: '钢琴课',
       scheduleType: 'AfterSchoolActivity',
-      childIds: ['c1'],
+      memberIds: ['c1'],
       timeSlots: [{ dayOfWeek: 3, startTime: '16:00', endTime: '17:00' }],
       location: '少年宫',
       ignoreConflict: false
@@ -269,7 +328,7 @@ describe('schedule-create 页面 - 提交', () => {
     schedule.create.mockResolvedValue({ data: { scheduleId: 's-new' } });
     const ctx = setup();
     ctx.onLoad({});
-    ctx.onToggleChild({ currentTarget: { dataset: { index: 0 } } });
+    selectMember(ctx);
     ctx.data.scheduleType = 'HomeworkTask';
     ctx.data.currentStep = 4;
     ctx.data.formData = {
@@ -326,18 +385,18 @@ describe('schedule-create 页面 - 提交', () => {
     expect(ctx.data.submitting).toBe(false);
   });
 
-  test('错误码 CHILD_NOT_SELECTED → Toast', async () => {
-    schedule.create.mockRejectedValue({ statusCode: 400, error: 'CHILD_NOT_SELECTED', message: '请选择孩子' });
+  test('错误码 MEMBER_NOT_SELECTED → Toast', async () => {
+    schedule.create.mockRejectedValue({ statusCode: 400, error: 'MEMBER_NOT_SELECTED', message: '请至少选择一个成员' });
     const ctx = setupReady();
     await ctx.onSubmit();
-    expect(wx.showToast).toHaveBeenCalledWith({ title: '请选择孩子', icon: 'none' });
+    expect(wx.showToast).toHaveBeenCalledWith({ title: '请至少选择一个成员', icon: 'none' });
   });
 
   test('错误码 SCHEDULE_NAME_EMPTY → Toast', async () => {
-    schedule.create.mockRejectedValue({ statusCode: 400, error: 'SCHEDULE_NAME_EMPTY', message: '名称为空' });
+    schedule.create.mockRejectedValue({ statusCode: 400, error: 'SCHEDULE_NAME_EMPTY', message: '日程名称不能为空' });
     const ctx = setupReady();
     await ctx.onSubmit();
-    expect(wx.showToast).toHaveBeenCalledWith({ title: '名称为空', icon: 'none' });
+    expect(wx.showToast).toHaveBeenCalledWith({ title: '日程名称不能为空', icon: 'none' });
   });
 
   test('未知错误 → Toast 显示后端 message', async () => {
@@ -355,7 +414,7 @@ describe('schedule-create 页面 - 冲突处理', () => {
     ctx.data.currentStep = 4;
     ctx.data.formData = { name: '钢琴课', timeSlots: [{ dayOfWeek: 3, startTime: '16:00', endTime: '17:00' }] };
     ctx.data.scheduleType = 'AfterSchoolActivity';
-    ctx.onToggleChild({ currentTarget: { dataset: { index: 0 } } });
+    selectMember(ctx);
     schedule.create.mockResolvedValue({ data: { scheduleId: 's-new' } });
 
     ctx.onConflictContinue();
@@ -390,9 +449,10 @@ describe('schedule-create 页面 - WXML data-id 契约', () => {
     expect(wxml).toContain('data-id="schedule-create-submit-btn"');
   });
 
-  test('WXML 含 Step 1 孩子卡 data-id', () => {
+  test('WXML 含 member-selector 组件引用', () => {
     const wxml = readWxml();
-    expect(wxml).toContain('data-id="schedule-create-child-');
+    expect(wxml).toContain('data-id="schedule-create-member-selector"');
+    expect(wxml).toMatch(/<member-selector[\s>]/);
   });
 
   test('WXML 含 Step 2 类型卡 data-id', () => {

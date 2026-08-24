@@ -46,7 +46,7 @@ public class SettlementJob : ISettlementJob
                  (e.RepeatEndDate == null || e.RepeatEndDate >= yesterday)))
             .ToListAsync(ct);
 
-        foreach (var childGroup in schedules.GroupBy(e => e.AssignedChildId))
+        foreach (var childGroup in schedules.GroupBy(e => e.AssignedMemberId))
         {
             await using var tx = await _db.Database.BeginTransactionAsync(ct);
             try
@@ -112,6 +112,22 @@ public class SettlementJob : ISettlementJob
         Guid childId, List<Domain.Entities.Schedule> schedules, DateOnly date, CancellationToken ct)
     {
         var routines = schedules.Where(s => s.ScheduleType == ScheduleType.DailyRoutine).ToList();
+        if (routines.Count == 0)
+            return;
+
+        // 逐 schedule 反查成员角色：仅孩子角色的日程参与 streak（家长日程跳过）。
+        // 按 (UserId, FamilyId) 反查，避免同一 User.Id 在不同家庭角色不同（一家庭家长、另一家庭孩子）误判。
+        var memberIds = routines.Select(r => r.AssignedMemberId).Distinct().ToList();
+        var childMembers = await _db.FamilyMembers
+            .AsNoTracking()
+            .Where(fm => memberIds.Contains(fm.UserId) && fm.Role == UserRole.Child)
+            .Select(fm => new { fm.UserId, fm.FamilyId })
+            .ToListAsync(ct);
+        var childKeys = childMembers.Select(x => (x.UserId, x.FamilyId)).ToHashSet();
+
+        routines = routines
+            .Where(r => childKeys.Contains((r.AssignedMemberId, r.FamilyId)))
+            .ToList();
         if (routines.Count == 0)
             return;
 

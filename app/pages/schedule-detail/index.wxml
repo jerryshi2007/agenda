@@ -69,11 +69,11 @@
           <text class="info-value">{{schedule.location}}</text>
         </view>
         <view class="info-row">
-          <text class="info-label">关联孩子</text>
+          <text class="info-label">关联成员</text>
           <text class="info-value">
-            <view wx:if="{{schedule.assignedChildName}}" class="child-tag">
-              <view class="schedule-card-child-avatar">{{schedule.assignedChildName.charAt(0)}}</view>
-              <text>{{schedule.assignedChildName}}</text>
+            <view wx:if="{{memberName}}" class="child-tag">
+              <view class="schedule-card-child-avatar">{{memberName.charAt(0)}}</view>
+              <text>{{memberName}}</text>
             </view>
           </text>
         </view>

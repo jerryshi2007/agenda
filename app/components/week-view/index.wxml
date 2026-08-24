@@ -1,5 +1,5 @@
 <!-- components/week-view/index.wxml
-     周视图 —— 7 列时间网格 + 日程卡片 -->
+     周视图 —— 7 列时间网格（每天一列），紧凑 mini 卡片落在对应天列 -->
 <view class="week-container">
   <!-- 星期头 -->
   <view class="weekday-header">
@@ -10,20 +10,22 @@
     </view>
   </view>
 
-  <!-- 日程滚动区 -->
+  <!-- 7 列时间网格 -->
   <scroll-view scroll-y enable-flex class="week-body">
     <view wx:if="{{schedules.length === 0 && !loading}}" class="empty-state">
-      <text class="empty-state-desc">{{selectedScheduleTypes.length > 0 ? '该筛选条件下无日程' : '该周暂无日程'}}</text>
+      <text class="empty-state-desc">该周暂无日程</text>
     </view>
 
-    <view wx:for="{{schedules}}" wx:key="scheduleId" wx:for-item="schedule">
-      <schedule-card
-        schedule="{{schedule}}"
-        viewType="week"
-        data-id="calendar-schedule-card-{{schedule.scheduleId}}"
-        bind:cardtap="onCardTap"
-        bind:checkintap="onCheckinTap"
-      />
+    <view class="week-grid">
+      <view wx:for="{{weekDays}}" wx:key="date" wx:for-item="day"
+            class="week-col {{day.isToday ? 'week-col-today' : ''}}"
+            data-id="calendar-week-col-{{day.date}}">
+        <mini-schedule-card wx:for="{{day.schedules}}" wx:key="scheduleId"
+          schedule="{{item}}"
+          bind:cardtap="onCardTap"
+          bind:checkintap="onCheckinTap"
+        />
+      </view>
     </view>
   </scroll-view>
 </view>

@@ -61,17 +61,6 @@ describe('模板契约镜像与 openspec/contracts/template 一致性', () => {
     expect(fields.notes).toBeDefined();
   });
 
-  test('ApplyTemplateRequest 契约字段完整（dto.json）', () => {
-    const fields = dto.ApplyTemplateRequest.fields;
-    expect(fields.childId).toBeDefined();
-    expect(fields.startDate).toBeDefined();
-    expect(fields.name).toBeDefined();
-    expect(fields.timeSlots).toBeDefined();
-    expect(fields.repeatEndDate).toBeDefined();
-    expect(fields.location).toBeDefined();
-    expect(fields.notes).toBeDefined();
-  });
-
   test('TemplateSummary 包含 templateId/name/scheduleType/isPreset/createdBy/createdAt', () => {
     const fields = dto.TemplateSummary.fields;
     expect(fields.templateId).toBeDefined();

@@ -1,10 +1,16 @@
 <!-- components/schedule-card/index.wxml
      日程卡片 —— 颜色条 + 时间 + 名称 + 孩子头像 + 状态 + 类型标签 + 地点 + 快捷打卡 -->
 
-<view class="schedule-card schedule-stripe-{{stripeClass}}"
+<view class="schedule-card"
       data-id="calendar-schedule-card-{{schedule.scheduleId}}"
       bindtap="onCardTap">
   <view class="schedule-card-stripe schedule-card-stripe-{{stripeClass}}"></view>
+
+  <!-- 左侧时间列（时间线移到卡片内部） -->
+  <view class="schedule-card-timeline">
+    <text class="schedule-card-timeline-time">{{timeMain}}</text>
+    <text wx:if="{{timeSub}}" class="schedule-card-timeline-sub">{{timeSub}}</text>
+  </view>
 
   <view class="schedule-card-body">
     <!-- 顶部行：名称 + 状态 -->
@@ -26,16 +32,6 @@
       </view>
     </view>
 
-    <!-- 时间行 -->
-    <view class="schedule-card-time">
-      <text wx:if="{{schedule.startTime && schedule.endTime}}">
-        {{schedule.startTime}} - {{schedule.endTime}}
-      </text>
-      <text wx:elif="{{schedule.dueDate}}">
-        截止 {{schedule.dueDate}}
-      </text>
-    </view>
-
     <!-- 底部信息行 -->
     <view class="schedule-card-meta">
       <!-- 类型标签 -->
@@ -43,15 +39,15 @@
         {{typeLabel}}
       </text>
 
-      <!-- 孩子信息 -->
-      <view wx:if="{{schedule.childName}}" class="schedule-card-child">
-        <view wx:if="{{schedule.childAvatarUrl}}" class="schedule-card-child-avatar">
-          <image src="{{schedule.childAvatarUrl}}" style="width:36rpx;height:36rpx;border-radius:50%;" />
+      <!-- 成员信息 -->
+      <view wx:if="{{memberName}}" class="schedule-card-child">
+        <view wx:if="{{memberAvatarUrl}}" class="schedule-card-child-avatar">
+          <image src="{{memberAvatarUrl}}" style="width:36rpx;height:36rpx;border-radius:50%;" />
         </view>
         <view wx:else class="schedule-card-child-avatar">
-          {{schedule.childName.charAt(0)}}
+          {{memberName.charAt(0)}}
         </view>
-        <text>{{schedule.childName}}</text>
+        <text>{{memberName}}</text>
       </view>
 
       <!-- 地点（日视图显示） -->

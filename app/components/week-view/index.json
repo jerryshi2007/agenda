@@ -1,6 +1,6 @@
 {
   "component": true,
   "usingComponents": {
-    "schedule-card": "../schedule-card/index"
+    "mini-schedule-card": "../mini-schedule-card/index"
   }
 }

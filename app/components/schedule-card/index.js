@@ -1,10 +1,6 @@
 // components/schedule-card/index.js
 
-const TYPE_LABELS = {
-  'AfterSchoolActivity': '课后活动',
-  'DailyRoutine': '日常作息',
-  'HomeworkTask': '作业任务'
-};
+const { ScheduleType, getScheduleTypeLabel } = require('../../contracts/schedule');
 
 Component({
   properties: {
@@ -18,30 +14,38 @@ Component({
     }
   },
 
-  computed: {
-    stripeClass() {
-      const t = (this.data.schedule && this.data.schedule.scheduleType) || '';
-      if (t === 'AfterSchoolActivity') return 'activity';
-      if (t === 'DailyRoutine') return 'routine';
-      if (t === 'HomeworkTask') return 'homework';
-      return 'activity';
-    },
-
-    typeLabel() {
-      return TYPE_LABELS[this.data.schedule.scheduleType] || '';
-    }
+  data: {
+    memberName: '',
+    memberAvatarUrl: ''
   },
 
   observers: {
     'schedule'(schedule) {
       let stripeClass = 'activity';
       if (schedule && schedule.scheduleType) {
-        if (schedule.scheduleType === 'AfterSchoolActivity') stripeClass = 'activity';
-        else if (schedule.scheduleType === 'DailyRoutine') stripeClass = 'routine';
-        else if (schedule.scheduleType === 'HomeworkTask') stripeClass = 'homework';
+        if (schedule.scheduleType === ScheduleType.AfterSchoolActivity) stripeClass = 'activity';
+        else if (schedule.scheduleType === ScheduleType.DailyRoutine) stripeClass = 'routine';
+        else if (schedule.scheduleType === ScheduleType.HomeworkTask) stripeClass = 'homework';
       }
-      const typeLabel = TYPE_LABELS[schedule.scheduleType] || '';
-      this.setData({ stripeClass, typeLabel });
+      const typeLabel = getScheduleTypeLabel(schedule.scheduleType, schedule.assignedMemberRole) || '';
+      const memberName = (schedule && (schedule.assignedMemberName || schedule.childName)) || '';
+      const memberAvatarUrl = (schedule && (schedule.assignedMemberAvatarUrl || schedule.childAvatarUrl)) || '';
+
+      // 时间列：优先时间段（起/止两行），其次截止日期（日期 + "截止"标签）
+      let timeMain = '';
+      let timeSub = '';
+      if (schedule && schedule.startTime && schedule.endTime) {
+        timeMain = schedule.startTime;
+        timeSub = schedule.endTime;
+      } else if (schedule && schedule.dueDate) {
+        timeMain = schedule.dueDate;
+        timeSub = '截止';
+      } else if (schedule && schedule.startTime) {
+        timeMain = schedule.startTime;
+        timeSub = '';
+      }
+
+      this.setData({ stripeClass, typeLabel, memberName, memberAvatarUrl, timeMain, timeSub });
     }
   },
 
@@ -56,8 +60,7 @@ Component({
     onCheckinTap() {
       this.triggerEvent('checkintap', {
         scheduleId: this.data.schedule.scheduleId,
-        date: this.data.schedule.instanceDate,
-        childId: this.data.schedule.childId
+        date: this.data.schedule.instanceDate
       });
     }
   }

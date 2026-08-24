@@ -85,10 +85,10 @@ describe('template 服务（模板 API 封装）', () => {
   });
 
   describe('apply - POST /api/v1/templates/{id}/apply', () => {
-    test('请求体含 childId/startDate/覆盖字段', async () => {
+    test('请求体含 memberIds/startDate/覆盖字段', async () => {
       api.post.mockResolvedValue({ data: { scheduleId: 's1', groupKey: 'g1' } });
       const req = {
-        childId: 'c1',
+        memberIds: ['c1'],
         startDate: '2026-08-20',
         name: '钢琴课（实例）'
       };
@@ -102,7 +102,7 @@ describe('template 服务（模板 API 封装）', () => {
         error: ErrorCodes.START_DATE_INVALID,
         message: '起始日期不能早于今天'
       });
-      await expect(template.apply('t1', { childId: 'c1', startDate: '2020-01-01' }))
+      await expect(template.apply('t1', { memberIds: ['c1'], startDate: '2020-01-01' }))
         .rejects.toMatchObject({ error: ErrorCodes.START_DATE_INVALID, message: '起始日期不能早于今天' });
     });
 
@@ -111,13 +111,13 @@ describe('template 服务（模板 API 封装）', () => {
         statusCode: 400,
         error: ErrorCodes.START_DATE_INVALID
       });
-      await expect(template.apply('t1', { childId: 'c1', startDate: '2020-01-01' }))
+      await expect(template.apply('t1', { memberIds: ['c1'], startDate: '2020-01-01' }))
         .rejects.toMatchObject({ error: ErrorCodes.START_DATE_INVALID, message: ErrorMessages.START_DATE_INVALID });
     });
 
     test('未知错误码透传不补齐 message', async () => {
       api.post.mockRejectedValue({ statusCode: 500, error: 'INTERNAL_ERROR' });
-      await expect(template.apply('t1', { childId: 'c1', startDate: '2026-08-20' }))
+      await expect(template.apply('t1', { memberIds: ['c1'], startDate: '2026-08-20' }))
         .rejects.toMatchObject({ error: 'INTERNAL_ERROR' });
     });
   });

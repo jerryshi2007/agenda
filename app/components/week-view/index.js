@@ -17,6 +17,11 @@ Component({
   },
 
   methods: {
+    onWeekDayTap(e) {
+      const { date } = e.currentTarget.dataset;
+      this.triggerEvent('daytap', { date });
+    },
+
     onCardTap(e) {
       this.triggerEvent('scheduletap', e.detail);
     },

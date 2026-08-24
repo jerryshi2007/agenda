@@ -30,9 +30,9 @@
 
     <!-- 筛选栏 -->
     <view class="filter-bar">
-      <view class="filter-item {{selectedChildId ? 'active' : ''}}"
-            data-id="calendar-filter-child" bindtap="onChildFilter">
-        {{selectedChildId ? selectedChildName : '全部孩子'}}
+      <view class="filter-item {{selectedMemberId ? 'active' : ''}}"
+            data-id="calendar-filter-member" bindtap="onMemberFilter">
+        {{selectedMemberId ? selectedMemberName : '全部成员'}}
         <text class="filter-item-arrow">▾</text>
       </view>
       <view class="filter-item {{selectedScheduleTypes.length > 0 ? 'active' : ''}}"
@@ -87,7 +87,7 @@
       <text style="font-size:96rpx;">📅</text>
     </view>
     <view class="empty-state-title">还没有日程</view>
-    <view class="empty-state-desc">点击下方按钮，为孩子创建第一个日程吧</view>
+    <view class="empty-state-desc">点击下方按钮，为成员创建第一个日程吧</view>
     <view class="btn btn-primary mt-lg" data-id="calendar-empty-create-btn" bindtap="onCreate">
       创建日程
     </view>

@@ -32,7 +32,7 @@ public class ScheduleQueryService : IScheduleQueryService
             Name = schedule.Name,
             ScheduleType = schedule.ScheduleType,
             FamilyId = schedule.FamilyId,
-            AssignedChildId = schedule.AssignedChildId,
+            AssignedMemberId = schedule.AssignedMemberId,
             IsDeleted = schedule.IsDeleted
         };
     }

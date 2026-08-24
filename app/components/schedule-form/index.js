@@ -1,9 +1,10 @@
 // components/schedule-form/index.js
 // 日程/模板共用表单组件 —— 4 mode (create/edit/template-create/template-edit)
-// mode 控制是否显示 childSelector / startDate / scheduleTypeLocked
+// mode 控制是否显示 memberSelector / startDate / scheduleTypeLocked
 // 内部维护 formData + 校验状态，submit 事件 detail = { formData, valid }
 
 const { ScheduleType, ScheduleTypeLabels } = require('../../contracts/template');
+const { ErrorMessages } = require('../../contracts/schedule');
 const dateUtils = require('../../utils/date-utils');
 
 const TYPE_LABELS = ScheduleTypeLabels;
@@ -18,7 +19,7 @@ const DEFAULT_FORM_DATA = {
   suggestedStartTime: '',
   suggestedEndTime: '',
   notes: '',
-  childIds: [],
+  memberIds: [],
   startDate: ''
 };
 
@@ -53,7 +54,7 @@ Component({
     formData: Object.assign({}, DEFAULT_FORM_DATA),
     errors: {},
     minDate: '',
-    childList: []
+    memberList: []
   },
 
   lifetimes: {
@@ -83,7 +84,7 @@ Component({
       const formData = Object.assign({}, DEFAULT_FORM_DATA, initial);
 
       const today = dateUtils.formatDate(new Date());
-      const childList = this._buildChildList(formData.childIds || []);
+      const memberList = this._buildMemberList(formData.memberIds || []);
 
       this.setData({
         scheduleType: scheduleType,
@@ -91,32 +92,35 @@ Component({
         stripeClass: _typeToStripeClass(scheduleType),
         formData: formData,
         minDate: today,
-        childList: childList,
+        memberList: memberList,
         errors: {}
       });
     },
 
     /**
-     * 构建 childList（带 _selected 标记）
+     * 构建 memberList（带 _selected 标记）
      */
-    _buildChildList(selectedIds) {
+    _buildMemberList(selectedIds) {
       const app = this._appRef || (typeof getApp === 'function' ? getApp() : { globalData: {} });
-      const children = (app && app.globalData && app.globalData.childList) || [];
+      const members = (app && app.globalData && (app.globalData.memberList || app.globalData.childList)) || [];
       const sel = Array.isArray(selectedIds) ? selectedIds : [];
-      return children.map((c, i) => ({
-        userId: c.userId || c.childId,
-        childName: c.childName || c.name,
-        _color: ['#10AEFF', '#FF9500', '#07C160', '#FA5151'][i % 4],
-        _selected: sel.indexOf(c.userId || c.childId) >= 0
-      }));
+      return members.map((m, i) => {
+        const id = m.userId || m.childId || m.memberId;
+        return {
+          userId: id,
+          memberName: m.name || m.childName || m.nickname,
+          _color: ['#10AEFF', '#FF9500', '#07C160', '#FA5151'][i % 4],
+          _selected: sel.indexOf(id) >= 0
+        };
+      });
     },
 
     /**
-     * 重新加载 childList（外部更新 globalData.childList 后调用）
+     * 重新加载 memberList（外部更新 globalData.memberList 后调用）
      */
-    _loadChildList() {
-      const selectedIds = (this.data.formData.childIds || []).slice();
-      this.setData({ childList: this._buildChildList(selectedIds) });
+    _loadMemberList() {
+      const selectedIds = (this.data.formData.memberIds || []).slice();
+      this.setData({ memberList: this._buildMemberList(selectedIds) });
     },
 
     /**
@@ -174,20 +178,20 @@ Component({
     },
 
     /**
-     * 切换孩子选中
+     * 切换成员选中
      */
-    onToggleChild(e) {
+    onToggleMember(e) {
       const { index } = e.currentTarget.dataset;
-      const childList = this.data.childList;
-      childList[index]._selected = !childList[index]._selected;
-      // 同步 formData.childIds
-      const childIds = childList.filter(c => c._selected).map(c => c.userId);
+      const memberList = this.data.memberList;
+      memberList[index]._selected = !memberList[index]._selected;
+      // 同步 formData.memberIds
+      const memberIds = memberList.filter(c => c._selected).map(c => c.userId);
       this.setData({
-        childList: childList,
-        'formData.childIds': childIds
+        memberList: memberList,
+        'formData.memberIds': memberIds
       });
-      if (this.data.errors.childIds) {
-        this.setData({ 'errors.childIds': '' });
+      if (this.data.errors.memberIds) {
+        this.setData({ 'errors.memberIds': '' });
       }
     },
 
@@ -239,10 +243,10 @@ Component({
         }
       }
 
-      // ChildIds（childSelectorVisible=true 时必选）
+      // memberIds（childSelectorVisible=true 时必选）
       if (this.properties.childSelectorVisible) {
-        if (!fd.childIds || fd.childIds.length === 0) {
-          errors.childIds = '请至少选择一个孩子';
+        if (!fd.memberIds || fd.memberIds.length === 0) {
+          errors.memberIds = ErrorMessages.MEMBER_NOT_SELECTED;
         }
       }
 

@@ -1,11 +1,21 @@
 // pages/schedule-create/index.js
 // 创建日程页 —— 4 步向导 + schedule-form 子组件 + 数据校验 + 冲突检测
-// 步骤：Step1 选孩子 → Step2 选类型 → Step3 填字段（schedule-form） → Step4 确认
+// 步骤：Step1 选成员 → Step2 选类型 → Step3 填字段（schedule-form） → Step4 确认
 
 const scheduleService = require('../../services/schedule');
 const dateUtils = require('../../utils/date-utils');
 const STORAGE_KEYS = require('../../utils/storage-keys');
-const { ScheduleType, ScheduleTypeLabels } = require('../../contracts/template');
+const {
+  ScheduleType,
+  getScheduleTypeLabel,
+  UserRole,
+  ErrorCodes,
+  ErrorMessages
+} = require('../../contracts/schedule');
+
+// HomeworkTask 卡片默认文案：未选成员时按孩子语义「作业任务」展示，
+// 选中成员后由 _updateHomeworkLabel 按角色切换到「待办事项(家长)/作业任务(孩子)」。
+const HOMEWORK_DEFAULT_LABEL = getScheduleTypeLabel(ScheduleType.HomeworkTask, UserRole.Child);
 
 Page({
   data: {
@@ -15,8 +25,15 @@ Page({
     stripeClass: 'activity',
     typeLabel: '',
 
-    // Child list
-    childList: [],
+    // Member list（含家长 + 孩子，每项 userId/role/name）
+    memberList: [],
+    // 当前用户角色/ID（供 member-selector 判定家长/孩子视角）
+    userRole: '',
+    userId: '',
+    // 已选成员（受控组件 selectedIds 回传）
+    selectedMemberIds: [],
+    selectedMembers: [],
+    homeworkTypeLabel: HOMEWORK_DEFAULT_LABEL, // HomeworkTask 卡片按选中成员角色切换「作业任务/待办事项」
 
     // Form（Step 3 由 schedule-form 子组件维护，进入 Step 4 时写入此 formData）
     formData: {
@@ -29,13 +46,13 @@ Page({
       suggestedStartTime: '',
       suggestedEndTime: '',
       notes: '',
-      childIds: [],
+      memberIds: [],
       startDate: ''
     },
     minDate: '',
 
     // Confirm
-    selectedChildNames: '',
+    selectedMemberNames: '',
     timeSlotSummary: '',
 
     // Conflict
@@ -57,44 +74,75 @@ Page({
     // 恢复草稿
     const draft = wx.getStorageSync(STORAGE_KEYS.SCHEDULE_DRAFT);
     if (draft) {
+      const restoredFormData = Object.assign({}, this.data.formData, draft.formData || {});
+      // 旧草稿可能缺 formData.scheduleType（历史 bug 未写入），从 draft.scheduleType 回填
+      if (draft.scheduleType && !restoredFormData.scheduleType) {
+        restoredFormData.scheduleType = draft.scheduleType;
+      }
       this.setData({
         scheduleType: draft.scheduleType || '',
-        formData: Object.assign({}, this.data.formData, draft.formData || {}),
+        formData: restoredFormData,
         currentStep: draft.currentStep || 1
       });
     }
 
-    this._loadChildList();
+    this._loadMemberList();
   },
 
   onShow() {
-    this._loadChildList();
+    this._loadMemberList();
   },
 
   /**
-   * 加载孩子列表
+   * 加载成员列表（家长 + 孩子）
    */
-  _loadChildList() {
+  _loadMemberList() {
     const app = this._appRef || (typeof getApp === 'function' ? getApp() : { globalData: {} });
-    const children = (app && app.globalData && app.globalData.childList) || [];
-    const list = children.map((c, i) => ({
-      ...c,
-      userId: c.userId || c.childId,
-      childName: c.childName || c.name,
-      _color: ['#10AEFF', '#FF9500', '#07C160', '#FA5151'][i % 4],
-      _selected: false
-    }));
-    this.setData({ childList: list });
+    const gd = (app && app.globalData) || {};
+    const members = gd.memberList || gd.childList || [];
+    this.setData({
+      memberList: members,
+      userRole: gd.userRole || '',
+      userId: gd.userId || ''
+    });
   },
 
   /**
-   * 切换孩子选中
+   * member-selector change 事件回调
+   * detail = { memberIds, selectedMembers }
    */
-  onToggleChild(e) {
-    const { index } = e.currentTarget.dataset;
-    const childList = this.data.childList;
-    childList[index]._selected = !childList[index]._selected;
-    this.setData({ childList });
+  onMemberChange(e) {
+    const { memberIds, selectedMembers } = e.detail || {};
+    const memberIdsArr = memberIds || [];
+    const selectedMembersArr = selectedMembers || [];
+    this.setData({
+      selectedMemberIds: memberIdsArr,
+      selectedMembers: selectedMembersArr,
+      selectedMemberNames: selectedMembersArr.map(m => m.name).join('、')
+    });
+    this._updateHomeworkLabel();
+  },
+
+  /**
+   * 选中成员的角色代表（全为家长 → Parent，否则 Child）。
+   * 混合关联（家长 + 孩子同时选中）时，单张 Step-2 类型卡片只能显示一个 label，
+   * 回退为孩子语义「作业任务」；per-member 的精确双文案由日历/列表层的 N 行模型保证。
+   */
+  _representativeRole() {
+    const members = this.data.selectedMembers || [];
+    const allParents = members.length > 0 && members.every(m => m.role === UserRole.Parent);
+    return allParents ? UserRole.Parent : UserRole.Child;
+  },
+
+  /**
+   * 更新 HomeworkTask 卡片双文案（按选中成员角色）
+   */
+  _updateHomeworkLabel() {
+    const label = getScheduleTypeLabel(ScheduleType.HomeworkTask, this._representativeRole());
+    this.setData({ homeworkTypeLabel: label });
+    if (this.data.scheduleType === ScheduleType.HomeworkTask) {
+      this.setData({ typeLabel: label });
+    }
   },
 
   /**
@@ -110,7 +158,10 @@ Page({
     this.setData({
       scheduleType: type,
       stripeClass: stripeClass,
-      typeLabel: ScheduleTypeLabels[type] || ''
+      typeLabel: getScheduleTypeLabel(type, this._representativeRole()) || '',
+      // 同步写入 formData.scheduleType：Step 3 的 schedule-form 通过
+      // initial-values 初始化 data.scheduleType 并据此校验，缺写则校验静默失败
+      'formData.scheduleType': type
     });
   },
 
@@ -132,9 +183,8 @@ Page({
     const step = this.data.currentStep;
 
     if (step === 1) {
-      const selected = this.data.childList.filter(c => c._selected);
-      if (selected.length === 0) {
-        wx.showToast({ title: '请至少选择一个孩子', icon: 'none' });
+      if (this.data.selectedMemberIds.length === 0) {
+        wx.showToast({ title: ErrorMessages.MEMBER_NOT_SELECTED, icon: 'none' });
         return;
       }
     } else if (step === 2) {
@@ -182,9 +232,7 @@ Page({
    * 准备确认信息
    */
   _prepareConfirm() {
-    const selected = this.data.childList.filter(c => c._selected);
-    const names = selected.map(c => c.childName || c.name).join('、');
-    this.setData({ selectedChildNames: names });
+    this.setData({ selectedMemberNames: this.data.selectedMemberNames });
 
     if (this.data.scheduleType !== ScheduleType.HomeworkTask) {
       const summary = dateUtils.toRepeatRuleText(this.data.formData.timeSlots);
@@ -199,9 +247,9 @@ Page({
     if (this.data.submitting) return Promise.resolve();
     if (this.data.currentStep < 4) return Promise.resolve();
 
-    const selected = this.data.childList.filter(c => c._selected);
-    if (selected.length === 0) {
-      wx.showToast({ title: '请至少选择一个孩子', icon: 'none' });
+    const memberIds = this.data.selectedMemberIds;
+    if (memberIds.length === 0) {
+      wx.showToast({ title: ErrorMessages.MEMBER_NOT_SELECTED, icon: 'none' });
       return Promise.resolve();
     }
 
@@ -211,7 +259,7 @@ Page({
     const requestData = {
       name: (fd.name || '').trim(),
       scheduleType: this.data.scheduleType,
-      childIds: selected.map(c => c.userId || c.childId),
+      memberIds: memberIds,
       ignoreConflict: this.data.ignoreConflict
     };
 
@@ -246,12 +294,12 @@ Page({
           showConflictDialog: true,
           conflicts: err.data.conflicts || []
         });
-      } else if (err.error === 'CHILD_NOT_SELECTED') {
-        wx.showToast({ title: '请选择孩子', icon: 'none' });
-      } else if (err.error === 'SCHEDULE_NAME_EMPTY') {
-        wx.showToast({ title: '名称为空', icon: 'none' });
-      } else if (err.error === 'NO_DAY_SELECTED') {
-        wx.showToast({ title: '未选日期', icon: 'none' });
+      } else if (err.error === ErrorCodes.MEMBER_NOT_SELECTED || err.error === ErrorCodes.CHILD_NOT_SELECTED) {
+        wx.showToast({ title: ErrorMessages.MEMBER_NOT_SELECTED, icon: 'none' });
+      } else if (err.error === ErrorCodes.SCHEDULE_NAME_EMPTY) {
+        wx.showToast({ title: ErrorMessages.SCHEDULE_NAME_EMPTY, icon: 'none' });
+      } else if (err.error === ErrorCodes.NO_DAY_SELECTED) {
+        wx.showToast({ title: ErrorMessages.NO_DAY_SELECTED, icon: 'none' });
       } else {
         wx.showToast({ title: err.message || '创建失败，请重试', icon: 'none' });
       }

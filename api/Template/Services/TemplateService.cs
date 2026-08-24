@@ -272,15 +272,14 @@ public class TemplateService : ITemplateService
                 ct)
             ?? throw new DomainException(ErrorCodes.TemplateNotFound);
 
-        // 验证 childId 是当前家庭成员（且是孩子角色）
-        var isFamilyChild = await _db.FamilyMembers
+        // 验证每个成员是当前家庭成员（任意角色：家长/孩子均可）
+        var memberIds = request.GetEffectiveMemberIds();
+        var distinctMemberIds = memberIds.Distinct().ToList();
+        var foundMemberCount = await _db.FamilyMembers
             .AsNoTracking()
-            .AnyAsync(fm => fm.UserId == request.ChildId
-                          && fm.FamilyId == familyId
-                          && fm.Role == UserRole.Child,
-                ct);
-        if (!isFamilyChild)
-            throw new DomainException(ErrorCodes.TemplateChildNotInFamily);
+            .CountAsync(fm => fm.FamilyId == familyId && distinctMemberIds.Contains(fm.UserId), ct);
+        if (foundMemberCount != distinctMemberIds.Count)
+            throw new DomainException(ErrorCodes.MemberNotInFamily);
 
         // 合并覆盖字段 → 构造 CreateScheduleRequest（TimeSlotDto 与 TemplateTimeSlotDto 字段同构，需映射）
         List<TimeSlotDto> effectiveTimeSlots;
@@ -311,7 +310,7 @@ public class TemplateService : ITemplateService
         {
             Name = request.Name ?? template.Name,
             ScheduleType = template.ScheduleType.ToString(),
-            ChildIds = new List<Guid> { request.ChildId },
+            MemberIds = memberIds,
             TimeSlots = effectiveTimeSlots,
             RepeatEndDate = request.RepeatEndDate ?? template.RepeatEndDate,
             Location = request.Location ?? template.Location,
@@ -319,7 +318,8 @@ public class TemplateService : ITemplateService
             SourceTemplateId = templateId
         };
 
-        return await _scheduleService.CreateAsync(familyId, userId, merged, ct);
+        // TemplateController.Apply 已是 parent-only，此处固定传 UserRole.Parent
+        return await _scheduleService.CreateAsync(familyId, userId, UserRole.Parent, merged, ct);
     }
 
     // ---- private helpers ----

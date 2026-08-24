@@ -38,7 +38,7 @@ public class ChildScheduleControllerTests
             {
                 Items = new List<ScheduleInfo>
                 {
-                    new() { ScheduleId = TestScheduleId, Name = "今日课", ScheduleType = ScheduleType.AfterSchoolActivity, FamilyId = TestFamilyId, AssignedChildId = TestUserId }
+                    new() { ScheduleId = TestScheduleId, Name = "今日课", ScheduleType = ScheduleType.AfterSchoolActivity, FamilyId = TestFamilyId, AssignedMemberId = TestUserId }
                 },
                 CompletedCount = 0,
                 TotalCount = 1,
@@ -49,7 +49,7 @@ public class ChildScheduleControllerTests
         mock.Setup(s => s.GetMonthlyListAsync(TestUserId, TestFamilyId, It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ChildScheduleListResponse { TotalCount = 20, CompletedCount = 15, CompletionPercentage = 75.0 });
         mock.Setup(s => s.GetByIdAsync(TestScheduleId, TestUserId, TestFamilyId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ScheduleInfo { ScheduleId = TestScheduleId, Name = "我的课", ScheduleType = ScheduleType.AfterSchoolActivity, FamilyId = TestFamilyId, AssignedChildId = TestUserId });
+            .ReturnsAsync(new ScheduleInfo { ScheduleId = TestScheduleId, Name = "我的课", ScheduleType = ScheduleType.AfterSchoolActivity, FamilyId = TestFamilyId, AssignedMemberId = TestUserId });
         return mock;
     }
 

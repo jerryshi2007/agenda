@@ -11,7 +11,7 @@
   "TEMPLATE_PRESET_READONLY": { "httpStatus": 403, "message": "预设模板不可编辑或删除" },
   "TEMPLATE_NOT_OWNER": { "httpStatus": 403, "message": "仅创建者可编辑或删除此模板" },
   "CHILD_ACCESS_DENIED": { "httpStatus": 403, "message": "孩子角色无权访问模板" },
-  "CHILD_NOT_IN_FAMILY": { "httpStatus": 400, "message": "所选孩子不属于当前家庭" },
+  "CHILD_NOT_IN_FAMILY": { "httpStatus": 400, "message": "所选孩子不属于当前家庭", "deprecated": true, "description": "兼容期保留，下一个版本移除。由 schedule 契约的 MEMBER_NOT_IN_FAMILY 取代（TemplateService 改用新码后本码废弃）。" },
   "START_DATE_INVALID": { "httpStatus": 400, "message": "起始日期不能早于今天" },
   "TEMPLATE_TYPE_INVALID": { "httpStatus": 400, "message": "模板类型无效" }
 }

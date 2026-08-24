@@ -1,3 +1,4 @@
+using Agenda.Api.Infrastructure;
 using Agenda.Api.Schedule.Dtos;
 using Agenda.Api.Schedule.Services;
 using Agenda.Api.Shared.Extensions;
@@ -26,25 +27,30 @@ public class ScheduleController : ControllerBase
         _familyContext = familyContext;
     }
 
-    /// <summary>创建日程（含多孩子展开）</summary>
+    /// <summary>创建日程（含多成员展开）</summary>
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateScheduleRequest request, CancellationToken ct)
     {
         var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
 
-        if (role != Domain.Enums.UserRole.Parent)
-            return ForbidJwt("CHILD_ACCESS_DENIED", "孩子不能创建日程");
+        var userId = User.GetUserId();
+        var memberIds = request.GetEffectiveMemberIds();
+
+        // 孩子只能给自己创建（防御纵深：Service 层同样校验）
+        if (role == Domain.Enums.UserRole.Child &&
+            (memberIds.Count != 1 || memberIds[0] != userId))
+            return ForbidJwt(ErrorCodes.ChildSelfAssignOnly, ErrorCodes.Message(ErrorCodes.ChildSelfAssignOnly));
 
         try
         {
             // Optional conflict check (if not ignoring)
-            if (!request.IgnoreConflict && request.ChildIds.Count == 1 && request.TimeSlots.Count > 0)
+            if (!request.IgnoreConflict && memberIds.Count == 1 && request.TimeSlots.Count > 0)
             {
                 foreach (var ts in request.TimeSlots)
                 {
-                    var conflictResult = await _conflictService.CheckConflictAsync(new ScheduleConflictCheckRequest
+                    var conflictResult = await _conflictService.CheckConflictAsync(familyId, new ScheduleConflictCheckRequest
                     {
-                        ChildId = request.ChildIds[0],
+                        MemberId = memberIds[0],
                         // Derive a concrete date from the time slot's weekday so the
                         // conflict service matches the correct DayOfWeek.
                         Date = GetNextDateForDayOfWeek(ts.DayOfWeek),
@@ -57,8 +63,12 @@ public class ScheduleController : ControllerBase
                 }
             }
 
-            var result = await _scheduleService.CreateAsync(familyId, User.GetUserId(), request, ct);
+            var result = await _scheduleService.CreateAsync(familyId, userId, role, request, ct);
             return CreatedAtAction(nameof(GetById), new { scheduleId = result.Schedules.First().ScheduleId }, result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return ForbidJwt(ex.Message, ErrorCodes.Message(ex.Message));
         }
         catch (InvalidOperationException ex) when (IsDomainError(ex.Message))
         {
@@ -76,13 +86,13 @@ public class ScheduleController : ControllerBase
         {
             var result = await _scheduleService.GetByIdAsync(scheduleId, date, User.GetUserId(), familyId, role, ct);
             if (result == null)
-                return NotFound(new { error = "SCHEDULE_NOT_FOUND" });
+                return NotFound(new { error = ErrorCodes.ScheduleNotFound });
 
             return Ok(result);
         }
         catch (UnauthorizedAccessException ex)
         {
-            return ForbidJwt("CHILD_ACCESS_DENIED", ex.Message);
+            return ForbidJwt(ex.Message, ErrorCodes.Message(ex.Message));
         }
     }
 
@@ -92,19 +102,20 @@ public class ScheduleController : ControllerBase
     {
         var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
 
-        if (role != Domain.Enums.UserRole.Parent)
-            return ForbidJwt("CHILD_ACCESS_DENIED", "孩子不能编辑日程");
-
         try
         {
-            var result = await _scheduleService.UpdateAsync(scheduleId, request, User.GetUserId(), familyId, ct);
+            var result = await _scheduleService.UpdateAsync(scheduleId, request, User.GetUserId(), familyId, role, ct);
             return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return ForbidJwt(ex.Message, ErrorCodes.Message(ex.Message));
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Conflict(new { error = "CONCURRENT_EDIT_CONFLICT" });
+            return Conflict(new { error = ErrorCodes.ConcurrentEditConflict });
         }
-        catch (InvalidOperationException ex) when (ex.Message == "CONCURRENT_EDIT_CONFLICT")
+        catch (InvalidOperationException ex) when (ex.Message == ErrorCodes.ConcurrentEditConflict)
         {
             return Conflict(new { error = ex.Message });
         }
@@ -112,7 +123,7 @@ public class ScheduleController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (KeyNotFoundException ex) when (ex.Message == "SCHEDULE_NOT_FOUND")
+        catch (KeyNotFoundException ex) when (ex.Message == ErrorCodes.ScheduleNotFound)
         {
             return NotFound(new { error = ex.Message });
         }
@@ -129,19 +140,20 @@ public class ScheduleController : ControllerBase
     {
         var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
 
-        if (role != Domain.Enums.UserRole.Parent)
-            return ForbidJwt("CHILD_ACCESS_DENIED", "孩子不能删除日程");
-
         try
         {
-            var result = await _scheduleService.DeleteAsync(scheduleId, scope, date, User.GetUserId(), familyId, force, ct);
+            var result = await _scheduleService.DeleteAsync(scheduleId, scope, date, User.GetUserId(), familyId, role, force, ct);
             return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return ForbidJwt(ex.Message, ErrorCodes.Message(ex.Message));
         }
         catch (InvalidOperationException ex) when (IsDomainError(ex.Message))
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (KeyNotFoundException ex) when (ex.Message == "SCHEDULE_NOT_FOUND")
+        catch (KeyNotFoundException ex) when (ex.Message == ErrorCodes.ScheduleNotFound)
         {
             return NotFound(new { error = ex.Message });
         }
@@ -153,19 +165,20 @@ public class ScheduleController : ControllerBase
     {
         var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
 
-        if (role != Domain.Enums.UserRole.Parent)
-            return ForbidJwt("CHILD_ACCESS_DENIED", "孩子不能取消日程");
-
         try
         {
-            var result = await _scheduleService.CancelInstanceAsync(scheduleId, request.Date, User.GetUserId(), familyId, ct);
+            var result = await _scheduleService.CancelInstanceAsync(scheduleId, request.Date, User.GetUserId(), familyId, role, ct);
             return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return ForbidJwt(ex.Message, ErrorCodes.Message(ex.Message));
         }
         catch (InvalidOperationException ex) when (IsDomainError(ex.Message))
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (KeyNotFoundException ex) when (ex.Message == "SCHEDULE_NOT_FOUND")
+        catch (KeyNotFoundException ex) when (ex.Message == ErrorCodes.ScheduleNotFound)
         {
             return NotFound(new { error = ex.Message });
         }
@@ -177,19 +190,20 @@ public class ScheduleController : ControllerBase
     {
         var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
 
-        if (role != Domain.Enums.UserRole.Parent)
-            return ForbidJwt("CHILD_ACCESS_DENIED", "孩子不能恢复日程");
-
         try
         {
-            var result = await _scheduleService.RestoreInstanceAsync(scheduleId, request.Date, User.GetUserId(), familyId, ct);
+            var result = await _scheduleService.RestoreInstanceAsync(scheduleId, request.Date, User.GetUserId(), familyId, role, ct);
             return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return ForbidJwt(ex.Message, ErrorCodes.Message(ex.Message));
         }
         catch (InvalidOperationException ex) when (IsDomainError(ex.Message))
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (KeyNotFoundException ex) when (ex.Message == "SCHEDULE_NOT_FOUND")
+        catch (KeyNotFoundException ex) when (ex.Message == ErrorCodes.ScheduleNotFound)
         {
             return NotFound(new { error = ex.Message });
         }
@@ -199,20 +213,29 @@ public class ScheduleController : ControllerBase
     [HttpPost("check-conflict")]
     public async Task<IActionResult> CheckConflict([FromBody] ScheduleConflictCheckRequest request, CancellationToken ct)
     {
-        await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct); // 鉴权
-        var result = await _conflictService.CheckConflictAsync(request, ct);
-        return Ok(result);
+        var (familyId, _) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct); // 鉴权
+        try
+        {
+            var result = await _conflictService.CheckConflictAsync(familyId, request, ct);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex) when (IsDomainError(ex.Message))
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     private static bool IsDomainError(string message) =>
         message switch
         {
-            "CHILD_NOT_SELECTED" or "SCHEDULE_NAME_EMPTY" or "SCHEDULE_NAME_TOO_LONG"
-                or "TIME_SLOT_INVALID" or "NO_DAY_SELECTED" or "NOTES_TOO_LONG"
-                or "DUE_DATE_INVALID" or "REPEAT_END_DATE_INVALID" or "DUE_DATE_REQUIRED"
-                or "CHILD_NOT_IN_FAMILY" or "SCHEDULE_ALREADY_CANCELLED" or "HOMEWORK_NO_CANCEL"
-                or "NOT_CANCELLED_OR_EXCLUDED" or "INVALID_SCOPE" or "SCHEDULE_TYPE_INVALID"
-                or "LOCATION_TOO_LONG" or "SCHEDULE_TYPE_REQUIRED"
+            ErrorCodes.MemberNotSelected or ErrorCodes.ChildNotSelected
+                or ErrorCodes.MemberNotInFamily or ErrorCodes.ChildNotInFamily
+                or ErrorCodes.ScheduleNameEmpty or ErrorCodes.ScheduleNameTooLong
+                or ErrorCodes.TimeSlotInvalid or ErrorCodes.NoDaySelected or ErrorCodes.NotesTooLong
+                or ErrorCodes.DueDateInvalid or ErrorCodes.RepeatEndDateInvalid or ErrorCodes.DueDateRequired
+                or "SCHEDULE_ALREADY_CANCELLED" or "HOMEWORK_NO_CANCEL"
+                or "NOT_CANCELLED_OR_EXCLUDED" or ErrorCodes.InvalidScope or ErrorCodes.ScheduleTypeInvalid
+                or ErrorCodes.LocationTooLong or "SCHEDULE_TYPE_REQUIRED"
                 => true,
             _ => false
         };

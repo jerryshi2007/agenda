@@ -12,8 +12,8 @@ const ENV_VERSION = (typeof __wxConfig !== 'undefined' && __wxConfig.envVersion)
 // 开发/体验版用 HTTP（80 端口，无 SSL），微信开发者工具需勾选「不校验合法域名」。
 // 生产（release）必须 HTTPS + ICP 备案 + 小程序后台配置「request 合法域名」——小程序审核硬性要求。
 const BASE_URL = ENV_VERSION === 'release'
-  ? 'https://www.paiban.live'
-  : 'http://www.paiban.live';
+  ? 'https://paiban.live'
+  : 'http://127.0.0.1:5000';
 const DEFAULT_TIMEOUT = 10000;
 
 // 429 退避重试等待时长（毫秒）

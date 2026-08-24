@@ -56,27 +56,27 @@
     <view wx:if="{{errors.name}}" class="form-error">{{errors.name}}</view>
   </view>
 
-  <!-- 孩子多选（childSelectorVisible=true 时显示） -->
+  <!-- 成员多选（childSelectorVisible=true 时显示） -->
   <view wx:if="{{childSelectorVisible}}" class="form-group">
-    <view class="form-label">关联孩子 <text class="required">*</text></view>
-    <view wx:if="{{childList.length === 0}}" class="empty-state">
-      <view class="empty-state-desc">还没有关联孩子，请先邀请家人加入</view>
+    <view class="form-label">关联成员 <text class="required">*</text></view>
+    <view wx:if="{{memberList.length === 0}}" class="empty-state">
+      <view class="empty-state-desc">还没有关联成员，请先邀请家人加入</view>
     </view>
-    <view wx:for="{{childList}}" wx:key="userId"
+    <view wx:for="{{memberList}}" wx:key="userId"
           class="child-select-item {{item._selected ? 'selected' : ''}}"
-          data-id="schedule-form-child-{{item.userId}}"
-          data-index="{{index}}" bindtap="onToggleChild">
+          data-id="schedule-form-member-{{item.userId}}"
+          data-index="{{index}}" bindtap="onToggleMember">
       <view class="child-select-check">
         <text wx:if="{{item._selected}}">✓</text>
       </view>
       <view class="child-select-avatar" style="background:{{item._color || '#10AEFF'}};">
-        <text>{{item.childName ? item.childName.charAt(0) : '?'}}</text>
+        <text>{{item.memberName ? item.memberName.charAt(0) : '?'}}</text>
       </view>
       <view class="child-select-info">
-        <text class="child-select-name">{{item.childName || item.name}}</text>
+        <text class="child-select-name">{{item.memberName}}</text>
       </view>
     </view>
-    <view wx:if="{{errors.childIds}}" class="form-error">{{errors.childIds}}</view>
+    <view wx:if="{{errors.memberIds}}" class="form-error">{{errors.memberIds}}</view>
   </view>
 
   <!-- 起始日期（startDateVisible=true 时显示） -->

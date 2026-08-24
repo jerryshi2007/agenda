@@ -1,0 +1,26 @@
+<!-- components/mini-schedule-card/index.wxml
+     周视图迷你卡片 —— 颜色条 + 时间 + 名称 + 头像 + 完成状态图标（紧凑，7 列网格用） -->
+
+<view class="mini-card mini-card-{{stripeClass}} {{statusKey === 'completed' || statusKey === 'cancelled' ? 'mini-card-done' : ''}}"
+      data-id="calendar-week-card-{{schedule.scheduleId}}"
+      bindtap="onCardTap">
+  <view class="mini-card-stripe mini-card-stripe-{{stripeClass}}"></view>
+
+  <view class="mini-card-content">
+    <text wx:if="{{timeText}}" class="mini-card-time">{{timeText}}</text>
+    <text class="mini-card-title">{{schedule.name}}</text>
+
+    <view class="mini-card-footer">
+      <view wx:if="{{memberName}}" class="mini-card-avatar mini-card-avatar-{{stripeClass}}">{{memberInitial}}</view>
+
+      <!-- 完成状态图标：未完成 → 快捷打卡；已完成/已取消/已逾期 → 状态标记 -->
+      <view wx:if="{{statusKey === 'incomplete'}}"
+            class="mini-card-checkin"
+            data-id="calendar-week-card-checkin-btn-{{schedule.scheduleId}}"
+            catchtap="onCheckinTap">✓</view>
+      <text wx:elif="{{statusKey === 'completed'}}" class="mini-card-status mini-card-status-completed">✓</text>
+      <text wx:elif="{{statusKey === 'cancelled'}}" class="mini-card-status mini-card-status-cancelled">已取消</text>
+      <text wx:elif="{{statusKey === 'overdue'}}" class="mini-card-status mini-card-status-overdue">逾期</text>
+    </view>
+  </view>
+</view>

@@ -1,6 +1,7 @@
 {
   "usingComponents": {
-    "schedule-form": "../../components/schedule-form/index"
+    "schedule-form": "../../components/schedule-form/index",
+    "member-selector": "../../components/member-selector/index"
   },
   "navigationBarTitleText": "创建日程"
 }

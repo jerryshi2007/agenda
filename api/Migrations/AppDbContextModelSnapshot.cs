@@ -248,7 +248,7 @@ namespace Agenda.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("AssignedChildId")
+                    b.Property<Guid>("AssignedMemberId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -315,7 +315,7 @@ namespace Agenda.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AssignedChildId");
+                    b.HasIndex("AssignedMemberId");
 
                     b.HasIndex("FamilyId");
 
@@ -325,7 +325,7 @@ namespace Agenda.Api.Migrations
 
                     b.HasIndex("SourceTemplateId");
 
-                    b.HasIndex("FamilyId", "AssignedChildId");
+                    b.HasIndex("FamilyId", "AssignedMemberId");
 
                     b.ToTable("Schedules");
                 });

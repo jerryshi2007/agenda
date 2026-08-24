@@ -79,14 +79,14 @@ describe('模板系统全链路冒烟', () => {
     ctx.properties = { template: { templateId: 'p1', name: '预设1', scheduleType: 'DailyRoutine' } };
     ctx.setData({
       showDialog: true,
-      childId: 'c1',
+      selectedMemberIds: ['c1'],
       startDate: '2026-08-20'
     });
     // 直接调用 onConfirm
     await ctx.onConfirm();
     await flush();
     expect(template.apply).toHaveBeenCalledWith('p1', expect.objectContaining({
-      childId: 'c1',
+      memberIds: ['c1'],
       startDate: '2026-08-20'
     }));
   });

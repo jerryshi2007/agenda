@@ -15,7 +15,7 @@ public class CheckinServiceTests
     private static readonly Guid UserId = Guid.NewGuid();
     private static readonly Guid FamilyId = Guid.NewGuid();
     private static readonly Guid ScheduleId = Guid.NewGuid();
-    private static readonly Guid AssignedChildId = Guid.NewGuid();
+    private static readonly Guid AssignedMemberId = Guid.NewGuid();
     private static readonly DateOnly Today = new(2026, 10, 27);
     private static readonly DateTimeOffset ServerNow = new(2026, 10, 27, 16, 0, 0, TimeSpan.FromHours(8));
 
@@ -58,7 +58,7 @@ public class CheckinServiceTests
                 Name = "测试日程",
                 ScheduleType = type,
                 FamilyId = FamilyId,
-                AssignedChildId = AssignedChildId,
+                AssignedMemberId = AssignedMemberId,
                 IsDeleted = isDeleted
             });
         (TimeOnly? StartTime, TimeOnly? EndTime) timeSlot = (start, end);
@@ -300,6 +300,42 @@ public class CheckinServiceTests
             () => svc.GetCheckinWindowAsync(ScheduleId, Today, UserId, ServerNow));
 
         Assert.Equal(ErrorCodes.ScheduleNotFound, ex.ErrorCode);
+    }
+
+    // ---------- 权限：孩子仅自己打卡 ----------
+
+    [Fact]
+    public async Task CheckinAsync_ChildChecksOthersSchedule_ThrowsChildAccessDenied()
+    {
+        var db = CreateDbContext();
+        db.FamilyMembers.Add(new FamilyMember
+        {
+            Id = Guid.NewGuid(),
+            FamilyId = FamilyId,
+            UserId = UserId,
+            Role = UserRole.Child,
+            JoinedAt = DateTimeOffset.UtcNow
+        });
+        await db.SaveChangesAsync();
+
+        var query = new Mock<IScheduleQueryService>();
+        query.Setup(x => x.GetScheduleAsync(ScheduleId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ScheduleInfo
+            {
+                ScheduleId = ScheduleId,
+                Name = "测试日程",
+                ScheduleType = ScheduleType.DailyRoutine,
+                FamilyId = FamilyId,
+                AssignedMemberId = Guid.NewGuid(), // 另一个成员
+                IsDeleted = false
+            });
+
+        var svc = new CheckinService(db, query.Object);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(
+            () => svc.CheckinAsync(ScheduleId, Today, UserId, ServerNow));
+
+        Assert.Equal(ErrorCodes.ChildAccessDenied, ex.ErrorCode);
     }
 
     // ---------- 打卡执行 ----------

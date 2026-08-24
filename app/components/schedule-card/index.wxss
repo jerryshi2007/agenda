@@ -6,8 +6,36 @@
   padding-left: 16rpx;
 }
 
+/* 左侧时间列（原时间线移到卡片内部） */
+.schedule-card-timeline {
+  width: 150rpx;
+  flex-shrink: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0 var(--spacing-xs);
+  border-right: 2rpx solid var(--color-border-light);
+}
+
+.schedule-card-timeline-time {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-align: center;
+}
+
+.schedule-card-timeline-sub {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-top: 2rpx;
+  text-align: center;
+}
+
 .schedule-card-body {
   flex: 1;
+  min-width: 0;
   padding: var(--spacing-md);
 }
 

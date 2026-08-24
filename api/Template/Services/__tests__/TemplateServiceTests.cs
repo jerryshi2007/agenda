@@ -39,14 +39,15 @@ public class TemplateServiceTests
         var scheduleService = new Mock<IScheduleService>();
         scheduleService
             .Setup(x => x.CreateAsync(It.IsAny<Guid>(), It.IsAny<Guid>(),
-                It.IsAny<CreateScheduleRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Guid f, Guid u, CreateScheduleRequest r, CancellationToken _) =>
+                It.IsAny<UserRole>(), It.IsAny<CreateScheduleRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Guid f, Guid u, UserRole role, CreateScheduleRequest r, CancellationToken _) =>
                 new CreateScheduleResponse
                 {
                     GroupKey = Guid.NewGuid(),
-                    Schedules = r.ChildIds.Select(c => new ScheduleSummary
+                    Schedules = r.GetEffectiveMemberIds().Select(c => new ScheduleSummary
                     {
                         ScheduleId = Guid.NewGuid(),
+                        AssignedMemberId = c,
                         AssignedChildId = c,
                         Name = r.Name,
                         ScheduleType = r.ScheduleType,
@@ -429,7 +430,7 @@ public class TemplateServiceTests
     }
 
     [Fact]
-    public async Task ApplyAsync_ChildNotInFamily_ThrowsChildNotInFamily()
+    public async Task ApplyAsync_MemberNotInFamily_ThrowsMemberNotInFamily()
     {
         var db = CreateDbContext();
         var created = await CreateService(db).CreateAsync(FamilyA, UserA, SampleRequest(), default);
@@ -443,19 +444,20 @@ public class TemplateServiceTests
                 UserA,
                 new ApplyTemplateRequest { ChildId = Guid.NewGuid(), StartDate = today },
                 default));
-        Assert.Equal(ErrorCodes.TemplateChildNotInFamily, ex.ErrorCode);
+        Assert.Equal(ErrorCodes.MemberNotInFamily, ex.ErrorCode);
     }
 
     [Fact]
-    public async Task ApplyAsync_ChildRoleUser_ThrowsChildNotInFamily()
+    public async Task ApplyAsync_ParentRoleUser_Succeeds()
     {
         var db = CreateDbContext();
-        // Seed a parent user
+        // Seed a parent-role user as member（任意角色成员均可被指派）
+        var parentId = Guid.NewGuid();
         db.FamilyMembers.Add(new DomainFamilyMember
         {
             Id = Guid.NewGuid(),
             FamilyId = FamilyA,
-            UserId = Guid.NewGuid(),
+            UserId = parentId,
             Role = UserRole.Parent,
             JoinedAt = DateTimeOffset.UtcNow
         });
@@ -464,21 +466,16 @@ public class TemplateServiceTests
         var created = await CreateService(db).CreateAsync(FamilyA, UserA, SampleRequest(), default);
         var service = CreateService(db);
 
-        // Pick a parent-role user as childId (not a child)
-        var parentId = await db.FamilyMembers
-            .Where(fm => fm.FamilyId == FamilyA && fm.Role == UserRole.Parent)
-            .Select(fm => fm.UserId)
-            .FirstAsync();
-
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        var ex = await Assert.ThrowsAsync<DomainException>(() =>
-            service.ApplyAsync(
-                created.TemplateId,
-                FamilyA,
-                UserA,
-                new ApplyTemplateRequest { ChildId = parentId, StartDate = today },
-                default));
-        Assert.Equal(ErrorCodes.TemplateChildNotInFamily, ex.ErrorCode);
+        var result = await service.ApplyAsync(
+            created.TemplateId,
+            FamilyA,
+            UserA,
+            new ApplyTemplateRequest { ChildId = parentId, StartDate = today },
+            default);
+
+        Assert.Single(result.Schedules);
+        Assert.Equal(parentId, result.Schedules[0].AssignedChildId);
     }
 
     [Fact]
@@ -567,7 +564,7 @@ public class TemplateServiceTests
             Name = "S1",
             ScheduleType = ScheduleType.DailyRoutine,
             FamilyId = FamilyA,
-            AssignedChildId = ChildA,
+            AssignedMemberId = ChildA,
             CreatedBy = UserA,
             GroupKey = Guid.NewGuid(),
             SourceTemplateId = created.TemplateId,
@@ -582,7 +579,7 @@ public class TemplateServiceTests
             Name = "S2",
             ScheduleType = ScheduleType.DailyRoutine,
             FamilyId = FamilyA,
-            AssignedChildId = ChildA,
+            AssignedMemberId = ChildA,
             CreatedBy = UserA,
             GroupKey = Guid.NewGuid(),
             SourceTemplateId = created.TemplateId,

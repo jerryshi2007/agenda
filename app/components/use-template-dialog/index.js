@@ -1,9 +1,10 @@
 // components/use-template-dialog/index.js
-// 使用模板弹窗组件 —— 选择孩子 + 起始日期 + 可覆盖名称/备注，提交后调 template.apply
+// 使用模板弹窗组件 —— 多选成员 + 起始日期 + 可覆盖名称/备注，提交后调 template.apply
 
 const templateService = require('../../services/template');
 const dateUtils = require('../../utils/date-utils');
 const { ScheduleTypeLabels, ErrorMessages } = require('../../contracts/template');
+const { ErrorMessages: ScheduleErrorMessages } = require('../../contracts/schedule');
 
 Component({
   properties: {
@@ -19,9 +20,12 @@ Component({
 
   data: {
     showDialog: false,
-    childId: '',
-    childName: '',
-    hasNoChild: false,
+    memberList: [],
+    role: '',
+    userId: '',
+    selectedMemberIds: [],
+    selectedMembers: [],
+    hasNoMember: false,
     startDate: '',
     minDate: '',
     overrideName: '',
@@ -53,12 +57,12 @@ Component({
 
   methods: {
     /**
-     * 从 template 初始化 childId / startDate / override 字段
+     * 从 template 初始化成员列表 / startDate / override 字段
      */
     _initializeFromTemplate() {
       const app = this._appRef || (typeof getApp === 'function' ? getApp() : { globalData: {} });
-      const children = (app && app.globalData && app.globalData.childList) || [];
-      const first = children[0];
+      const gd = (app && app.globalData) || {};
+      const members = gd.memberList || gd.childList || [];
       const template = this.properties.template || {};
       const today = dateUtils.formatDate(new Date());
       const timeSlotSummary = template.timeSlots && template.timeSlots.length
@@ -66,15 +70,28 @@ Component({
         : '';
 
       this.setData({
+        memberList: members,
+        role: gd.userRole || '',
+        userId: gd.userId || '',
+        hasNoMember: members.length === 0,
         minDate: today,
         startDate: today,
-        childId: first ? (first.userId || first.childId) : '',
-        childName: first ? (first.childName || first.name) : '',
-        hasNoChild: !first,
         overrideName: template.name || '',
         overrideNotes: template.notes || '',
         scheduleTypeLabel: ScheduleTypeLabels[template.scheduleType] || '',
         timeSlotSummary: timeSlotSummary || '未设置'
+      });
+    },
+
+    /**
+     * member-selector change 事件回调
+     * detail = { memberIds, selectedMembers }
+     */
+    onMemberChange(e) {
+      const { memberIds, selectedMembers } = e.detail || {};
+      this.setData({
+        selectedMemberIds: memberIds || [],
+        selectedMembers: selectedMembers || []
       });
     },
 
@@ -84,17 +101,6 @@ Component({
     onClose() {
       this.setData({ showDialog: false });
       this.triggerEvent('close');
-    },
-
-    /**
-     * 切换孩子
-     */
-    onSelectChild(e) {
-      const { childId, childName } = e.currentTarget.dataset;
-      this.setData({
-        childId: childId,
-        childName: childName
-      });
     },
 
     /**
@@ -124,8 +130,8 @@ Component({
     onConfirm() {
       if (this.data.submitting) return Promise.resolve();
 
-      if (!this.data.childId) {
-        wx.showToast({ title: '请先选择孩子', icon: 'none' });
+      if (!this.data.selectedMemberIds || this.data.selectedMemberIds.length === 0) {
+        wx.showToast({ title: ScheduleErrorMessages.MEMBER_NOT_SELECTED, icon: 'none' });
         return Promise.resolve();
       }
       if (!this.data.startDate) {
@@ -137,7 +143,7 @@ Component({
 
       const template = this.properties.template || {};
       const requestData = {
-        childId: this.data.childId,
+        memberIds: this.data.selectedMemberIds,
         startDate: this.data.startDate
       };
       // 可选覆盖字段：仅在用户实际修改时透传（避免无意义覆盖）

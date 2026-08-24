@@ -55,9 +55,9 @@ function restore(scheduleId, date) {
  * 冲突检测（可选调用）
  * POST /api/v1/schedules/check-conflict
  */
-function checkConflict(childId, date, startTime, endTime) {
+function checkConflict(memberId, date, startTime, endTime) {
   return api.post('/api/v1/schedules/check-conflict', {
-    childId: childId,
+    memberId: memberId,
     date: date,
     startTime: startTime,
     endTime: endTime

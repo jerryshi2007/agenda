@@ -33,6 +33,6 @@ public class ScheduleInfo
     public string Name { get; set; } = string.Empty;
     public ScheduleType ScheduleType { get; set; }
     public Guid FamilyId { get; set; }
-    public Guid AssignedChildId { get; set; }
+    public Guid AssignedMemberId { get; set; }
     public bool IsDeleted { get; set; }
 }

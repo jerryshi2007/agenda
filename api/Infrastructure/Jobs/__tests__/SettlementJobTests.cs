@@ -34,7 +34,7 @@ public class SettlementJobTests
             Name = "测试日程",
             ScheduleType = type,
             FamilyId = FamilyId,
-            AssignedChildId = childId,
+            AssignedMemberId = childId,
             CreatedBy = Guid.NewGuid(),
             GroupKey = Guid.NewGuid(),
             RepeatEndDate = null,
@@ -60,6 +60,7 @@ public class SettlementJobTests
     private static async Task SeedScheduleAsync(
         AppDbContext db, Domain.Entities.Schedule schedule, bool withTimeSlot, bool checkedIn)
     {
+        await SeedChildMemberAsync(db);
         if (withTimeSlot)
         {
             schedule.TimeSlots.Add(new TimeSlot
@@ -79,13 +80,30 @@ public class SettlementJobTests
             {
                 ScheduleId = schedule.Id,
                 Date = Yesterday,
-                UserId = schedule.AssignedChildId,
+                UserId = schedule.AssignedMemberId,
                 CheckinAt = DateTimeOffset.UtcNow,
                 Source = CheckinSource.Child,
                 CreatedAt = DateTimeOffset.UtcNow
             });
             await db.SaveChangesAsync();
         }
+    }
+
+    private static async Task SeedChildMemberAsync(AppDbContext db)
+    {
+        var exists = await db.FamilyMembers
+            .AnyAsync(fm => fm.FamilyId == FamilyId && fm.UserId == ChildId);
+        if (exists) return;
+
+        db.FamilyMembers.Add(new DomainFamilyMember
+        {
+            Id = Guid.NewGuid(),
+            FamilyId = FamilyId,
+            UserId = ChildId,
+            Role = UserRole.Child,
+            JoinedAt = DateTimeOffset.UtcNow
+        });
+        await db.SaveChangesAsync();
     }
 
     [Fact]
@@ -227,5 +245,31 @@ public class SettlementJobTests
 
         var scheduleStreak = await db.Streaks.SingleAsync(s => s.Scope == StreakScope.Schedule && s.SubjectId == routine.Id);
         Assert.Equal(1, scheduleStreak.CurrentStreak); // 幂等：重复结算不重复累加
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ParentRoutine_SettlesButSkipsStreak()
+    {
+        var (db, _, job) = CreateJob();
+        var parentId = Guid.NewGuid();
+        db.FamilyMembers.Add(new DomainFamilyMember
+        {
+            Id = Guid.NewGuid(),
+            FamilyId = FamilyId,
+            UserId = parentId,
+            Role = UserRole.Parent,
+            JoinedAt = DateTimeOffset.UtcNow
+        });
+        await db.SaveChangesAsync();
+
+        var routine = NewSchedule(ScheduleType.DailyRoutine, parentId);
+        await SeedScheduleAsync(db, routine, withTimeSlot: true, checkedIn: false);
+
+        await job.ExecuteAsync(CancellationToken.None);
+
+        // 家长日程照常结算终态（CheckinSettlement），但 streak 跳过。
+        var settlement = await db.CheckinSettlements.SingleAsync();
+        Assert.Equal(ScheduleStatus.Incomplete, settlement.Status);
+        Assert.Empty(await db.Streaks.ToListAsync());
     }
 }

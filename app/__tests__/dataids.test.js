@@ -294,4 +294,19 @@ describe('WXML data-id 契约', () => {
     expect(wxml).not.toContain('settings');
     expect(wxml).not.toContain('profile-edit');
   });
+
+  test('mini-schedule-card 组件含卡片与快捷打卡必需 data-id', () => {
+    const wxml = readFile('components/mini-schedule-card/index.wxml');
+    // 卡片根节点 + 未完成态快捷打卡按钮（动态 scheduleId）
+    expect(wxml).toContain('data-id="calendar-week-card-{{schedule.scheduleId}}"');
+    expect(wxml).toContain('data-id="calendar-week-card-checkin-btn-{{schedule.scheduleId}}"');
+  });
+
+  test('week-view 组件含 7 列网格 day 列 data-id', () => {
+    const wxml = readFile('components/week-view/index.wxml');
+    expect(wxml).toContain('data-id="calendar-week-header-cell-{{item.date}}"');
+    expect(wxml).toContain('data-id="calendar-week-col-{{day.date}}"');
+    // 网格必须是 7 列
+    expect(wxml).toContain('week-grid');
+  });
 });

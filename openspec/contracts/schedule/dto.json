@@ -1,0 +1,120 @@
+{
+  "CreateScheduleRequest": {
+    "fields": {
+      "name": { "type": "string", "required": true, "maxLength": 50 },
+      "scheduleType": { "type": "ScheduleType", "required": true },
+      "memberIds": { "type": "Guid[]", "required": false, "minItems": 1, "description": "关联成员 User.Id 列表（新字段）。家长=任意成员多选；孩子=仅自己单元素。与 childIds 都传时以 memberIds 为准；仅传 childIds 时由 API 边界归一化为 memberIds；都不传报 MEMBER_NOT_SELECTED。" },
+      "childIds": { "type": "Guid[]", "required": false, "deprecated": true, "description": "兼容期保留，下一个版本移除。旧字段名，语义同 memberIds。" },
+      "timeSlots": { "type": "TimeSlotDto[]", "required": false, "description": "作业任务不需时间槽；其余类型至少一个。" },
+      "repeatEndDate": { "type": "DateOnly", "required": false },
+      "location": { "type": "string", "required": false, "maxLength": 100 },
+      "notes": { "type": "string", "required": false, "maxLength": 500 },
+      "dueDate": { "type": "DateOnly", "required": false, "description": "作业任务必填。" },
+      "suggestedStartTime": { "type": "TimeOnly", "required": false },
+      "suggestedEndTime": { "type": "TimeOnly", "required": false },
+      "ignoreConflict": { "type": "boolean", "required": false },
+      "sourceTemplateId": { "type": "Guid", "required": false }
+    }
+  },
+  "TimeSlotDto": {
+    "fields": {
+      "dayOfWeek": { "type": "DayOfWeek", "required": true },
+      "startTime": { "type": "TimeOnly", "required": true },
+      "endTime": { "type": "TimeOnly", "required": true }
+    }
+  },
+  "ScheduleSummary": {
+    "fields": {
+      "scheduleId": { "type": "Guid", "required": true },
+      "assignedMemberId": { "type": "Guid", "required": true, "description": "关联成员 User.Id（新字段）。" },
+      "assignedChildId": { "type": "Guid", "required": false, "deprecated": true, "description": "兼容期保留，下一个版本移除。旧字段名，值与 assignedMemberId 相同。" },
+      "assignedMemberRole": { "type": "UserRole", "required": true, "description": "关联成员角色，用于前端双文案 label 渲染（创建混合关联日程后前端可立即按成员角色渲染 label）。" },
+      "assignedMemberName": { "type": "string", "required": false, "description": "关联成员昵称，便于列表/创建响应直接渲染成员名。" },
+      "name": { "type": "string", "required": true },
+      "scheduleType": { "type": "ScheduleType", "required": true },
+      "timeSlots": { "type": "TimeSlotDto[]", "required": true },
+      "repeatEndDate": { "type": "DateOnly", "required": false },
+      "location": { "type": "string", "required": false },
+      "notes": { "type": "string", "required": false },
+      "createdAt": { "type": "DateTimeOffset", "required": true }
+    }
+  },
+  "CreateScheduleResponse": {
+    "fields": {
+      "groupKey": { "type": "Guid", "required": true },
+      "schedules": { "type": "ScheduleSummary[]", "required": true }
+    }
+  },
+  "ScheduleResponse": {
+    "fields": {
+      "scheduleId": { "type": "Guid", "required": true },
+      "name": { "type": "string", "required": true },
+      "scheduleType": { "type": "ScheduleType", "required": true },
+      "date": { "type": "DateOnly", "required": true },
+      "timeSlots": { "type": "TimeSlotDto[]", "required": true },
+      "repeatEndDate": { "type": "DateOnly", "required": false },
+      "repeatRule": { "type": "string", "required": false },
+      "location": { "type": "string", "required": false },
+      "assignedMemberId": { "type": "Guid", "required": true, "description": "关联成员 User.Id（新字段）。" },
+      "assignedChildId": { "type": "Guid", "required": false, "deprecated": true, "description": "兼容期保留，下一个版本移除。旧字段名，值与 assignedMemberId 相同。" },
+      "assignedMemberRole": { "type": "UserRole", "required": true, "description": "关联成员角色，用于前端双文案 label 渲染。" },
+      "assignedMemberName": { "type": "string", "required": false },
+      "notes": { "type": "string", "required": false },
+      "instanceStatus": { "type": "string", "required": true },
+      "isCancelled": { "type": "boolean", "required": true },
+      "isExcluded": { "type": "boolean", "required": true },
+      "checkinRecords": { "type": "object[]", "required": true },
+      "canEdit": { "type": "boolean", "required": true },
+      "canCancel": { "type": "boolean", "required": true },
+      "canDelete": { "type": "boolean", "required": true },
+      "canCheckin": { "type": "boolean", "required": true },
+      "canUndo": { "type": "boolean", "required": true },
+      "rowVersion": { "type": "string", "required": false },
+      "dueDate": { "type": "DateOnly", "required": false },
+      "suggestedStartTime": { "type": "TimeOnly", "required": false },
+      "suggestedEndTime": { "type": "TimeOnly", "required": false }
+    }
+  },
+  "ScheduleConflictCheckRequest": {
+    "fields": {
+      "memberId": { "type": "Guid", "required": false, "description": "冲突检测对象：同一成员（新字段）。与 childId 都传时以 memberId 为准；都不传报 MEMBER_NOT_SELECTED。" },
+      "childId": { "type": "Guid", "required": false, "deprecated": true, "description": "兼容期保留，下一个版本移除。旧字段名，语义同 memberId。" },
+      "date": { "type": "DateOnly", "required": true },
+      "startTime": { "type": "TimeOnly", "required": true },
+      "endTime": { "type": "TimeOnly", "required": true }
+    }
+  },
+  "CalendarQueryRequest": {
+    "fields": {
+      "view": { "type": "string", "required": true, "description": "month/week/day" },
+      "startDate": { "type": "DateOnly", "required": true },
+      "endDate": { "type": "DateOnly", "required": true },
+      "memberId": { "type": "Guid", "required": false, "description": "日历成员筛选（新字段）。null=全部成员。与 childId 都传时以 memberId 为准。" },
+      "childId": { "type": "Guid", "required": false, "deprecated": true, "description": "兼容期保留，下一个版本移除。旧字段名，语义同 memberId。" },
+      "scheduleTypes": { "type": "ScheduleType[]", "required": false }
+    }
+  },
+  "CalendarSchedule": {
+    "fields": {
+      "scheduleId": { "type": "Guid", "required": true },
+      "assignedMemberId": { "type": "Guid", "required": true, "description": "关联成员 User.Id（新字段）。" },
+      "assignedChildId": { "type": "Guid", "required": false, "deprecated": true, "description": "兼容期保留，下一个版本移除。旧字段名，值与 assignedMemberId 相同。" },
+      "assignedMemberRole": { "type": "UserRole", "required": true, "description": "关联成员角色，用于前端双文案 label 渲染。" },
+      "assignedMemberName": { "type": "string", "required": false },
+      "name": { "type": "string", "required": true },
+      "scheduleType": { "type": "ScheduleType", "required": true }
+    }
+  },
+  "ApplyTemplateRequest": {
+    "fields": {
+      "memberIds": { "type": "Guid[]", "required": false, "minItems": 1, "description": "关联成员 User.Id 列表（新字段，多选）。与 childId 都传时以 memberIds 为准；都不传报 MEMBER_NOT_SELECTED。" },
+      "childId": { "type": "Guid", "required": false, "deprecated": true, "description": "兼容期保留，下一个版本移除。旧字段名（单选），归一化为 memberIds 单元素列表。" },
+      "startDate": { "type": "DateOnly", "required": true },
+      "name": { "type": "string", "required": false },
+      "timeSlots": { "type": "TimeSlotDto[]", "required": false },
+      "repeatEndDate": { "type": "DateOnly", "required": false },
+      "location": { "type": "string", "required": false },
+      "notes": { "type": "string", "required": false }
+    }
+  }
+}
