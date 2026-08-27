@@ -186,6 +186,7 @@ sudo docker run -d \
   -v /opt/agenda/nginx/config/nginx.conf:/etc/nginx/nginx.conf:ro \
   -v /opt/agenda/nginx/ssl:/etc/nginx/ssl:ro \
   -v /opt/agenda/uploads:/etc/agenda/uploads:ro \
+  -v /opt/agenda/web:/etc/agenda/web:ro \
   nginx:latest
 ```
 

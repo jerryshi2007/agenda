@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="470" viewBox="0 0 420 470" role="img" aria-label="小程序产品形态示意图（家长周视图 + 孩子今日任务）">
+  <defs>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#303133" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+  <!-- 手机外壳 -->
+  <rect x="30" y="14" width="360" height="442" rx="30" fill="#ffffff" stroke="#e4e7ed" stroke-width="2" filter="url(#soft)"/>
+  <!-- 状态栏 -->
+  <text x="56" y="48" font-family="system-ui, sans-serif" font-size="12" fill="#909399">9:41</text>
+  <rect x="346" y="36" width="20" height="11" rx="3" fill="#303133"/>
+  <circle cx="376" cy="41" r="4" fill="#67c23a"/>
+  <!-- 顶部标题栏 -->
+  <rect x="30" y="58" width="360" height="48" fill="#ecf5ff"/>
+  <circle cx="62" cy="82" r="12" fill="#409eff"/>
+  <text x="80" y="87" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#303133">今日</text>
+  <text x="360" y="87" font-family="system-ui, sans-serif" font-size="12" fill="#409eff" text-anchor="end">按孩子 ▾</text>
+  <!-- 星期 -->
+  <text x="58" y="130" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#409eff">一</text>
+  <text x="110" y="130" font-family="system-ui, sans-serif" font-size="11" fill="#909399">二</text>
+  <text x="162" y="130" font-family="system-ui, sans-serif" font-size="11" fill="#909399">三</text>
+  <text x="214" y="130" font-family="system-ui, sans-serif" font-size="11" fill="#909399">四</text>
+  <text x="266" y="130" font-family="system-ui, sans-serif" font-size="11" fill="#909399">五</text>
+  <text x="318" y="130" font-family="system-ui, sans-serif" font-size="11" fill="#909399">六</text>
+  <text x="362" y="130" font-family="system-ui, sans-serif" font-size="11" fill="#909399">日</text>
+  <circle cx="58" cy="138" r="2" fill="#409eff"/>
+  <!-- 任务卡片 1：钢琴课（课后活动·蓝）已打卡 -->
+  <g>
+    <rect x="58" y="152" width="304" height="56" rx="10" fill="#f5f7fa"/>
+    <rect x="58" y="152" width="4" height="56" rx="2" fill="#409eff"/>
+    <text x="78" y="174" font-family="system-ui, sans-serif" font-size="14" font-weight="500" fill="#303133">16:30 · 钢琴课</text>
+    <text x="78" y="192" font-family="system-ui, sans-serif" font-size="11" fill="#909399">课后活动 · 每周三</text>
+    <circle cx="336" cy="180" r="11" fill="#67c23a"/>
+    <path d="M331 180 l3.5 3.5 l7 -7" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- 任务卡片 2：阅读打卡（日常作息·绿）已打卡 -->
+  <g>
+    <rect x="58" y="218" width="304" height="56" rx="10" fill="#f5f7fa"/>
+    <rect x="58" y="218" width="4" height="56" rx="2" fill="#67c23a"/>
+    <text x="78" y="240" font-family="system-ui, sans-serif" font-size="14" font-weight="500" fill="#303133">19:00 · 阅读打卡</text>
+    <text x="78" y="258" font-family="system-ui, sans-serif" font-size="11" fill="#909399">日常作息 · 每天</text>
+    <circle cx="336" cy="246" r="11" fill="#67c23a"/>
+    <path d="M331 246 l3.5 3.5 l7 -7" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- 任务卡片 3：数学作业（作业任务·橙）待打卡 -->
+  <g>
+    <rect x="58" y="284" width="304" height="56" rx="10" fill="#f5f7fa"/>
+    <rect x="58" y="284" width="4" height="56" rx="2" fill="#e6a23c"/>
+    <text x="78" y="306" font-family="system-ui, sans-serif" font-size="14" font-weight="500" fill="#303133">20:00 · 数学作业</text>
+    <text x="78" y="324" font-family="system-ui, sans-serif" font-size="11" fill="#909399">作业任务 · 今晚截止</text>
+    <circle cx="336" cy="312" r="11" fill="#ffffff" stroke="#c0c4cc" stroke-width="2"/>
+  </g>
+  <!-- 今日完成进度 -->
+  <g>
+    <rect x="58" y="356" width="304" height="52" rx="10" fill="#ffffff" stroke="#e4e7ed"/>
+    <text x="78" y="378" font-family="system-ui, sans-serif" font-size="12" fill="#909399">今日完成</text>
+    <text x="342" y="378" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#303133" text-anchor="end">2 / 3</text>
+    <rect x="78" y="390" width="264" height="6" rx="3" fill="#ebeef5"/>
+    <rect x="78" y="390" width="176" height="6" rx="3" fill="#409eff"/>
+  </g>
+  <!-- 底部导航（原生 TabBar 示意） -->
+  <g>
+    <rect x="30" y="424" width="360" height="32" fill="#ffffff"/>
+    <rect x="120" y="432" width="36" height="4" rx="2" fill="#dcdfe6"/>
+    <rect x="192" y="432" width="36" height="4" rx="2" fill="#409eff"/>
+    <rect x="264" y="432" width="36" height="4" rx="2" fill="#dcdfe6"/>
+  </g>
+</svg>
