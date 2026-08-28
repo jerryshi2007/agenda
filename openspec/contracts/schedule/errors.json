@@ -18,5 +18,10 @@
   "TIME_SLOT_INVALID": { "httpStatus": 400, "message": "时间槽开始时间不能晚于或等于结束时间" },
   "INVALID_SCOPE": { "httpStatus": 400, "message": "影响范围参数无效" },
   "SCHEDULE_CONFLICT": { "httpStatus": 409, "message": "该时段与已有日程存在时间重叠" },
-  "CONCURRENT_EDIT_CONFLICT": { "httpStatus": 409, "message": "日程已被他人修改，请刷新后重试" }
+  "CONCURRENT_EDIT_CONFLICT": { "httpStatus": 409, "message": "日程已被他人修改，请刷新后重试" },
+  "DATE_RANGE_TOO_LARGE": { "httpStatus": 400, "message": "日期范围过大，请缩小查询范围" },
+  "SCHEDULE_ALREADY_CANCELLED": { "httpStatus": 400, "message": "该日程当天已取消" },
+  "HOMEWORK_NO_CANCEL": { "httpStatus": 400, "message": "作业任务不支持取消" },
+  "NOT_CANCELLED_OR_EXCLUDED": { "httpStatus": 400, "message": "该日程当天未被取消或排除" },
+  "SCHEDULE_TYPE_REQUIRED": { "httpStatus": 400, "message": "日程类型不能为空" }
 }

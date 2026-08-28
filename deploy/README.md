@@ -62,10 +62,10 @@
 ### 3.1 本地构建镜像（Windows，在仓库根目录）
 
 ```bash
-docker build -t agenda-api:1.0.0 -f api/Dockerfile api/
+docker build -t agenda-api:1.0.0 -f api/Agenda.Api/Dockerfile api/Agenda.Api/
 ```
 
-> 镜像用 [api/Dockerfile](../../api/Dockerfile)，环境由运行时注入（不硬编码 Development）。
+> 镜像用 [api/Agenda.Api/Dockerfile](../../api/Agenda.Api/Dockerfile)，环境由运行时注入（不硬编码 Development）。
 
 ### 3.2 打包并传输镜像到服务器
 
@@ -96,7 +96,7 @@ sudo docker exec postgres psql -U postgres -c "CREATE DATABASE agenda;"
 **跑迁移**（本地 Windows，直连公网库；首次迁移日志里会出现一行 `fail ... SELECT "__EFMigrationsHistory"`，是「表不存在」的正常日志，可忽略）：
 
 ```bash
-dotnet ef database update --project api/ --startup-project api/ \
+dotnet ef database update --project api/Agenda.Api/ --startup-project api/Agenda.Api/ \
   --connection "Host=115.159.206.106;Port=5432;Database=agenda;Username=postgres;Password=<DB密码>"
 ```
 
@@ -221,7 +221,7 @@ const BASE_URL = 'https://paiban.live';
 
 ```bash
 # 1. 本地构建（换新 tag 或用 :latest + Always）
-docker build -t agenda-api:1.0.0 -f api/Dockerfile api/
+docker build -t agenda-api:1.0.0 -f api/Agenda.Api/Dockerfile api/Agenda.Api/
 
 # 2. 打包传输
 docker save agenda-api:1.0.0 | gzip > /tmp/agenda-api.tar.gz

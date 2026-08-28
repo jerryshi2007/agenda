@@ -220,7 +220,7 @@ test-planner → 已有测试评估 → 按需补充后端(dev-dotnet)/前端(de
 - test-writer 和 test-runner **不适用**（仅 Web 应用的 Playwright E2E）
 - 前端测试走 Jest + miniprogram-simulate（dev-miniapp-tdd skill）
 - 后端测试走 xUnit（dev-dotnet-tdd skill）
-- 主代理 MUST 负责最终执行 `dotnet test api/` + `cd app && npx jest` 并生成测试报告
+- 主代理 MUST 负责最终执行 `dotnet test api/Agenda.Test/` + `cd app && npx jest` 并生成测试报告
 
 ### 主代理调度约束
 

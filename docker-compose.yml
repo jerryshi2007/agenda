@@ -23,7 +23,7 @@ services:
   # ---- .NET 10 Web API ----
   api:
     build:
-      context: ./api
+      context: ./api/Agenda.Api
       dockerfile: Dockerfile
     container_name: agenda-api
     restart: unless-stopped

@@ -99,7 +99,7 @@
     - `api/Checkin/Services/CompletionStatsService.cs`
     - `api/Schedule/Services/ChildScheduleQueryService.cs`
 - **完成标准**：属性改名后 EF 默认映射到 `AssignedMemberId` 列（不加 `[Column]`，默认约定属性名 = 列名）；`ScheduleInfo` 与上述 5 个消费文件的机械改名集中一次完成；`ScheduleService`/`SettlementJob` 的引用改名在 Task 2.1/2.2/3.2 各自完成
-- **验证命令**：`dotnet build api/Agenda.Api.csproj`
+- **验证命令**：`dotnet build api/Agenda.Api/`
 
 #### Task 0.4: EF migration 生成（列重命名，可回滚）
 
@@ -112,9 +112,9 @@
   - `api/Migrations/AppDbContextModelSnapshot.cs`（同步 `AssignedMemberId` 属性 + 索引名）
 - **完成标准**：迁移为 `RenameColumn`/`RenameIndex`（**非 drop+add**，不改数据）；`Down` 完整还原列名与索引名；`AppDbContextModelSnapshot` 与实体/配置一致（`AssignedMemberId`）；开发库应用后 `Schedules` 表列名为 `AssignedMemberId`、存量行数不变
 - **验证命令**：
-  1. `dotnet ef migrations add RenameAssignedChildIdToAssignedMemberId --project api/ --startup-project api/`（生成后人工检查 `Up` 为 Rename 而非 drop+add，`Down` 反向）
-  2. `dotnet ef database update --project api/ --startup-project api/`（开发库应用）
-  3. `dotnet ef migrations script --project api/ --startup-project api/`（核对生成 SQL 为 `ALTER TABLE "Schedules" RENAME COLUMN` 而非 DROP/ADD）
+  1. `dotnet ef migrations add RenameAssignedChildIdToAssignedMemberId --project api/Agenda.Api/ --startup-project api/Agenda.Api/`（生成后人工检查 `Up` 为 Rename 而非 drop+add，`Down` 反向）
+  2. `dotnet ef database update --project api/Agenda.Api/ --startup-project api/Agenda.Api/`（开发库应用）
+  3. `dotnet ef migrations script --project api/Agenda.Api/ --startup-project api/Agenda.Api/`（核对生成 SQL 为 `ALTER TABLE "Schedules" RENAME COLUMN` 而非 DROP/ADD）
 
 ---
 
@@ -127,7 +127,7 @@
 - **产出文件**：
   - `api/Infrastructure/ErrorCodes.cs`（新增 `MemberNotSelected`/`MemberNotInFamily`/`ChildSelfAssignOnly`/`ChildAccessDenied`/`ScheduleNameEmpty` 等 schedule 模块常量 + deprecated 别名常量 `ChildNotSelected`/`ChildNotInFamily` + Messages/HttpStatuses 映射）
 - **完成标准**：常量值与 `openspec/contracts/schedule/errors.json` 一致（新码 + deprecated 别名，别名与对应新码同 HTTP 状态）；`ScheduleService`/`CheckinService` 中不再使用裸字符串字面量
-- **验证命令**：`dotnet build api/Agenda.Api.csproj`
+- **验证命令**：`dotnet build api/Agenda.Api/`
 
 #### Task 1.2: Schedule DTOs 改名 + 兼容层（请求归一化 + 响应双输出）
 
@@ -138,7 +138,7 @@
   - `api/Schedule/Dtos/ScheduleResponse.cs`（`AssignedMemberId` + `AssignedChildId`（deprecated，同值）+ 新增 `AssignedMemberRole`；`ScheduleSummary` 同步双字段）
   - `api/Schedule/Dtos/ScheduleConflictResponse.cs`（`ScheduleConflictCheckRequest.MemberId` + `ChildId`（deprecated）+ 归一化）
 - **完成标准**：新字段名与 dto.json 一致；旧字段 `childIds`/`assignedChildId`/`childId` 以 `deprecated` 标记存在（`[JsonPropertyName]` 别名或独立属性）；归一化优先级「memberIds 优先」与 JSON 字段顺序无关
-- **验证命令**：`dotnet build api/Agenda.Api.csproj`
+- **验证命令**：`dotnet build api/Agenda.Api/`
 
 #### Task 1.3: CalendarQueryRequest + CalendarSchedule 角色 + CalendarController 绑定（含兼容）
 
@@ -148,7 +148,7 @@
   - `api/Schedule/Dtos/CalendarResponse.cs`（`CalendarQueryRequest.MemberId` + `ChildId`（deprecated）+ 归一化；`CalendarSchedule` 新增 `AssignedMemberId` + `AssignedChildId`（deprecated，同值）+ `AssignedMemberRole`）
   - `api/Schedule/Controllers/CalendarController.cs`（`[FromQuery]` 同时绑定 `memberId`（新）+ `childId`（旧 deprecated）；归一化到 `MemberId`；`role==Child` 时在**归一化之后**强制 `request.MemberId = User.GetUserId()`，覆盖客户端传入值——先归一化、后角色强制，安全边界见 design.md §Decision 6）
 - **完成标准**：日历请求/响应新字段名 + deprecated 旧字段 + 角色字段与 dto.json 一致；孩子强制过滤作用在归一化后的 `MemberId`（先归一化、后角色强制），孩子传 `memberId=其他成员Id` 也只会返回自己的日程
-- **验证命令**：`dotnet build api/Agenda.Api.csproj`
+- **验证命令**：`dotnet build api/Agenda.Api/`
 
 #### Task 1.4: ApplyTemplateRequest.MemberIds（含兼容）
 
@@ -157,7 +157,7 @@
 - **产出文件**：
   - `api/Template/Dtos/ApplyTemplateRequest.cs`（新 `MemberIds`（`List<Guid>`）+ deprecated 旧 `ChildId`（`Guid?`）+ 归一化：`ChildId` 归一化为单元素 `MemberIds`，两者都传以 `MemberIds` 为准）
 - **完成标准**：单选改多选字段 + deprecated 兼容归一化与 dto.json 一致
-- **验证命令**：`dotnet build api/Agenda.Api.csproj`
+- **验证命令**：`dotnet build api/Agenda.Api/`
 
 ---
 
@@ -172,7 +172,7 @@
   - `api/Schedule/Services/ScheduleService.cs`（`CreateAsync` 增传 `UserRole role`；`ValidateCreateRequest` 改 `CHILD_NOT_SELECTED`→`MEMBER_NOT_SELECTED`；新增逐成员「在家庭」校验 `MEMBER_NOT_IN_FAMILY`；`role==Child` 时校验 `MemberIds==[self]` 否则 `CHILD_SELF_ASSIGN_ONLY`）
   - `api/Schedule/Services/IScheduleService.cs`（接口签名加 role）
 - **完成标准**：创建走成员校验；孩子仅自己；家长任意成员；错误码常量化
-- **验证命令**：`dotnet test api/ --filter "FullyQualifiedName~ScheduleService"`
+- **验证命令**：`dotnet test api/Agenda.Test/ --filter "FullyQualifiedName~ScheduleService"`
 
 #### Task 2.2: ScheduleService 编辑/删除/取消/恢复 孩子越权
 
@@ -182,7 +182,7 @@
   - `api/Schedule/Services/ScheduleService.cs`（`UpdateAsync`/`DeleteAsync`/`CancelInstanceAsync`/`RestoreInstanceAsync` 增传 `UserRole role`，加 `role==Child && AssignedMemberId != userId → CHILD_ACCESS_DENIED`）
   - `api/Schedule/Services/IScheduleService.cs`（接口签名加 role）
 - **完成标准**：孩子仅能编辑/删除/取消/恢复自己的日程；家长任意成员
-- **验证命令**：`dotnet test api/ --filter "FullyQualifiedName~ScheduleService"`
+- **验证命令**：`dotnet test api/Agenda.Test/ --filter "FullyQualifiedName~ScheduleService"`
 
 #### Task 2.3: ScheduleController 放开孩子 + CHILD_SELF_ASSIGN_ONLY
 
@@ -191,7 +191,7 @@
 - **产出文件**：
   - `api/Schedule/Controllers/ScheduleController.cs`（`Create` 去掉 `role != Parent` 一刀切，改 `role==Child && MemberIds != [self] → 403 CHILD_SELF_ASSIGN_ONLY`；`Update/Delete/Cancel/Restore` 去掉 `role != Parent` 一刀切，将 role 传入 Service）
 - **完成标准**：孩子可给自己创建/编辑/删除；给家长操作被 403 拦截；`IsDomainError` 错误码列表更新
-- **验证命令**：`dotnet test api/ --filter "FullyQualifiedName~ScheduleController"`
+- **验证命令**：`dotnet test api/Agenda.Test/ --filter "FullyQualifiedName~ScheduleController"`
 
 ---
 
@@ -204,7 +204,7 @@
 - **产出文件**：
   - `api/Checkin/CheckinService.cs`（`GetAccessibleScheduleAsync` 新增 `role==Child && schedule.AssignedMemberId != userId → CHILD_ACCESS_DENIED`）
 - **完成标准**：孩子仅能打卡/撤销自己的日程；家长代任意成员不变；「已离群」成员不接收新打卡沿用 checkin 模块既有 `NOT_FAMILY_MEMBER` 403 拦截，不新增分支（BE-05）
-- **验证命令**：`dotnet test api/ --filter "FullyQualifiedName~CheckinService"`
+- **验证命令**：`dotnet test api/Agenda.Test/ --filter "FullyQualifiedName~CheckinService"`
 
 #### Task 3.2: SettlementJob streak 排除家长（逐 schedule 反查角色）
 
@@ -213,7 +213,7 @@
 - **产出文件**：
   - `api/Infrastructure/Jobs/SettlementJob.cs`（状态结算保留全部；streak 更新改为**逐 schedule** 反查 `FamilyMembers(UserId==schedule.AssignedMemberId && FamilyId==schedule.FamilyId).Role`，仅 `role==Child` 的日程参与 `UpdateStreaksAsync`；家长日程跳过 streak）
 - **完成标准**：家长日程照常写 `CheckinSettlement` 终态但跳过 streak；孩子 streak 照常；同一 `User.Id` 在不同家庭角色不同（一家庭家长、另一家庭孩子）时，逐 schedule 按所属家庭反查角色不误判
-- **验证命令**：`dotnet test api/ --filter "FullyQualifiedName~SettlementJob"`
+- **验证命令**：`dotnet test api/Agenda.Test/ --filter "FullyQualifiedName~SettlementJob"`
 
 ---
 
@@ -227,7 +227,7 @@
   - `api/Template/Services/TemplateService.cs`（`ApplyAsync` 遍历 `request.MemberIds` 校验每个是家庭内成员（任意角色，去掉 `Role==Child` 限制），构造 `CreateScheduleRequest{ MemberIds = request.MemberIds }`；同步 `_scheduleService.CreateAsync(familyId, userId, UserRole.Parent, merged, ct)` 的新 role 参数——`TemplateController.Apply` 已是 parent-only，传 `UserRole.Parent`）
   - `openspec/contracts/template/errors.json`（`CHILD_NOT_IN_FAMILY` 标记 `deprecated: true`，描述指向 schedule 契约的 `MEMBER_NOT_IN_FAMILY`）
 - **完成标准**：模板可多选家长/孩子生成日程；错误码用 `MEMBER_NOT_IN_FAMILY`（旧 `CHILD_NOT_IN_FAMILY` 为 deprecated 别名）；`CreateAsync` 调用补上新 role 参数，编译通过；template 契约 `CHILD_NOT_IN_FAMILY` 已标记 deprecated
-- **验证命令**：`dotnet test api/ --filter "FullyQualifiedName~TemplateService"`
+- **验证命令**：`dotnet test api/Agenda.Test/ --filter "FullyQualifiedName~TemplateService"`
 
 ---
 
@@ -241,7 +241,7 @@
   - `api/Schedule/Services/__tests__/ScheduleServiceTests.cs`（补：家长任意成员/孩子仅自己/孩子越权给家长创建/孩子越权编辑删除）
   - `api/Schedule/Controllers/__tests__/ScheduleControllerTests.cs`（补：`CHILD_SELF_ASSIGN_ONLY`、`CHILD_ACCESS_DENIED` 分支）
 - **完成标准**：覆盖 US-PAR-01/02/03/05/06 + BE-01/BE-02 场景
-- **验证命令**：`dotnet test api/ --filter "FullyQualifiedName~Schedule"`
+- **验证命令**：`dotnet test api/Agenda.Test/ --filter "FullyQualifiedName~Schedule"`
 
 #### Task 5.2: Checkin + Settlement 单测
 
@@ -251,7 +251,7 @@
   - `api/Checkin/__tests__/CheckinServiceTests.cs`（补：孩子仅自己打卡越权）
   - `api/Infrastructure/Jobs/__tests__/SettlementJobTests.cs`（补：家长分组跳过 streak、家长状态照常结算）
 - **完成标准**：覆盖 US-PAR-09/10/11 + BE-03 场景
-- **验证命令**：`dotnet test api/ --filter "FullyQualifiedName~CheckinService|FullyQualifiedName~SettlementJob"`
+- **验证命令**：`dotnet test api/Agenda.Test/ --filter "FullyQualifiedName~CheckinService|FullyQualifiedName~SettlementJob"`
 
 #### Task 5.3: API 兼容层测试（旧字段名请求仍成功）
 
@@ -263,7 +263,7 @@
   - `api/Schedule/__tests__/CalendarControllerTests.cs`（孩子角色携带 `memberId=其他成员Id` 或 `childId=其他成员Id` 查询日历 → 返回结果仍只含自己的日程；`memberId` 与 `childId` 都传时 `memberId` 优先——锁定「先归一化、后角色强制」的安全边界）
   - `api/Template/__tests__/TemplateCompatTests.cs`（旧字段 `childId` 单选归一化为 `memberIds` 单元素）
 - **完成标准**：旧字段名请求（`childIds`/`childId`）仍能成功创建日程；旧错误码 `CHILD_NOT_SELECTED` 仍按 400 返回；新字段名优先；孩子强制过滤在归一化后生效（孩子传 `memberId=其他成员Id` 查日历仍只见自己）
-- **验证命令**：`dotnet test api/ --filter "FullyQualifiedName~Compat"`
+- **验证命令**：`dotnet test api/Agenda.Test/ --filter "FullyQualifiedName~Compat"`
 
 ---
 
@@ -374,8 +374,8 @@
 
 - **负责 agent**：`dev-dotnet`
 - **依赖**：Task 0.4, 5.1, 5.2, 5.3
-- **完成标准**：`dotnet test api/` 全绿，无回归；migration 已生成且 `Up`/`Down` 可回滚（列重命名不改数据，开发库应用后行数不变）
-- **验证命令**：`dotnet test api/`
+- **完成标准**：`dotnet test api/Agenda.Test/` 全绿，无回归；migration 已生成且 `Up`/`Down` 可回滚（列重命名不改数据，开发库应用后行数不变）
+- **验证命令**：`dotnet test api/Agenda.Test/`
 
 #### Task 8.2: 前端 Jest 回归
 

@@ -74,7 +74,7 @@
 （`SettlementJob.cs` 由 Task 3.2 覆盖、`ScheduleService.cs` 由 Task 2.1/2.2 覆盖，均 OK。）
 
 Task 0.3 完成标准写「跨文件机械引用 … 由各自下游 task 同步」，但**上述 5 个文件没有任何「下游 task」同步**。直接后果：
-1. Task 0.3 验证命令 `dotnet build api/Agenda.Api.csproj` 会因这 5 处编译错误而**失败**。
+1. Task 0.3 验证命令 `dotnet build api/Agenda.Api/` 会因这 5 处编译错误而**失败**。
 2. Task 0.4（`dotnet ef migrations add`）依赖 0.3，且脚手架需项目**可编译 + 可运行**，故被阻塞——迁移本身无法生成，直到这些文件被改名。
 
 > 说明：design.md 现状对账清单（:38/45）已**正确**标注这些文件「随实体改名机械同步」，问题仅在于 tasks.md 未把它们落到具体 task 的产出文件。属任务拆分完整性缺口，非设计正确性错误。
