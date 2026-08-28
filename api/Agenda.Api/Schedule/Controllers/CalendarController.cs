@@ -1,3 +1,4 @@
+using Agenda.Api.Infrastructure;
 using Agenda.Api.Schedule.Dtos;
 using Agenda.Api.Schedule.Services;
 using Agenda.Api.Shared.Extensions;
@@ -57,9 +58,9 @@ public class CalendarController : ControllerBase
             var result = await _calendarService.QueryAsync(request, familyId, ct);
             return Ok(result);
         }
-        catch (InvalidOperationException ex) when (ex.Message == "DATE_RANGE_TOO_LARGE")
+        catch (InvalidOperationException ex) when (ex.Message == ErrorCodes.DateRangeTooLarge)
         {
-            return BadRequest(new { error = "DATE_RANGE_TOO_LARGE" });
+            return BadRequest(ErrorResponse.From(ErrorCodes.DateRangeTooLarge));
         }
     }
 }

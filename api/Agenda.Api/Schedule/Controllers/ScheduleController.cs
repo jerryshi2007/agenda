@@ -72,7 +72,7 @@ public class ScheduleController : ControllerBase
         }
         catch (InvalidOperationException ex) when (IsDomainError(ex.Message))
         {
-            return BadRequest(new { error = ex.Message });
+            return BadRequest(ErrorResponse.From(ex.Message));
         }
     }
 
@@ -86,7 +86,7 @@ public class ScheduleController : ControllerBase
         {
             var result = await _scheduleService.GetByIdAsync(scheduleId, date, User.GetUserId(), familyId, role, ct);
             if (result == null)
-                return NotFound(new { error = ErrorCodes.ScheduleNotFound });
+                return NotFound(ErrorResponse.From(ErrorCodes.ScheduleNotFound));
 
             return Ok(result);
         }
@@ -113,19 +113,19 @@ public class ScheduleController : ControllerBase
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Conflict(new { error = ErrorCodes.ConcurrentEditConflict });
+            return Conflict(ErrorResponse.From(ErrorCodes.ConcurrentEditConflict));
         }
         catch (InvalidOperationException ex) when (ex.Message == ErrorCodes.ConcurrentEditConflict)
         {
-            return Conflict(new { error = ex.Message });
+            return Conflict(ErrorResponse.From(ErrorCodes.ConcurrentEditConflict));
         }
         catch (InvalidOperationException ex) when (IsDomainError(ex.Message))
         {
-            return BadRequest(new { error = ex.Message });
+            return BadRequest(ErrorResponse.From(ex.Message));
         }
         catch (KeyNotFoundException ex) when (ex.Message == ErrorCodes.ScheduleNotFound)
         {
-            return NotFound(new { error = ex.Message });
+            return NotFound(ErrorResponse.From(ex.Message));
         }
     }
 
@@ -151,11 +151,11 @@ public class ScheduleController : ControllerBase
         }
         catch (InvalidOperationException ex) when (IsDomainError(ex.Message))
         {
-            return BadRequest(new { error = ex.Message });
+            return BadRequest(ErrorResponse.From(ex.Message));
         }
         catch (KeyNotFoundException ex) when (ex.Message == ErrorCodes.ScheduleNotFound)
         {
-            return NotFound(new { error = ex.Message });
+            return NotFound(ErrorResponse.From(ex.Message));
         }
     }
 
@@ -176,11 +176,11 @@ public class ScheduleController : ControllerBase
         }
         catch (InvalidOperationException ex) when (IsDomainError(ex.Message))
         {
-            return BadRequest(new { error = ex.Message });
+            return BadRequest(ErrorResponse.From(ex.Message));
         }
         catch (KeyNotFoundException ex) when (ex.Message == ErrorCodes.ScheduleNotFound)
         {
-            return NotFound(new { error = ex.Message });
+            return NotFound(ErrorResponse.From(ex.Message));
         }
     }
 
@@ -201,11 +201,11 @@ public class ScheduleController : ControllerBase
         }
         catch (InvalidOperationException ex) when (IsDomainError(ex.Message))
         {
-            return BadRequest(new { error = ex.Message });
+            return BadRequest(ErrorResponse.From(ex.Message));
         }
         catch (KeyNotFoundException ex) when (ex.Message == ErrorCodes.ScheduleNotFound)
         {
-            return NotFound(new { error = ex.Message });
+            return NotFound(ErrorResponse.From(ex.Message));
         }
     }
 
@@ -221,7 +221,7 @@ public class ScheduleController : ControllerBase
         }
         catch (InvalidOperationException ex) when (IsDomainError(ex.Message))
         {
-            return BadRequest(new { error = ex.Message });
+            return BadRequest(ErrorResponse.From(ex.Message));
         }
     }
 
@@ -233,16 +233,16 @@ public class ScheduleController : ControllerBase
                 or ErrorCodes.ScheduleNameEmpty or ErrorCodes.ScheduleNameTooLong
                 or ErrorCodes.TimeSlotInvalid or ErrorCodes.NoDaySelected or ErrorCodes.NotesTooLong
                 or ErrorCodes.DueDateInvalid or ErrorCodes.RepeatEndDateInvalid or ErrorCodes.DueDateRequired
-                or "SCHEDULE_ALREADY_CANCELLED" or "HOMEWORK_NO_CANCEL"
-                or "NOT_CANCELLED_OR_EXCLUDED" or ErrorCodes.InvalidScope or ErrorCodes.ScheduleTypeInvalid
-                or ErrorCodes.LocationTooLong or "SCHEDULE_TYPE_REQUIRED"
+                or ErrorCodes.ScheduleAlreadyCancelled or ErrorCodes.HomeworkNoCancel
+                or ErrorCodes.NotCancelledOrExcluded or ErrorCodes.InvalidScope or ErrorCodes.ScheduleTypeInvalid
+                or ErrorCodes.LocationTooLong or ErrorCodes.ScheduleTypeRequired
                 => true,
             _ => false
         };
 
     private ObjectResult ForbidJwt(string errorCode, string message)
     {
-        return StatusCode(403, new { error = errorCode, message });
+        return StatusCode(403, new ErrorResponse(errorCode, message, null));
     }
 
     /// <summary>找到从今天起下一个指定星期几的日期（用于冲突检测时计算正确的 DayOfWeek）</summary>

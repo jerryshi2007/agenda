@@ -58,7 +58,7 @@ public class ScheduleControllerTests
 
         var status = Assert.IsType<ObjectResult>(result);
         Assert.Equal(403, status.StatusCode);
-        Assert.Equal(ErrorCodes.ChildSelfAssignOnly, GetBodyProperty(status.Value, "error"));
+        Assert.Equal(ErrorCodes.ChildSelfAssignOnly, GetBodyProperty(status.Value, "Error"));
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public class ScheduleControllerTests
 
         var status = Assert.IsType<ObjectResult>(result);
         Assert.Equal(403, status.StatusCode);
-        Assert.Equal(ErrorCodes.ChildAccessDenied, GetBodyProperty(status.Value, "error"));
+        Assert.Equal(ErrorCodes.ChildAccessDenied, GetBodyProperty(status.Value, "Error"));
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class ScheduleControllerTests
 
         var status = Assert.IsType<ObjectResult>(result);
         Assert.Equal(403, status.StatusCode);
-        Assert.Equal(ErrorCodes.ChildAccessDenied, GetBodyProperty(status.Value, "error"));
+        Assert.Equal(ErrorCodes.ChildAccessDenied, GetBodyProperty(status.Value, "Error"));
     }
 
     /// <summary>从匿名错误体读取字段值（ObjectResult.Value 是 new { error, message }）。</summary>

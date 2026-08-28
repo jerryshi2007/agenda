@@ -1,5 +1,6 @@
 using Agenda.Api.Checkin.Services;
 using Agenda.Api.Domain.Enums;
+using Agenda.Api.Infrastructure;
 using Agenda.Api.Schedule.Dtos;
 using Agenda.Api.Schedule.Services;
 using Agenda.Api.Shared.Extensions;
@@ -83,12 +84,12 @@ public class ChildScheduleController : ControllerBase
         {
             var result = await _childScheduleService.GetByIdAsync(id, User.GetUserId(), familyId, ct);
             if (result == null)
-                return NotFound(new { error = "SCHEDULE_NOT_FOUND" });
+                return NotFound(ErrorResponse.From(ErrorCodes.ScheduleNotFound));
             return Ok(result);
         }
         catch (UnauthorizedAccessException ex)
         {
-            return ForbidJwt("CHILD_ACCESS_DENIED", ex.Message);
+            return ForbidJwt(ErrorCodes.ChildAccessDenied, ex.Message);
         }
     }
 
@@ -137,11 +138,11 @@ public class ChildScheduleController : ControllerBase
 
     private ObjectResult ForbidChild()
     {
-        return StatusCode(403, new { error = "CHILD_ONLY_ENDPOINT", message = "仅孩子角色可访问" });
+        return StatusCode(403, new ErrorResponse(ErrorCodes.ChildOnlyEndpoint, ErrorCodes.Message(ErrorCodes.ChildOnlyEndpoint), null));
     }
 
     private ObjectResult ForbidJwt(string errorCode, string message)
     {
-        return StatusCode(403, new { error = errorCode, message });
+        return StatusCode(403, new ErrorResponse(errorCode, message, null));
     }
 }

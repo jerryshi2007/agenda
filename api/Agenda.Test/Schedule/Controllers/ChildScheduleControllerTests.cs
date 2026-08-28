@@ -193,7 +193,7 @@ public class ChildScheduleControllerTests
         var status = Assert.IsType<ObjectResult>(result);
         Assert.Equal(403, status.StatusCode);
         // 跨孩子访问 schedule 走 service 异常分支,锁定 CHILD_ACCESS_DENIED 错误码
-        Assert.Equal("CHILD_ACCESS_DENIED", GetBodyProperty(status.Value, "error"));
+        Assert.Equal("CHILD_ACCESS_DENIED", GetBodyProperty(status.Value, "Error"));
     }
 
     // ---------- 错误码锁定: 角色非 Child 时返回 CHILD_ONLY_ENDPOINT（与跨孩子访问 CHILD_ACCESS_DENIED 区分）----------
@@ -207,8 +207,8 @@ public class ChildScheduleControllerTests
 
         var status = Assert.IsType<ObjectResult>(result);
         Assert.Equal(403, status.StatusCode);
-        Assert.Equal("CHILD_ONLY_ENDPOINT", GetBodyProperty(status.Value, "error"));
-        Assert.Equal("仅孩子角色可访问", GetBodyProperty(status.Value, "message"));
+        Assert.Equal("CHILD_ONLY_ENDPOINT", GetBodyProperty(status.Value, "Error"));
+        Assert.Equal("仅孩子角色可访问", GetBodyProperty(status.Value, "Message"));
     }
 
     [Fact]
@@ -220,7 +220,7 @@ public class ChildScheduleControllerTests
 
         var status = Assert.IsType<ObjectResult>(result);
         Assert.Equal(403, status.StatusCode);
-        Assert.Equal("CHILD_ONLY_ENDPOINT", GetBodyProperty(status.Value, "error"));
+        Assert.Equal("CHILD_ONLY_ENDPOINT", GetBodyProperty(status.Value, "Error"));
     }
 
     /// <summary>从匿名错误体读取字段值（ObjectResult.Value 是 new { error, message }）。</summary>

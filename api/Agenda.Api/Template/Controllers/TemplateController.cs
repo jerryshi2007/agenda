@@ -147,5 +147,5 @@ public class TemplateController : ControllerBase
     }
 
     private ObjectResult Forbid(string errorCode, string message) =>
-        StatusCode(403, new { error = errorCode, message });
+        StatusCode(403, new ErrorResponse(errorCode, message, null));
 }

@@ -60,6 +60,7 @@ public static class ErrorCodes
     public const string ChildNotInFamily = "CHILD_NOT_IN_FAMILY"; // deprecated 别名（兼容期保留，V+1 移除）
     public const string ChildSelfAssignOnly = "CHILD_SELF_ASSIGN_ONLY";
     public const string ChildAccessDenied = "CHILD_ACCESS_DENIED";
+    public const string ChildOnlyEndpoint = "CHILD_ONLY_ENDPOINT";
     public const string ScheduleNameEmpty = "SCHEDULE_NAME_EMPTY";
     public const string ScheduleNameTooLong = "SCHEDULE_NAME_TOO_LONG";
     public const string ScheduleTypeInvalid = "SCHEDULE_TYPE_INVALID";
@@ -73,6 +74,11 @@ public static class ErrorCodes
     public const string InvalidScope = "INVALID_SCOPE";
     public const string ScheduleConflict = "SCHEDULE_CONFLICT";
     public const string ConcurrentEditConflict = "CONCURRENT_EDIT_CONFLICT";
+    public const string ScheduleAlreadyCancelled = "SCHEDULE_ALREADY_CANCELLED";
+    public const string HomeworkNoCancel = "HOMEWORK_NO_CANCEL";
+    public const string NotCancelledOrExcluded = "NOT_CANCELLED_OR_EXCLUDED";
+    public const string ScheduleTypeRequired = "SCHEDULE_TYPE_REQUIRED";
+    public const string DateRangeTooLarge = "DATE_RANGE_TOO_LARGE";
 
     private static readonly IReadOnlyDictionary<string, string> Messages = new Dictionary<string, string>
     {
@@ -151,7 +157,13 @@ public static class ErrorCodes
         [TimeSlotInvalid] = "时间槽开始时间不能晚于或等于结束时间",
         [InvalidScope] = "影响范围参数无效",
         [ScheduleConflict] = "该时段与已有日程存在时间重叠",
-        [ConcurrentEditConflict] = "日程已被他人修改，请刷新后重试"
+        [ConcurrentEditConflict] = "日程已被他人修改，请刷新后重试",
+        [ScheduleAlreadyCancelled] = "该日程当天已取消",
+        [HomeworkNoCancel] = "作业任务不支持取消",
+        [NotCancelledOrExcluded] = "该日程当天未被取消或排除",
+        [ScheduleTypeRequired] = "日程类型不能为空",
+        [DateRangeTooLarge] = "日期范围过大，请缩小查询范围",
+        [ChildOnlyEndpoint] = "仅孩子角色可访问"
     };
 
     // Template module constants
@@ -248,7 +260,13 @@ public static class ErrorCodes
         [TimeSlotInvalid] = 400,
         [InvalidScope] = 400,
         [ScheduleConflict] = 409,
-        [ConcurrentEditConflict] = 409
+        [ConcurrentEditConflict] = 409,
+        [ScheduleAlreadyCancelled] = 400,
+        [HomeworkNoCancel] = 400,
+        [NotCancelledOrExcluded] = 400,
+        [ScheduleTypeRequired] = 400,
+        [DateRangeTooLarge] = 400,
+        [ChildOnlyEndpoint] = 403
     };
 
     public static string Message(string code) =>
