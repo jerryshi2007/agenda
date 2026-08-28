@@ -153,7 +153,8 @@ public class TemplateControllerTests
         var result = await controller.GetById(Guid.NewGuid(), default);
 
         var notFound = Assert.IsType<NotFoundObjectResult>(result);
-        Assert.Equal(ErrorCodes.TemplateNotFound, (notFound.Value as dynamic)!.error);
+        var body = Assert.IsType<ErrorResponse>(notFound.Value);
+        Assert.Equal(ErrorCodes.TemplateNotFound, body.Error);
     }
 
     [Fact]

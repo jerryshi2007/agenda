@@ -70,7 +70,7 @@ public class TemplateController : ControllerBase
 
         var result = await _templateService.GetByIdAsync(templateId, familyId, ct);
         if (result == null)
-            return NotFound(new { error = ErrorCodes.TemplateNotFound });
+            return NotFound(ErrorResponse.From(ErrorCodes.TemplateNotFound));
 
         return Ok(result);
     }
