@@ -87,9 +87,9 @@ public class ChildScheduleController : ControllerBase
                 return NotFound(ErrorResponse.From(ErrorCodes.ScheduleNotFound));
             return Ok(result);
         }
-        catch (UnauthorizedAccessException ex)
+        catch (UnauthorizedAccessException)
         {
-            return ForbidJwt(ErrorCodes.ChildAccessDenied, ex.Message);
+            return ForbidJwt(ErrorCodes.ChildAccessDenied, ErrorCodes.Message(ErrorCodes.ChildAccessDenied));
         }
     }
 
