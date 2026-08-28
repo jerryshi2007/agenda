@@ -15,7 +15,7 @@ description: 执行 E2E 测试脚本并生成结构化报告时使用（仅 Web 
 ## 前置条件
 - E2E 测试脚本已存在于 `testing/e2e/specs/` 下（由 `test-writer` 产出）
 - Playwright 已配置（`testing/e2e/playwright.config.ts`）
-- 被测应用已启动（后端 `dotnet run --project api/Agenda.Api.csproj`）
+- 被测应用已启动（后端 `dotnet run --project api/Agenda.Api/`）
 
 ## 执行命令
 
@@ -123,7 +123,7 @@ test('[E2E-01] 正常登录成功后跳转首页 @smoke @p0', async ({ page }) =
 ## 流程
 
 1. **确认环境就绪**
-   - 被测应用已启动（`dotnet run --project api/Agenda.Api.csproj` 运行中）
+   - 被测应用已启动（`dotnet run --project api/Agenda.Api/` 运行中）
    - 种子上一次运行已完成（如有 seed 脚本）
    - 浏览器已安装（`npx playwright install --with-deps`）
 2. **执行测试**

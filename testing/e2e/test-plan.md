@@ -223,7 +223,7 @@ expect(body.status).toBe(enums.CheckinStatus.values.find(v => v === 'incomplete'
 
 | # | 检查项 | 就绪标准 | 失败处置 |
 |:--|------|------|------|
-| G0-1 | .NET API 运行 | `GET {baseURL}/health` 返回 200 | STOP：`dotnet run --project api/Agenda.Api.csproj` |
+| G0-1 | .NET API 运行 | `GET {baseURL}/health` 返回 200 | STOP：`dotnet run --project api/Agenda.Api/` |
 | G0-2 | PostgreSQL 就绪 + 迁移完成 | `seed-db.js` 直连成功；`CheckinRecords`/`CheckinSettlements`/`Streaks` 表存在（含 UNIQUE 约束） | STOP：`dotnet ef database update` 后重试 |
 | G0-3 | JWT 密钥对齐 | `jwt-helper.js` 的 `JWT_SECRET` == 后端 `JWT_SECRET_KEY`（或 `Jwt:SecretKey`） | STOP：统一环境变量后重启 API |
 | G0-4 | seed 幂等 | 重复执行 seed 不报错（`TRUNCATE`/`ON CONFLICT`）；schedule seed 复用 `fixtures/seed-data.js` | STOP：修正 seed 脚本 |

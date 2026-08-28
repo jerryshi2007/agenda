@@ -23,14 +23,14 @@
 
 ```bash
 # 后端 (.NET 10)
-dotnet build api/Agenda.Api.csproj                          # 构建
-dotnet test api/                                            # 全部测试
-dotnet test api/ --filter "FullyQualifiedName~Xxx"          # 单个测试
-dotnet run --project api/Agenda.Api.csproj                  # 启动 API
+dotnet build api/Agenda.Api/                                # 构建
+dotnet test api/Agenda.Test/                                # 全部测试
+dotnet test api/Agenda.Test/ --filter "FullyQualifiedName~Xxx"  # 单个测试
+dotnet run --project api/Agenda.Api/                        # 启动 API
 
 # EF Core 迁移
-dotnet ef migrations add <Name> --project api/ --startup-project api/
-dotnet ef database update --project api/ --startup-project api/
+dotnet ef migrations add <Name> --project api/Agenda.Api/ --startup-project api/Agenda.Api/
+dotnet ef database update --project api/Agenda.Api/ --startup-project api/Agenda.Api/
 
 # E2E 测试
 cd testing/e2e && npx playwright test                       # 全部 E2E

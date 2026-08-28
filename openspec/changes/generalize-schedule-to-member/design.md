@@ -453,7 +453,7 @@ SettlementJob.ExecuteAsync
 6. **后端测试**：单元测试覆盖权限矩阵 + 结算 streak 排除 + 兼容层（旧字段名请求仍成功）
 7. **前端 service/契约**：`services/*.js` 参数改名 + `contracts/schedule.js`（新字段名，兼容旧响应字段）
 8. **前端组件/页面**：`member-selector` + 各页面双文案/成员筛选
-9. **联调 + 回归**：`dotnet test api/` + `cd app && npx jest`
+9. **联调 + 回归**：`dotnet test api/Agenda.Test/` + `cd app && npx jest`
 
 ---
 
@@ -474,12 +474,12 @@ SettlementJob.ExecuteAsync
 - **迁移文件名**：`20260823000000_RenameAssignedChildIdToAssignedMemberId`（沿用 `YYYYMMDDHHMMSS_Name` 约定，时间戳取生成当日）。
 - **部署（应用迁移）**：
   ```bash
-  dotnet ef database update --project api/ --startup-project api/
+  dotnet ef database update --project api/Agenda.Api/ --startup-project api/Agenda.Api/
   ```
   （目标连接串取 `api/appsettings.json` 的 `DefaultConnection`，生产环境由环境变量注入。）
 - **回滚（撤销本次列重命名）**：
   ```bash
-  dotnet ef database update 20260819014740_AddTemplateModule --project api/ --startup-project api/
+  dotnet ef database update 20260819014740_AddTemplateModule --project api/Agenda.Api/ --startup-project api/Agenda.Api/
   ```
   （回退到上一迁移 `AddTemplateModule`，即执行 `RenameAssignedChildIdToAssignedMemberId` 的 `Down`，把列名与索引名改回 `AssignedChildId`。）
 - **验证点（重命名不改数据）**：`RenameColumn`/`RenameIndex` 仅改列/索引名，不改任何行数据。部署后验证：`SELECT count(*) FROM "Schedules"` 行数不变；抽查存量孩子行 `"AssignedMemberId"` 仍等于原 `AssignedChildId` 值；应用层「命名表意图」达成（不加 `[Column]` 后无隐藏列名）。
