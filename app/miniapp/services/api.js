@@ -275,6 +275,16 @@ function upload(url, filePath, options = {}) {
   });
 }
 
+/**
+ * 把后端返回的相对资源路径（以 / 开头，如 /uploads/avatars/xxx.jpeg）解析为完整 URL。
+ * 微信 <image> 不把相对路径解析到 API 主机，而是按页面虚拟路径（__pageframe__）解析，
+ * 导致图片 404/500。绝对 URL 与本地临时路径（wxfile://、http://tmp 等）原样返回。
+ */
+function resolveAssetUrl(path) {
+  if (!path || typeof path !== 'string') return path;
+  return path.charAt(0) === '/' ? BASE_URL + path : path;
+}
+
 module.exports = {
   request,
   get: (url, data, options) => request(Object.assign({ method: 'GET', url, data }, options)),
@@ -282,6 +292,7 @@ module.exports = {
   put: (url, data, options) => request(Object.assign({ method: 'PUT', url, data }, options)),
   del: (url, data, options) => request(Object.assign({ method: 'DELETE', url, data }, options)),
   upload,
+  resolveAssetUrl,
   getToken,
   setToken,
   clearToken,

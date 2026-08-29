@@ -1,6 +1,7 @@
 // components/schedule-card/index.js
 
 const { ScheduleType, getScheduleTypeLabel } = require('../../contracts/schedule');
+const api = require('../../services/api');
 
 Component({
   properties: {
@@ -29,7 +30,9 @@ Component({
       }
       const typeLabel = getScheduleTypeLabel(schedule.scheduleType, schedule.assignedMemberRole) || '';
       const memberName = (schedule && (schedule.assignedMemberName || schedule.childName)) || '';
-      const memberAvatarUrl = (schedule && (schedule.assignedMemberAvatarUrl || schedule.childAvatarUrl)) || '';
+      const memberAvatarUrl = api.resolveAssetUrl(
+        (schedule && (schedule.assignedMemberAvatarUrl || schedule.childAvatarUrl)) || ''
+      );
 
       // 时间列：优先时间段（起/止两行），其次截止日期（日期 + "截止"标签）
       let timeMain = '';

@@ -3,6 +3,7 @@
 // 并发加载资料与家庭，部分失败时降级展示（头像用缓存、家庭区错误占位）
 
 const authService = require('../../services/auth');
+const api = require('../../services/api');
 const STORAGE_KEYS = require('../../utils/storage-keys');
 const app = getApp();
 
@@ -31,6 +32,8 @@ Page({
       authService.getMyFamilies().catch(() => null)
     ]).then(([profile, familiesRes]) => {
       const profileData = profile || this._cachedProfile();
+      // 头像 URL 可能为相对路径（旧数据/缓存），解析为 <image> 可加载的完整 URL
+      profileData.avatarUrl = api.resolveAssetUrl(profileData.avatarUrl);
       const families = (familiesRes && familiesRes.families) || [];
       const currentFamily = families.length > 0 ? families[0] : null;
 

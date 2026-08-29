@@ -2,6 +2,7 @@
 // 资料编辑页 —— 昵称 + 头像，保存时先上传头像再更新资料（事务一致）
 
 const authService = require('../../services/auth');
+const api = require('../../services/api');
 const { ErrorMessages } = require('../../contracts/auth');
 
 Page({
@@ -20,7 +21,7 @@ Page({
       this.setData({
         loading: false,
         nickname: profile.nickname || '',
-        avatarUrl: profile.avatarUrl || ''
+        avatarUrl: api.resolveAssetUrl(profile.avatarUrl || '')
       });
     }).catch(() => {
       this.setData({ loading: false });
