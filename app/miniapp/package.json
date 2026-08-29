@@ -1,0 +1,10 @@
+{
+  "name": "agenda-miniapp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "家庭日程协作工具 —— 微信小程序前端",
+  "scripts": {
+    "build": "node scripts/validate.js",
+    "lint": "node scripts/lint.js"
+  }
+}

@@ -10,7 +10,7 @@ describe('Schedule Create Wizard (EVT-ST-01)', () => {
 
   beforeAll(async () => {
     miniProgram = await automator.launch({
-      projectPath: 'app/',
+      projectPath: 'app/miniapp/',
     });
     page = await miniProgram.currentPage();
   });

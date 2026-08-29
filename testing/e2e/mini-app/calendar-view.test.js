@@ -17,7 +17,7 @@ describe('Calendar View (EVT-ST-02)', () => {
 
   beforeAll(async () => {
     miniProgram = await automator.launch({
-      projectPath: 'app/',  // WeChat mini program project root
+      projectPath: 'app/miniapp/',  // WeChat mini program project root
     });
     page = await miniProgram.currentPage();
   });

@@ -10,7 +10,7 @@ describe('Schedule Edit Page (EVT-ST-03)', () => {
 
   beforeAll(async () => {
     miniProgram = await automator.launch({
-      projectPath: 'app/',
+      projectPath: 'app/miniapp/',
     });
     page = await miniProgram.currentPage();
   });

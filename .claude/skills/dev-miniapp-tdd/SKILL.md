@@ -14,14 +14,14 @@ rules: [dev-miniapp-standards, test-standards, dev-code-quality, ui-miniapp-stan
 
 1. **Read 规则** — dev-miniapp-standards / test-standards / dev-code-quality / ui-miniapp-standards（涉及 auth/输入处理另读 dev-security）
 
-2. **探查项目** — 用 `codegraph_explore`（或 `codegraph explore`）查被测组件/服务及其调用关系、定位复用点（见 `dev-codegraph` rule）；Read CLAUDE.md 了解目录约定，确认测试文件位置（`__tests__/` 下，与源码同结构），`npm test` 了解已有测试风格
+2. **探查项目** — 用 `codegraph_explore`（或 `codegraph explore`）查被测组件/服务及其调用关系、定位复用点（见 `dev-codegraph` rule）；Read CLAUDE.md 了解目录约定，确认测试文件位置（`app/miniapp-test/__tests__/` 下，与 `app/miniapp/` 源码同结构），`cd app/miniapp-test && npm test` 了解已有测试风格
 
 3. **红——写失败测试**
    - Jest 28+ 作为测试框架
    - 组件测试用 `miniprogram-simulate`（微信官方组件模拟器，模拟 WXML/WXSS/JS 运行时）
    - E2E 测试用 `miniprogram-automator`（微信官方自动化工具，操作微信开发者工具）
    - **不适用 Playwright**（Playwright 操作浏览器 DOM，无法操作小程序 WXML 渲染层和微信原生组件）
-   - 文件：`__tests__/<被测文件名>.test.js`（或 `.ts`），`describe('<组件/页面名>', ...)`，`it('行为描述', ...)`
+   - 文件：`app/miniapp-test/__tests__/<被测文件名>.test.js`（或 `.ts`），`describe('<组件/页面名>', ...)`，`it('行为描述', ...)`
    - Arrange: 使用 `simulate.load()` / `simulate.render()` 加载组件，设 props/data
    - Act: `[data-id="..."]` 定位 + 触发交互（`simulate.trigger()` / `component.setData()`）
    - Assert: 断言 DOM 内容/事件触发/`setData` 调用，不断言内部实现
@@ -100,7 +100,7 @@ describe('schedule-card', () => {
 **模拟 wx.* API**：
 
 ```js
-// __tests__/helpers/wx-mock.js
+// app/miniapp-test/__tests__/helpers/wx-mock.js
 global.wx = {
   getStorageSync: jest.fn(),
   setStorageSync: jest.fn(),
@@ -204,5 +204,5 @@ describe('[E2E] 日程创建', () => {
 - **测行为不测实现**：断言渲染结果、事件触发、API 调用，不断言内部 data 字段值
 - **小程序 mock 优先于真实环境**：单元和组件测试不依赖微信开发者工具
 - **miniprogram-automator 用于关键 E2E**：只在需要验证跨页面流程、原生组件交互时才使用
-- **测试文件与源码同结构放置**：`__tests__/` 下，命名 `<源码文件名>.test.js`（或 `.ts`）
-- **npm CLI 全程驱动**：`npm test`、`npm run build`、`npm run lint`，不依赖 IDE
+- **测试文件与源码同结构放置**：`app/miniapp-test/__tests__/` 下，与 `app/miniapp/` 源码目录一一对应，命名 `<源码文件名>.test.js`（或 `.ts`）
+- **npm CLI 全程驱动**：`cd app/miniapp-test && npm test`、`cd app/miniapp && npm run build / npm run lint`，不依赖 IDE
