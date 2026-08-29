@@ -1,0 +1,22 @@
+{
+  "name": "agenda-miniapp-test",
+  "version": "1.0.0",
+  "private": true,
+  "description": "家庭日程协作工具 —— 微信小程序前端测试（Jest）",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.test.js"
+    ],
+    "clearMocks": true
+  }
+}

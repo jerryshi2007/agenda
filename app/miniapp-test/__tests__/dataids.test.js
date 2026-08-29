@@ -1,0 +1,312 @@
+// app/miniapp-test/__tests__/dataids.test.js
+// WXML data-id 可测试性契约校验 —— 逐文件读取 WXML，断言必需 data-id 齐全
+// 这是 data-id 契约的「文本级」锁定：交互元素必须有稳定标识符，测试据此定位
+
+const fs = require('fs');
+const path = require('path');
+
+const APP_ROOT = path.resolve(__dirname, '..', '..', 'miniapp');
+
+function readFile(relPath) {
+  return fs.readFileSync(path.join(APP_ROOT, relPath), 'utf8');
+}
+
+describe('WXML data-id 契约', () => {
+  test('privacy-dialog 组件含 6 个必需 data-id', () => {
+    const wxml = readFile('components/privacy-dialog/index.wxml');
+    [
+      'privacy-dialog-checkbox',
+      'privacy-dialog-checkbox-input',
+      'privacy-dialog-agree-btn',
+      'privacy-dialog-decline-btn',
+      'privacy-dialog-policy-link',
+      'privacy-dialog-loading'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+  });
+
+  test('privacy-prompt 页面含 1 个必需 data-id', () => {
+    const wxml = readFile('pages/privacy-prompt/index.wxml');
+    expect(wxml).toContain('data-id="privacy-prompt-review-btn"');
+  });
+
+  test('profile-collection 组件含 4 个必需 data-id', () => {
+    const wxml = readFile('components/profile-collection/index.wxml');
+    [
+      'profile-collection-avatar',
+      'profile-collection-nickname-input',
+      'profile-collection-start-btn',
+      'profile-collection-loading'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+  });
+
+  test('profile-edit 页面含 5 个必需 data-id', () => {
+    const wxml = readFile('pages/profile-edit/index.wxml');
+    [
+      'profile-edit-avatar',
+      'profile-edit-nickname-input',
+      'profile-edit-save-btn',
+      'profile-edit-cancel-btn',
+      'profile-edit-error'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+  });
+
+  test('mine 页面含全部必需 data-id（含动态 family-id 前缀）', () => {
+    const wxml = readFile('pages/mine/index.wxml');
+    [
+      'mine-avatar-area',
+      'mine-switch-family',
+      'mine-create-family',
+      'mine-join-family',
+      'mine-settings',
+      'mine-loading',
+      'mine-error',
+      'mine-empty-family'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    // 动态列表项：data-id 包含唯一 familyId
+    expect(wxml).toContain('data-id="mine-family-info-{{currentFamily.familyId}}"');
+    // 回归防护：role 枚举值为 PascalCase，WXML 比对必须是 'Parent'（H2 修复）
+    expect(wxml).toContain("role === 'Parent'");
+    expect(wxml).not.toContain("role === 'parent'");
+    // 回归防护：单家庭时隐藏切换入口由 WXML wx:if 表达式控制（TC-FSW-04）
+    expect(wxml).toContain('wx:if="{{families.length >= 2}}"');
+  });
+
+  test('settings 页面含注销相关 data-id', () => {
+    const wxml = readFile('pages/settings/index.wxml');
+    [
+      'settings-delete-account',
+      'settings-delete-dialog',
+      'settings-delete-confirm-btn',
+      'settings-delete-cancel-btn'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+  });
+
+  test('deleted-recovery 页面含 4 个必需 data-id', () => {
+    const wxml = readFile('pages/deleted-recovery/index.wxml');
+    [
+      'deleted-recovery-restore-btn',
+      'deleted-recovery-dismiss-btn',
+      'deleted-recovery-countdown',
+      'deleted-recovery-loading'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+  });
+
+  test('schedule-detail 页面含打卡状态机全部必需 data-id', () => {
+    const wxml = readFile('pages/schedule-detail/index.wxml');
+    [
+      'schedule-detail-checkin-btn',
+      'schedule-detail-checkin-btn-disabled',
+      'schedule-detail-checkin-countdown',
+      'schedule-detail-undo-btn',
+      'schedule-detail-checkin-loading',
+      'schedule-detail-checkin-error',
+      'schedule-detail-status-completed',
+      'schedule-detail-status-ended',
+      'schedule-detail-status-incomplete',
+      'schedule-detail-status-overdue',
+      'schedule-detail-status-cancelled'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+  });
+
+  test('隐私政策拒绝页不包含任何 API 调用（无 wx.login / wx.request）', () => {
+    const js = readFile('pages/privacy-prompt/index.js');
+    expect(js).not.toContain('wx.login(');
+    expect(js).not.toContain('wx.request(');
+  });
+
+  test('family-welcome 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-welcome/index.wxml');
+    [
+      'welcome-create-btn',
+      'welcome-join-btn',
+      'welcome-retry-btn'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    // TC-FW-04：分享卡片确认页 data-id
+    expect(wxml).toContain('data-id="welcome-share-accept-btn"');
+    expect(wxml).toContain('data-id="welcome-share-decline-btn"');
+  });
+
+  test('family-create 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-create/index.wxml');
+    [
+      'create-family-name-input',
+      'create-family-role-parent',
+      'create-family-role-child',
+      'create-family-submit-btn'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    // 回归防护：role-mask 死链模式必须被移除
+    expect(wxml).not.toContain('create-family-role-mask');
+    expect(wxml).not.toContain('create-family-role-picker');
+  });
+
+  test('family-join 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-join/index.wxml');
+    [
+      'join-family-code-input',
+      'join-family-submit-btn',
+      'join-family-back-btn'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+  });
+
+  test('family-invite 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-invite/index.wxml');
+    [
+      'invite-member-parent-card',
+      'invite-member-child-card',
+      'invite-member-child-name',
+      'invite-member-mode-picker',
+      'invite-member-generate-btn',
+      'invite-code-display',
+      'invite-code-copy-btn',
+      'invite-member-share-btn',
+      'invite-code-regenerate-btn'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    // 动态展示模式项
+    expect(wxml).toContain('data-id="invite-member-mode-{{item.mode === \'Preschool\' ? \'preschool\' : (item.mode === \'Primary\' ? \'primary\' : \'senior\')}}"');
+  });
+
+  test('family-invite-list 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-invite-list/index.wxml');
+    [
+      'invite-list-retry-btn'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    // 动态邀请行
+    expect(wxml).toContain('data-id="invite-list-row-{{item.id}}"');
+    expect(wxml).toContain('data-id="invite-list-revoke-btn-{{item.id}}"');
+  });
+
+  test('family-members 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-members/index.wxml');
+    [
+      'family-members-invite-btn',
+      'family-members-invite-list-btn',
+      'family-members-retry-btn',
+      'family-members-leave-btn',
+      'family-members-disband-btn'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    // 动态成员行
+    expect(wxml).toContain('data-id="family-members-row-{{item.memberId}}"');
+    // 回归防护：成员名取 childName || nickname（TC-FM-09，防误改为纯 nickname）
+    expect(wxml).toContain('{{item.childName || item.nickname}}');
+  });
+
+  test('family-display-mode 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-display-mode/index.wxml');
+    [
+      'family-display-mode-error',
+      'family-display-mode-success',
+      'family-display-mode-save-btn'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    // 动态模式卡（含 {{item.mode}} 模板）
+    expect(wxml).toContain('data-id="family-display-mode-card-{{item.mode}}"');
+  });
+
+  test('family-switch 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-switch/index.wxml');
+    [
+      'family-switch-retry-btn'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    // 动态家庭行
+    expect(wxml).toContain('data-id="family-switch-row-{{item.familyId}}"');
+  });
+
+  test('family-restore 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/family-restore/index.wxml');
+    [
+      'family-restore-btn',
+      'family-restore-skip-btn',
+      'family-restore-error',
+      'family-restore-success'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+  });
+
+  test('child-today 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/child-today/index.wxml');
+    [
+      'child-today-progress',
+      'child-today-list',
+      'child-today-empty',
+      'child-today-error',
+      'child-today-loading',
+      'child-today-retry-btn',
+      'child-today-nav-today',
+      'child-today-nav-week',
+      'child-today-nav-month',
+      'child-today-nav-mine'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    expect(wxml).toContain('data-id="child-today-item-{{item.scheduleId}}"');
+    expect(wxml).toContain('data-id="child-today-checkin-btn-{{item.scheduleId}}"');
+    // L1：撤销按钮 data-id（已完成项的 undo 入口，与打卡按钮成对）
+    expect(wxml).toContain('data-id="child-today-undo-btn-{{item.scheduleId}}"');
+  });
+
+  test('child-week 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/child-week/index.wxml');
+    [
+      'child-week-loading',
+      'child-week-error',
+      'child-week-grid',
+      'child-week-retry-btn',
+      'child-week-nav-today',
+      'child-week-nav-week',
+      'child-week-nav-month',
+      'child-week-nav-mine'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    expect(wxml).toContain('data-id="child-week-day-{{day.date}}"');
+  });
+
+  test('child-month 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/child-month/index.wxml');
+    [
+      'child-month-loading',
+      'child-month-error',
+      'child-month-grid',
+      'child-month-retry-btn',
+      'child-month-nav-today',
+      'child-month-nav-week',
+      'child-month-nav-month',
+      'child-month-nav-mine'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+    expect(wxml).toContain('data-id="child-month-day-{{cell.date}}"');
+  });
+
+  test('child-mine 页面含全部必需 data-id', () => {
+    const wxml = readFile('pages/child-mine/index.wxml');
+    [
+      'child-mine-name',
+      'child-mine-progress',
+      'child-mine-progress-text',
+      'child-mine-progress-bar-fill',
+      'child-mine-loading',
+      'child-mine-error',
+      'child-mine-nav-today',
+      'child-mine-nav-week',
+      'child-mine-nav-month',
+      'child-mine-nav-mine'
+    ].forEach(id => expect(wxml).toContain(`data-id="${id}"`));
+  });
+
+  test('child-mine 页面不包含家长端管理功能入口（小学模式边界）', () => {
+    const wxml = readFile('pages/child-mine/index.wxml');
+    expect(wxml).not.toContain('family-switch');
+    expect(wxml).not.toContain('family-create');
+    expect(wxml).not.toContain('family-join');
+    expect(wxml).not.toContain('settings');
+    expect(wxml).not.toContain('profile-edit');
+  });
+
+  test('mini-schedule-card 组件含卡片与快捷打卡必需 data-id', () => {
+    const wxml = readFile('components/mini-schedule-card/index.wxml');
+    // 卡片根节点 + 未完成态快捷打卡按钮（动态 scheduleId）
+    expect(wxml).toContain('data-id="calendar-week-card-{{schedule.scheduleId}}"');
+    expect(wxml).toContain('data-id="calendar-week-card-checkin-btn-{{schedule.scheduleId}}"');
+  });
+
+  test('week-view 组件含 7 列网格 day 列 data-id', () => {
+    const wxml = readFile('components/week-view/index.wxml');
+    expect(wxml).toContain('data-id="calendar-week-header-cell-{{item.date}}"');
+    expect(wxml).toContain('data-id="calendar-week-col-{{day.date}}"');
+    // 网格必须是 7 列
+    expect(wxml).toContain('week-grid');
+  });
+});

@@ -13,7 +13,7 @@
 | 模板 | ✅ | ✅ | ✅ | ⬜ | ⬜ | - |
 | 展示模式 | ✅ | ✅ | ✅ | ✅ | ✅ | add-display-mode-module (archived) |
 
-- `app/` 已有日程管理前端代码（4 页面 + 11 组件 + 3 Service + 2 Util），认证模块（mine/privacy-prompt 页面）
+- `app/miniapp/` 已有日程管理前端代码（4 页面 + 11 组件 + 3 Service + 2 Util），认证模块（mine/privacy-prompt 页面）；`app/miniapp-test/` 为对应 Jest 测试项目
 - `api/` 已有 .NET 10 后端（Schedule + Auth + Family + Domain + Infrastructure 分层），含 EF Core Migration
 - `testing/e2e/` 已有 Playwright 测试套件（日程管理 139/140 通过，1 项打卡模块预置 skip）
 
@@ -50,7 +50,7 @@ openspec archive <name>                                     # 归档变更
 | 目录 | 内容 | 说明 |
 |------|------|------|
 | [`api/`](api/CLAUDE.md) | .NET 10 Web API | 开发中：Schedule + Auth + Family 模块 |
-| [`app/`](app/CLAUDE.md) | 微信小程序前端 | 开发中：日程管理 + 认证页面就绪 |
+| [`app/`](app/CLAUDE.md) | 微信小程序前端（miniapp 源码 + miniapp-test 测试） | 开发中：日程管理 + 认证页面就绪 |
 | [`testing/e2e/`](testing/CLAUDE.md) | Playwright E2E | 日程管理 140 用例 |
 | [`production/`](production/CLAUDE.md) | 产品需求与原型 | 6 模块需求文档已完成 |
 | [`.claude/`](.claude/CLAUDE.md) | 三层编排（agent/skill/rule） | 工作流权威定义 |

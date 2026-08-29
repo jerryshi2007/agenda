@@ -60,7 +60,7 @@ skills: [dev-miniapp-tdd, dev-sdd, dev-verification, openspec-apply-change, dev-
 
 ## 输出
 
-- 小程序前端功能实现代码（`app/` 下）
-- 测试代码（`__tests__/` 下，与源码同结构）
-- npm test / npm run build / npm run lint 全部通过
+- 小程序前端功能实现代码（`app/miniapp/` 下）
+- 测试代码（`app/miniapp-test/__tests__/` 下，与 `app/miniapp/` 源码同结构）
+- `app/miniapp-test/` 下 `npm test`、`app/miniapp/` 下 `npm run build` / `npm run lint` 全部通过
 - SDD 进度报告（task 完成情况、fix 循环次数、final review 结果）

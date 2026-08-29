@@ -207,7 +207,7 @@ curl http://www.paiban.live/health   # 公网，应返回 {"status":"healthy",..
 
 ## 4. 小程序配置
 
-[app/services/api.js](../../app/services/api.js) 的 `BASE_URL` 统一指向 HTTPS 根地址：
+[app/miniapp/services/api.js](../../app/miniapp/services/api.js) 的 `BASE_URL` 统一指向 HTTPS 根地址：
 
 ```js
 const BASE_URL = 'https://paiban.live';

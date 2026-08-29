@@ -8,7 +8,9 @@ using Agenda.Api.Infrastructure.Middleware;
 using Agenda.Api.Shared.Extensions;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
@@ -134,10 +136,22 @@ app.UseMiddleware<RateLimitingMiddleware>();
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTimeOffset.UtcNow }));
 
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    // ---- Static files: serve uploaded avatars at /uploads/ ----
+    // 生产环境由 nginx 从共享挂载目录伺服；开发环境无 nginx，若不由 API 伺服，
+    // 小程序请求 /uploads/avatars/<userId>.jpeg 会 404。
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(
+            Path.Combine(builder.Environment.ContentRootPath, "uploads")),
+        RequestPath = "/uploads"
+    });
+
 }
 
 app.UseCors();

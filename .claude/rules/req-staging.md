@@ -220,11 +220,11 @@ test-planner → 已有测试评估 → 按需补充后端(dev-dotnet)/前端(de
 - test-writer 和 test-runner **不适用**（仅 Web 应用的 Playwright E2E）
 - 前端测试走 Jest + miniprogram-simulate（dev-miniapp-tdd skill）
 - 后端测试走 xUnit（dev-dotnet-tdd skill）
-- 主代理 MUST 负责最终执行 `dotnet test api/Agenda.Test/` + `cd app && npx jest` 并生成测试报告
+- 主代理 MUST 负责最终执行 `dotnet test api/Agenda.Test/` + `cd app/miniapp-test && npx jest` 并生成测试报告
 
 ### 主代理调度约束
 
-1. **进入 Stage 4 前 MUST 先 Glob 扫描已有测试**：`api/**/__tests__/` 和 `app/__tests__/`（小程序）或 `testing/e2e/`（Web），将已有覆盖结论写入 test-planner 提示词
+1. **进入 Stage 4 前 MUST 先 Glob 扫描已有测试**：`api/**/__tests__/` 和 `app/miniapp-test/__tests__/`（小程序）或 `testing/e2e/`（Web），将已有覆盖结论写入 test-planner 提示词
 2. **禁止跳过 test-planner**：即使已有测试覆盖充分，仍需 test-planner 产出测试计划（含已有覆盖评估 + 缺口分析）
 3. **测试执行后 MUST 产出 test-report.md**：无论用哪个 agent 执行，最终报告放入 `openspec/changes/<name>/test-report.md`
 
