@@ -45,7 +45,7 @@ coverage/
 *.publishsettings
 
 # 头像上传运行时存储（ADR-009 本地文件系统）
-api/uploads/
+**/uploads/
 
 # ---- 微信小程序 (app/) ----
 miniprogram_npm/
