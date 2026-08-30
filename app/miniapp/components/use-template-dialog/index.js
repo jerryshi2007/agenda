@@ -39,7 +39,7 @@ Component({
     attached() {
       this._appRef = typeof getApp === 'function' ? getApp() : null;
       this.setData({ showDialog: !!this.properties.visible });
-      this._initializeFromTemplate();
+      this._refreshMembers();
     }
   },
 
@@ -47,7 +47,7 @@ Component({
     'visible': function (val) {
       this.setData({ showDialog: !!val });
       if (val) {
-        this._initializeFromTemplate();
+        this._refreshMembers();
       }
     },
     'template': function () {
@@ -56,6 +56,19 @@ Component({
   },
 
   methods: {
+    /**
+     * 拉取家庭成员上下文后初始化。
+     * 成员列表由 app.refreshFamilyContext 异步填充，模板生成前必须主动拉取，
+     * 不能只读 globalData.memberList（从模板进入时可能尚未填充）。
+     */
+    _refreshMembers() {
+      const app = this._appRef || (typeof getApp === 'function' ? getApp() : null);
+      if (app && typeof app.refreshFamilyContext === 'function') {
+        return app.refreshFamilyContext().then(() => this._initializeFromTemplate());
+      }
+      return this._initializeFromTemplate();
+    },
+
     /**
      * 从 template 初始化成员列表 / startDate / override 字段
      */

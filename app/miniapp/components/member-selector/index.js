@@ -10,15 +10,17 @@ const { UserRole } = require('../../contracts/schedule');
  */
 function normalizeMember(m) {
   const role = m.role || '';
+  const name = m.name || m.childName || m.nickname || '';
   let roleLabel = '';
   if (role === UserRole.Parent) roleLabel = '家长';
   else if (role === UserRole.Child) roleLabel = '孩子';
   return {
     userId: m.userId || m.memberId || '',
     role: role,
-    name: m.name || m.childName || m.nickname || '',
+    name: name,
     avatarUrl: m.avatarUrl || '',
-    roleLabel: roleLabel
+    roleLabel: roleLabel,
+    avatarLetter: name.charAt(0) || '?'
   };
 }
 
