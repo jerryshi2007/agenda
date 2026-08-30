@@ -22,6 +22,8 @@ beforeEach(() => {
   wx.getStorageSync.mockReturnValue(null);
 });
 
+const flush = () => new Promise(resolve => setImmediate(resolve));
+
 function setup(props = {}, appOverrides = {}) {
   const app = {
     globalData: {
@@ -94,6 +96,26 @@ describe('use-template-dialog 组件', () => {
       const ctx = setup({ template: sampleTemplate(), visible: true }, { globalData: { memberList: [] } });
       expect(ctx.data.selectedMemberIds).toEqual([]);
       expect(ctx.data.hasNoMember).toBe(true);
+    });
+
+    test('memberList 为空时主动调用 app.refreshFamilyContext 拉取成员', async () => {
+      const app = {
+        globalData: { userRole: 'Parent', userId: 'p1', memberList: [] },
+        refreshFamilyContext: jest.fn()
+      };
+      app.refreshFamilyContext.mockImplementation(() => {
+        app.globalData.memberList = [{ userId: 'c1', role: 'Child', name: '小明' }];
+        return Promise.resolve();
+      });
+      const { type, config } = loadPage('components/use-template-dialog/index.js', { app });
+      const ctx = createPageContext(config);
+      global.getApp = () => app;
+      ctx.triggerEvent = jest.fn();
+      ctx.properties = { template: sampleTemplate(), visible: true };
+      config.lifetimes.attached.call(ctx);
+      await flush();
+      expect(app.refreshFamilyContext).toHaveBeenCalled();
+      expect(ctx.data.memberList.length).toBe(1);
     });
 
     test('startDate 默认今天', () => {

@@ -119,6 +119,26 @@ describe('schedule-create 页面 - 4 步向导', () => {
       ctx.onShow();
       expect(ctx.data.memberList.length).toBeGreaterThanOrEqual(1);
     });
+
+    test('onShow 主动拉取家庭成员上下文（app.refreshFamilyContext 存在时）', async () => {
+      const app = {
+        globalData: { memberList: [], userRole: '', userId: '' },
+        refreshFamilyContext: jest.fn()
+      };
+      app.refreshFamilyContext.mockImplementation(() => {
+        app.globalData.memberList = [{ userId: 'c1', role: 'Child', childName: '小明' }];
+        app.globalData.userRole = 'Parent';
+        app.globalData.userId = 'p1';
+        return Promise.resolve();
+      });
+      const { type, config } = loadPage('pages/schedule-create/index.js', { app });
+      const ctx = createPageContext(config);
+      global.getApp = () => app;
+      ctx.onShow();
+      await flush();
+      expect(app.refreshFamilyContext).toHaveBeenCalled();
+      expect(ctx.data.memberList.length).toBe(1);
+    });
   });
 
   describe('Step 1 成员选择', () => {

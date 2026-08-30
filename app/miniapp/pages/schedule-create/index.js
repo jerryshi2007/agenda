@@ -90,7 +90,20 @@ Page({
   },
 
   onShow() {
-    this._loadMemberList();
+    this._refreshMembers();
+  },
+
+  /**
+   * 拉取家庭成员上下文后刷新成员列表。
+   * globalData.memberList 由 app.refreshFamilyContext 异步填充（登录/首页 onShow 触发），
+   * 创建页不能只读缓存——直接进入或从模板进入时可能尚未填充或已过期，需主动拉取。
+   */
+  _refreshMembers() {
+    const app = this._appRef || (typeof getApp === 'function' ? getApp() : null);
+    if (app && typeof app.refreshFamilyContext === 'function') {
+      return app.refreshFamilyContext().then(() => this._loadMemberList());
+    }
+    return this._loadMemberList();
   },
 
   /**
