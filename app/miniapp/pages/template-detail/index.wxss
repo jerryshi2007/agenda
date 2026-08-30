@@ -1,0 +1,71 @@
+/* pages/template-detail/index.wxss
+   模板详情页样式 —— 只读信息展示 + 底部操作栏 */
+
+.template-detail-page {
+  min-height: 100vh;
+  background: var(--color-bg-page);
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+}
+
+.detail-card {
+  padding: var(--spacing-xl) var(--spacing-lg);
+  background: var(--color-bg-white);
+}
+
+.detail-name {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.detail-type {
+  margin-top: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.preset-tag {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  border: 2rpx solid var(--color-border);
+  border-radius: 24rpx;
+  padding: 2rpx 16rpx;
+}
+
+.section {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-bg-white);
+}
+
+.section-title {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.section-value {
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-base);
+}
+
+.footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-bg-white);
+}
+
+.btn-flex {
+  flex: 1;
+}

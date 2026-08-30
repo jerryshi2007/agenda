@@ -1,0 +1,100 @@
+/* pages/template-list/index.wxss
+   模板列表页样式 —— 搜索栏 + 预设/自定义模板分区 */
+
+.template-list-page {
+  min-height: 100vh;
+  background: var(--color-bg-page);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-bg-white);
+}
+
+.search-bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: 72rpx;
+  background: var(--color-bg-page);
+  border-radius: var(--radius-md);
+  padding: 0 var(--spacing-md);
+}
+
+.search-input {
+  flex: 1;
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+}
+
+.search-clear {
+  font-size: var(--font-size-md);
+  color: var(--color-text-placeholder);
+  padding: 0 var(--spacing-sm);
+}
+
+.btn-add {
+  flex-shrink: 0;
+  color: var(--color-primary);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+}
+
+.content {
+  flex: 1;
+  overflow: hidden;
+}
+
+.section {
+  margin-top: var(--spacing-md);
+}
+
+.section-title {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.template-row {
+  display: flex;
+  align-items: center;
+  margin: 0 var(--spacing-lg) var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-bg-white);
+  border-radius: var(--radius-md);
+}
+
+.template-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.template-name {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.template-meta {
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.template-tag {
+  flex-shrink: 0;
+  padding: 4rpx 16rpx;
+  border-radius: 24rpx;
+  font-size: var(--font-size-xs);
+}
+
+.template-tag-preset {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
