@@ -14,7 +14,7 @@
       <text wx:if="{{item._selected}}">✓</text>
     </view>
     <view class="member-select-avatar" style="background:{{item._color || '#10AEFF'}};">
-      <text>{{item.name ? item.name.charAt(0) : '?'}}</text>
+      <text>{{item.avatarLetter}}</text>
     </view>
     <view class="member-select-info">
       <text class="member-select-name">{{item.name}}</text>
