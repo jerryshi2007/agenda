@@ -17,7 +17,9 @@ Component({
 
   data: {
     memberName: '',
-    memberAvatarUrl: ''
+    memberAvatarUrl: '',
+    statusKey: '',   // completed / incomplete / cancelled / overdue（归一化小写）
+    timeText: ''     // "16:00 - 16:30" / "16:00" / "截止 2026-09-05"
   },
 
   observers: {
@@ -34,21 +36,23 @@ Component({
         (schedule && (schedule.assignedMemberAvatarUrl || schedule.childAvatarUrl)) || ''
       );
 
-      // 时间列：优先时间段（起/止两行），其次截止日期（日期 + "截止"标签）
-      let timeMain = '';
-      let timeSub = '';
-      if (schedule && schedule.startTime && schedule.endTime) {
-        timeMain = schedule.startTime;
-        timeSub = schedule.endTime;
-      } else if (schedule && schedule.dueDate) {
-        timeMain = schedule.dueDate;
-        timeSub = '截止';
-      } else if (schedule && schedule.startTime) {
-        timeMain = schedule.startTime;
-        timeSub = '';
+      // 状态 key：归一化大小写（Completed → completed）
+      let statusKey = (schedule && schedule.status) || '';
+      if (statusKey) {
+        statusKey = statusKey.charAt(0).toLowerCase() + statusKey.slice(1);
       }
 
-      this.setData({ stripeClass, typeLabel, memberName, memberAvatarUrl, timeMain, timeSub });
+      // 时间文本：优先起止时间范围，其次截止日期（作业任务），再次仅开始时间
+      let timeText = '';
+      if (schedule && schedule.startTime && schedule.endTime) {
+        timeText = `${schedule.startTime} - ${schedule.endTime}`;
+      } else if (schedule && schedule.dueDate) {
+        timeText = `截止 ${schedule.dueDate}`;
+      } else if (schedule && schedule.startTime) {
+        timeText = schedule.startTime;
+      }
+
+      this.setData({ stripeClass, typeLabel, memberName, memberAvatarUrl, statusKey, timeText });
     }
   },
 
