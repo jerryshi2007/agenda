@@ -199,6 +199,20 @@
   background: var(--color-bg-white);
 }
 
+.date-nav-side {
+  flex: 0 0 160rpx;
+  display: flex;
+  align-items: center;
+}
+
+.date-nav-side-left {
+  justify-content: space-between;
+}
+
+.date-nav-side-right {
+  justify-content: flex-start;
+}
+
 .date-nav-arrow {
   width: 64rpx;
   height: 64rpx;
@@ -223,8 +237,6 @@
 }
 
 .date-nav-today {
-  position: absolute;
-  right: 32rpx;
   font-size: var(--font-size-sm);
   color: var(--color-primary);
   padding: 4rpx 20rpx;
