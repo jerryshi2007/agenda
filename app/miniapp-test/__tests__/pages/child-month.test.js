@@ -27,12 +27,15 @@ function setup(appData = {}) {
   return createPageContext(config);
 }
 
-// 测试当月前 5 天（固定日期便于断言）
+// 动态生成当月日期（消除硬编码 2026-08 的时间炸弹——页面 onLoad 用 new Date() 生成当月 cells）
+const NOW = new Date();
+const monthDate = (day) =>
+  `${NOW.getFullYear()}-${String(NOW.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 const SAMPLE_MONTH = {
   dates: [
-    { date: '2026-08-01', dots: [{ scheduleType: 'DailyRoutine' }], scheduleCount: 1 },
-    { date: '2026-08-05', dots: [{ scheduleType: 'AfterSchoolActivity' }, { scheduleType: 'HomeworkTask' }], scheduleCount: 2 },
-    { date: '2026-08-15', dots: [{ scheduleType: 'HomeworkTask' }], scheduleCount: 1 }
+    { date: monthDate(1), dots: [{ scheduleType: 'DailyRoutine' }], scheduleCount: 1 },
+    { date: monthDate(5), dots: [{ scheduleType: 'AfterSchoolActivity' }, { scheduleType: 'HomeworkTask' }], scheduleCount: 2 },
+    { date: monthDate(15), dots: [{ scheduleType: 'HomeworkTask' }], scheduleCount: 1 }
   ]
 };
 
@@ -71,12 +74,12 @@ describe('child-month 页面', () => {
       const ctx = setup({ displayMode: DisplayMode.Primary });
       ctx.onLoad();
       await flush();
-      const aug01 = ctx.data.cells.find(c => c.date === '2026-08-01');
+      const aug01 = ctx.data.cells.find(c => c.date === monthDate(1));
       expect(aug01).toBeDefined();
       expect(aug01.dots).toHaveLength(1);
       expect(aug01.dots[0].typeClass).toBe('routine');
-      // 8/5 有 2 个点
-      const aug05 = ctx.data.cells.find(c => c.date === '2026-08-05');
+      // 当月 5 号有 2 个点
+      const aug05 = ctx.data.cells.find(c => c.date === monthDate(5));
       expect(aug05.dots).toHaveLength(2);
     });
 
@@ -85,7 +88,7 @@ describe('child-month 页面', () => {
       const ctx = setup({ displayMode: DisplayMode.Primary });
       ctx.onLoad();
       await flush();
-      const aug10 = ctx.data.cells.find(c => c.date === '2026-08-10');
+      const aug10 = ctx.data.cells.find(c => c.date === monthDate(10));
       expect(aug10.dots).toEqual([]);
     });
   });
