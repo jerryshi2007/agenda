@@ -29,6 +29,7 @@
 | 家庭 | ✅ | ✅ | ✅ | ✅ | ✅ | add-family-module (archived) |
 | 模板 | ✅ | ✅ | ✅ | ✅ | ✅ | add-template-module (archived) |
 | 展示模式 | ✅ | ✅ | ✅ | ✅ | ✅ | add-display-mode-module (archived) |
+| 日程关联对象泛化 | ✅ | ✅ | ✅ | ✅ | ✅ | generalize-schedule-to-member (archived) |
 
 - **日程管理**：全流程完成（五阶段 done），OpenSpec 已归档
 - **认证**：全流程完成（五阶段 done），OpenSpec 已归档
@@ -37,6 +38,7 @@
 - **展示模式**：全流程完成（五阶段 done），OpenSpec 已归档
 - **模板**：全流程完成（五阶段 done），OpenSpec 已归档
 - **归档**：模块完成后由 `archiver` agent 两步归档——OpenSpec 变更 → `openspec/changes/archive/`，staging 目录 → `production/archive/`
+- **日程关联对象泛化（家长日程）**：全流程完成（五阶段 done），OpenSpec 已归档
 
 ## 需求文档规范
 

@@ -60,25 +60,33 @@ The settlement task SHALL NOT interfere with active check-in operations on the c
 
 ### Requirement: Streak Update During Settlement
 
-The settlement task SHALL update continuous completion days (streak) for daily routine schedules after status transitions.
+The settlement task SHALL update continuous completion days (streak) for daily routine schedules after status transitions. Streak SHALL only apply to child members — parent schedules SHALL undergo status settlement but SHALL NOT contribute to streak.
 
-#### Scenario: Single schedule streak increment
+#### Scenario: Single schedule streak increment (child only)
 - **WHEN** settlement processes a child's routine schedule "练琴" that was checked in yesterday
 - **THEN** the single-schedule streak for "练琴" SHALL increment by 1
 
-#### Scenario: Single schedule streak reset
+#### Scenario: Single schedule streak reset (child only)
 - **WHEN** settlement processes a child's routine schedule "练琴" that was NOT checked in yesterday
 - **THEN** the single-schedule streak for "练琴" SHALL reset to 0
+
+#### Scenario: Parent schedule status settlement without streak
+- **WHEN** settlement processes a parent member's unchecked routine schedule from yesterday
+- **THEN** the schedule SHALL receive terminal status settlement ("未完成" for routines) but SHALL NOT update any streak (neither single-schedule nor overall)
+
+#### Scenario: Parent checked-in schedule also skips streak
+- **WHEN** settlement processes a parent member's routine schedule that WAS checked in yesterday
+- **THEN** the schedule SHALL remain "已完成" but SHALL NOT increment any streak
 
 #### Scenario: Cancelled instance does not break streak
 - **WHEN** settlement processes a routine schedule instance that was cancelled by parent (status = "已取消")
 - **THEN** the streak SHALL NOT reset. It SHALL remain at its current value (no increment, no reset).
 
-#### Scenario: Overall streak increment
+#### Scenario: Overall streak increment (child only)
 - **WHEN** a child completed at least 1 valid daily routine yesterday
 - **THEN** the child's overall streak SHALL increment by 1
 
-#### Scenario: Overall streak reset
+#### Scenario: Overall streak reset (child only)
 - **WHEN** a child has at least 1 valid (uncancelled) daily routine yesterday but completed none of them
 - **THEN** the child's overall streak SHALL reset to 0
 

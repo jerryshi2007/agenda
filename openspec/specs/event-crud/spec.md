@@ -3,23 +3,23 @@
 ## Purpose
 TBD - created by archiving change add-event-module. Update Purpose after archive.
 ## Requirements
-### Requirement: Parent SHALL create after-school activity schedule for children
+### Requirement: Parent SHALL create after-school activity schedule for members
 
-The system SHALL allow a parent to create an after-school activity schedule by selecting children, filling in activity name, configuring weekly time slots, and specifying optional fields (location, notes). The schedule SHALL be associated with the selected children's family.
+The system SHALL allow a parent to create an after-school activity schedule by selecting family members (children, other parents, or themselves), filling in activity name, configuring weekly time slots, and specifying optional fields (location, notes). Each selected member SHALL generate an independent Schedule record (N members = N rows, linked by GroupKey). The schedule SHALL be associated with the selected members' family.
 
 #### Scenario: Successfully create after-school activity
 
 - **WHEN** a parent selects 1 child, chooses "课后活动" type, fills name "钢琴课", selects Tuesday 16:00-17:00, sets repeat end date 2026-12-31, and clicks "创建"
 - **THEN** the system creates the schedule with type AfterSchoolActivity, generates TimeSlot entries for Tuesday 16:00-17:00, and returns the created schedule with 201 Created
 
-#### Scenario: No child selected blocks progress
+#### Scenario: No member selected blocks progress
 
-- **WHEN** a parent clicks "下一步" without selecting any child
-- **THEN** the system SHALL return 400 with error code CHILD_NOT_SELECTED
+- **WHEN** a parent clicks "下一步" without selecting any member
+- **THEN** the system SHALL return 400 with error code MEMBER_NOT_SELECTED (legacy code CHILD_NOT_SELECTED kept as deprecated alias, same HTTP 400)
 
-### Requirement: Parent SHALL create daily routine schedule for children
+### Requirement: Parent SHALL create daily routine schedule for members
 
-The system SHALL allow a parent to create a daily routine schedule with a name, weekly time slot configuration with per-day fine-tuning, and optional notes.
+The system SHALL allow a parent to create a daily routine schedule with a name, weekly time slot configuration with per-day fine-tuning, and optional notes. Each selected member SHALL generate an independent Schedule record.
 
 #### Scenario: Successfully create daily routine with per-day tuning
 
@@ -31,9 +31,9 @@ The system SHALL allow a parent to create a daily routine schedule with a name, 
 - **WHEN** a parent submits a daily routine with empty name
 - **THEN** the system SHALL return 400 with error code SCHEDULE_NAME_EMPTY
 
-### Requirement: Parent SHALL create homework task for children
+### Requirement: Parent SHALL create homework task for members
 
-The system SHALL allow a parent to create a homework task with a task name, required due date, optional suggested time period, and optional notes. Homework tasks SHALL NOT use time slots or repeat rules.
+The system SHALL allow a parent to create a homework task with a task name, required due date, optional suggested time period, and optional notes. Homework tasks SHALL NOT use time slots or repeat rules. Each selected member SHALL generate an independent Schedule record.
 
 #### Scenario: Successfully create homework task
 
@@ -81,17 +81,50 @@ The system SHALL validate all schedule input fields at both frontend and backend
 
 ### Requirement: Schedule conflict detection SHALL provide soft warning
 
-When creating or editing a schedule, the system SHALL detect time overlaps for the same child and SHALL return conflict information. The system SHALL NOT block creation — parents MAY confirm to proceed.
+When creating or editing a schedule, the system SHALL detect time overlaps for the same member and SHALL return conflict information. The system SHALL NOT block creation — parents MAY confirm to proceed.
 
-#### Scenario: Same child, overlapping time slot
+#### Scenario: Same member, overlapping time slot
 
-- **WHEN** a parent creates a schedule with a time slot that overlaps an existing schedule for the same child
+- **WHEN** a parent creates a schedule with a time slot that overlaps an existing schedule for the same member (themselves, another parent, or a child)
 - **THEN** the system SHALL return 409 with error code SCHEDULE_CONFLICT, including conflicting schedule names and times, but SHALL allow creation if the parent confirms
 
-#### Scenario: Different child, overlapping time slot
+#### Scenario: Different member, overlapping time slot
 
-- **WHEN** a parent creates a schedule whose time overlaps an existing schedule for a different child
+- **WHEN** a parent creates a schedule whose time overlaps an existing schedule for a different member
 - **THEN** the system SHALL NOT trigger conflict detection
+
+### Requirement: Permission matrix generalized from child to member
+
+Parents MUST be able to create/edit/delete schedules for any family member (themselves, other parents, children). Child users (upper-grade mode) MUST only create/edit/delete their own schedules, SHALL NOT create schedules for parents, and SHALL NOT edit/delete/check-in parent schedules.
+
+#### Scenario: Child creates schedule for themselves
+
+- **WHEN** an upper-grade-mode child submits a create request with `MemberIds == [self]`
+- **THEN** the system creates a schedule assigned to themselves
+
+#### Scenario: Child tampering request to create for parent (intercepted)
+
+- **WHEN** a child submits a create request with `MemberIds` containing a parent
+- **THEN** the system returns 403 `CHILD_SELF_ASSIGN_ONLY`, schedule not created
+
+#### Scenario: Child editing/deleting parent schedule (intercepted)
+
+- **WHEN** a child submits an edit or delete request for a parent's schedule
+- **THEN** the system returns 403 `CHILD_ACCESS_DENIED`, schedule unchanged
+
+### Requirement: Type dual labels (HomeworkTask/Todo)
+
+`ScheduleType.HomeworkTask` MUST display as "待办事项" (todo item) when the assigned member is a parent, and "作业任务" (homework task) when assigned to a child. The backend enum value and data SHALL remain unchanged; the label MUST render based on the assigned member's role, independent of the viewer's identity.
+
+#### Scenario: HomeworkTask for parent displays todo
+
+- **WHEN** a parent views a HomeworkTask schedule assigned to themselves or another parent
+- **THEN** the system displays "待办事项"
+
+#### Scenario: HomeworkTask for child displays homework
+
+- **WHEN** a parent or child views a HomeworkTask schedule assigned to a child
+- **THEN** the system displays "作业任务" (label depends on assigned member role, not viewer identity)
 
 ### Requirement: Parent SHALL edit a schedule (this instance only)
 

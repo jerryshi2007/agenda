@@ -10,7 +10,14 @@ The schedule module SHALL expose an interface (IScheduleQueryService, defined by
 #### Scenario: Schedule module returns schedule type for a given schedule
 
 - **WHEN** checkin module calls IScheduleQueryService.GetEventAsync(scheduleId)
-- **THEN** the method SHALL return the schedule's ScheduleType (AfterSchoolActivity / DailyRoutine / HomeworkTask), AssignedChildId, FamilyId, and IsDeleted flag
+- **THEN** the method SHALL return the schedule's ScheduleType (AfterSchoolActivity / DailyRoutine / HomeworkTask), AssignedMemberId (generalized from AssignedChildId, supports both parent and child members), FamilyId, and IsDeleted flag
+
+#### Scenario: Checkin permission generalized with member
+
+- **WHEN** a parent checks in for any member's schedule (themselves, another parent, or a child)
+- **THEN** the system SHALL allow check-in with source=Parent
+- **WHEN** a child attempts to check in for another member's schedule
+- **THEN** the system SHALL reject with 403 CHILD_ACCESS_DENIED (child can only check in for their own schedule)
 
 #### Scenario: Schedule module returns time slot for a given schedule and date
 

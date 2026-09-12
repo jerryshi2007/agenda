@@ -60,14 +60,14 @@ The system SHALL provide a day view with a timeline layout arranged by time on t
 - **WHEN** the user has no schedules at all
 - **THEN** the system SHALL display empty state with illustration and message "还没有日程，点击创建第一个日程吧" and a "创建日程" button
 
-### Requirement: Calendar SHALL filter by child and schedule type
+### Requirement: Calendar SHALL filter by member and schedule type
 
-The system SHALL provide filter controls to narrow displayed schedules by child (single or all) and by schedule type (multiple or all). Filter conditions SHALL persist across view switches (month/week/day).
+The system SHALL provide filter controls to narrow displayed schedules by member (single, all members, or all) and by schedule type (multiple or all). The default filter SHALL be "all members" (parents + children). Filter conditions SHALL persist across view switches (month/week/day).
 
-#### Scenario: Filter by child
+#### Scenario: Filter by member
 
-- **WHEN** a parent selects a specific child "小明" in the filter bar
-- **THEN** the calendar SHALL only display schedules associated with that child
+- **WHEN** a parent selects a specific member (e.g., "爸爸") in the filter bar
+- **THEN** the calendar SHALL only display schedules associated with that member
 
 #### Scenario: Filter by schedule type
 
@@ -79,10 +79,15 @@ The system SHALL provide filter controls to narrow displayed schedules by child 
 - **WHEN** a filter is applied and no schedules match
 - **THEN** the calendar SHALL display empty state "该筛选条件下无日程"
 
-#### Scenario: Family has no children
+#### Scenario: Child view only shows own schedules
 
-- **WHEN** a parent tries to create a schedule but the family has no children
-- **THEN** the "选孩子" step SHALL display empty state "请先添加孩子" with a link to the family management page
+- **WHEN** a child views the calendar (any view)
+- **THEN** only schedules assigned to that child SHALL be displayed; parent schedules SHALL be invisible to the child
+
+#### Scenario: Default all members filter
+
+- **WHEN** a parent views the calendar with no filter applied
+- **THEN** schedules for all members (parents + children) SHALL be displayed by default
 
 ### Requirement: Calendar SHALL respond to slide gestures across time periods
 

@@ -7,14 +7,19 @@
 
 ### Requirement: System SHALL allow parent to apply template to generate schedule
 
-The system SHALL allow a parent to generate a schedule from a template by submitting POST /api/v1/templates/{templateId}/apply with required fields: childId (single Guid, must be a child member of current family) and startDate (DateOnly, cannot be earlier than today). The system SHALL copy the template's fields (name, scheduleType, timeSlots, repeatEndDate, location, notes) to the new schedule, override with any provided optional fields (name, timeSlots, notes, location, repeatEndDate), and create the schedule via the existing IScheduleService.CreateAsync. The created schedule SHALL record SourceTemplateId=templateId for traceability.
+The system SHALL allow a parent to generate a schedule from a template by submitting POST /api/v1/templates/{templateId}/apply with required fields: memberIds (List of Guids, must be members of current family) and startDate (DateOnly, cannot be earlier than today). Each member SHALL generate an independent Schedule record, matching the multi-select experience in schedule creation. The system SHALL copy the template's fields (name, scheduleType, timeSlots, repeatEndDate, location, notes) to the new schedule, override with any provided optional fields (name, timeSlots, notes, location, repeatEndDate), and create the schedule via the existing IScheduleService.CreateAsync. The created schedule SHALL record SourceTemplateId=templateId for traceability.
 
 #### Scenario: Successfully apply template with default fields
 
-- **WHEN** a parent in FamilyA calls POST /api/v1/templates/{templateId}/apply with childId=<childA>, startDate=2026-08-25
-- **THEN** the system creates a Schedule with all template fields (name, scheduleType, timeSlots, etc.) assigned to childA
-- **AND** the system records SourceTemplateId=templateId on the new schedule
+- **WHEN** a parent in FamilyA calls POST /api/v1/templates/{templateId}/apply with memberIds=[<childA>, <parentA>], startDate=2026-08-25
+- **THEN** the system creates two independent Schedule records (one for childA, one for parentA) with all template fields (name, scheduleType, timeSlots, etc.), GroupKey linking them
+- **AND** the system records SourceTemplateId=templateId on each new schedule
 - **AND** the system returns 201 with CreateScheduleResponse (groupKey + schedules list)
+
+#### Scenario: Apply with single member (backward compatible)
+
+- **WHEN** a parent calls POST /api/v1/templates/{templateId}/apply with memberIds=[<childA>], startDate=2026-08-25
+- **THEN** the system creates a single Schedule assigned to childA
 
 #### Scenario: Apply with overridden name
 
@@ -23,13 +28,13 @@ The system SHALL allow a parent to generate a schedule from a template by submit
 
 #### Scenario: Apply with overridden time slots
 
-- **WHEN** a parent calls POST /api/v1/templates/{templateId}/apply with childId=<childA>, startDate=2026-08-25, timeSlots=[{DayOfWeek:Saturday, StartTime:10:00, EndTime:11:00}]
+- **WHEN** a parent calls POST /api/v1/templates/{templateId}/apply with memberIds=[<childA>], startDate=2026-08-25, timeSlots=[{DayOfWeek:Saturday, StartTime:10:00, EndTime:11:00}]
 - **THEN** the new schedule uses the overridden timeSlots (single Saturday slot) instead of template's time slots
 
-#### Scenario: Child not in family blocks application
+#### Scenario: Member not in family blocks application
 
-- **WHEN** a parent calls POST /api/v1/templates/{templateId}/apply with childId=<childFromOtherFamily>
-- **THEN** the system returns 400 with error code CHILD_NOT_IN_FAMILY and message "所选孩子不属于当前家庭"
+- **WHEN** a parent calls POST /api/v1/templates/{templateId}/apply with memberIds containing <memberFromOtherFamily>
+- **THEN** the system returns 400 with error code MEMBER_NOT_IN_FAMILY (legacy code CHILD_NOT_IN_FAMILY kept as deprecated alias, same HTTP 400) and message "所选成员不属于当前家庭"
 
 #### Scenario: Start date earlier than today blocks application
 
