@@ -133,7 +133,7 @@ function restoreFamily(familyId) {
 
 /**
  * 获取分享卡片信息（微信分享入口）
- * GET /api/v1/families/get-share-info/{code}（需鉴权；无需 X-Family-Id）
+ * GET /api/v1/families/get-share-info/{code}（无需鉴权；无需 X-Family-Id）
  * @param {string} code 邀请码
  */
 function getShareInfo(code) {

@@ -20,12 +20,6 @@
       <view class="share-confirm__illust">📨</view>
       <view class="share-confirm__title">你被邀请加入家庭</view>
       <view class="share-confirm__family">{{shareInfo.familyName}}</view>
-      <view wx:if="{{shareInfo.targetChildName}}" class="share-confirm__meta">
-        孩子姓名：{{shareInfo.targetChildName}}
-      </view>
-      <view wx:if="{{shareInfo.targetDisplayMode}}" class="share-confirm__meta">
-        展示模式：{{shareInfo.targetDisplayMode}}
-      </view>
       <view class="share-confirm__hint">确认后将以该身份加入家庭</view>
       <view class="share-confirm__actions">
         <button class="btn-primary btn-block" data-id="welcome-share-accept-btn" bindtap="onAcceptShare">确认加入</button>
