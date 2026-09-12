@@ -12,13 +12,13 @@ function _isExpired(item, now) {
 }
 
 function _group(invites, now) {
-  const groups = { pending: [], used: [], redeemed: [], expired: [] };
+  const groups = { pending: [], used: [], revoked: [], expired: [] };
   for (const item of (invites || [])) {
     // 已使用 / 已撤销：直接归组
     if (item.status === InvitationCodeStatus.Used) {
       groups.used.push(item);
-    } else if (item.status === InvitationCodeStatus.Redeemed) {
-      groups.redeemed.push(item);
+    } else if (item.status === InvitationCodeStatus.Revoked) {
+      groups.revoked.push(item);
     } else if (item.status === InvitationCodeStatus.Expired || _isExpired(item, now)) {
       // Pending 但已过期 -> expired 分组
       groups.expired.push(item);
@@ -34,7 +34,7 @@ Page({
     loading: true,
     error: false,
     errorMessage: '',
-    groups: { pending: [], used: [], redeemed: [], expired: [] }
+    groups: { pending: [], used: [], revoked: [], expired: [] }
   },
 
   onLoad() {

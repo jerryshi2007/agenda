@@ -40,14 +40,14 @@
       </view>
 
       <!-- 已撤销 -->
-      <view wx:if="{{groups.redeemed.length > 0}}" class="invite-section">
+      <view wx:if="{{groups.revoked.length > 0}}" class="invite-section">
         <view class="section-title">已撤销</view>
-        <view wx:for="{{groups.redeemed}}" wx:key="id" class="invite-item invite-item--used">
+        <view wx:for="{{groups.revoked}}" wx:key="id" class="invite-item invite-item--used">
           <view class="invite-item-main">
             <view class="invite-code">{{item.code}}</view>
             <view class="invite-meta">已撤销</view>
           </view>
-          <view class="invite-status status-redeemed">已撤销</view>
+          <view class="invite-status status-revoked">已撤销</view>
         </view>
       </view>
 
@@ -64,7 +64,7 @@
       </view>
 
       <!-- 空态 -->
-      <view wx:if="{{groups.pending.length === 0 && groups.used.length === 0 && groups.redeemed.length === 0 && groups.expired.length === 0}}"
+      <view wx:if="{{groups.pending.length === 0 && groups.used.length === 0 && groups.revoked.length === 0 && groups.expired.length === 0}}"
             class="empty-state">
         <view class="empty-state__icon">📭</view>
         <view class="empty-state__text">暂无邀请记录</view>

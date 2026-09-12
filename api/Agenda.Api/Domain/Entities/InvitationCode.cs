@@ -7,7 +7,7 @@ namespace Agenda.Api.Domain.Entities;
 /// - TargetRole：邀请目标角色（家长/孩子）
 /// - TargetChildName / TargetDisplayMode：仅当邀请孩子时使用
 /// - CreatorId：邀请人 UserId（仅本人可撤销）
-/// - Status：Pending / Used / Redeemed；Expired 在查询时动态判定
+/// - Status：Pending / Used / Revoked；Expired 在查询时动态判定
 /// </summary>
 public class InvitationCode
 {

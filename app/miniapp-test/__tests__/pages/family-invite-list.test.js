@@ -34,7 +34,7 @@ describe('family-invite-list 页面', () => {
       invites: [
         { id: 'c1', code: '234567', status: 'Pending', canRevoke: true, createdAt: '2026-08-18T00:00:00Z', expiresAt: futureExpiry() },
         { id: 'c2', code: '345678', status: 'Used', canRevoke: false, createdAt: '2026-08-18T00:00:00Z', expiresAt: futureExpiry() },
-        { id: 'c3', code: '456789', status: 'Redeemed', canRevoke: false, createdAt: '2026-08-18T00:00:00Z', expiresAt: futureExpiry() }
+        { id: 'c3', code: '456789', status: 'Revoked', canRevoke: false, createdAt: '2026-08-18T00:00:00Z', expiresAt: futureExpiry() }
       ]
     });
     const ctx = setup();
@@ -43,7 +43,7 @@ describe('family-invite-list 页面', () => {
     expect(family.getInvites).toHaveBeenCalled();
     expect(ctx.data.groups.pending.length).toBe(1);
     expect(ctx.data.groups.used.length).toBe(1);
-    expect(ctx.data.groups.redeemed.length).toBe(1);
+    expect(ctx.data.groups.revoked.length).toBe(1);
     expect(ctx.data.groups.expired.length).toBe(0);
   });
 
@@ -77,7 +77,7 @@ describe('family-invite-list 页面', () => {
     await flush();
     expect(ctx.data.groups.pending).toEqual([]);
     expect(ctx.data.groups.used).toEqual([]);
-    expect(ctx.data.groups.redeemed).toEqual([]);
+    expect(ctx.data.groups.revoked).toEqual([]);
     expect(ctx.data.groups.expired).toEqual([]);
   });
 

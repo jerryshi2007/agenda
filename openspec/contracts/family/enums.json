@@ -19,7 +19,7 @@
     "values": [
       "Pending",
       "Used",
-      "Redeemed",
+      "Revoked",
       "Expired"
     ]
   }

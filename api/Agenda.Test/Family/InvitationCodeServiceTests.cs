@@ -258,7 +258,7 @@ public class InvitationCodeServiceTests
         await svc.RevokeAsync(family.Id, creator.Id, code.Id);
 
         var updated = await db.InvitationCodes.SingleAsync();
-        Assert.Equal(InvitationCodeStatus.Redeemed, updated.Status);
+        Assert.Equal(InvitationCodeStatus.Revoked, updated.Status);
     }
 
     [Fact]
@@ -402,20 +402,20 @@ public class InvitationCodeServiceTests
     }
 
     [Fact]
-    public async Task JoinByCodeAsync_RevokedCode_ThrowsInvitationCodeRedeemed()
+    public async Task JoinByCodeAsync_RevokedCode_ThrowsInvitationCodeRevoked()
     {
         var db = CreateDbContext();
         var (family, creator) = await SeedFamilyAsync(db);
         var svc = CreateService(db);
         await svc.GenerateAsync(family.Id, creator.Id, new GenerateInviteCodeRequest { TargetRole = UserRole.Parent }, Now());
         var code = await db.InvitationCodes.SingleAsync();
-        code.Status = InvitationCodeStatus.Redeemed;
+        code.Status = InvitationCodeStatus.Revoked;
         await db.SaveChangesAsync();
         var joiner = await SeedUserAsync(db);
 
         var ex = await Assert.ThrowsAsync<DomainException>(
             () => svc.JoinByCodeAsync(new JoinByCodeRequest { Code = code.Code }, joiner.Id, Now()));
-        Assert.Equal(ErrorCodes.InvitationCodeRedeemed, ex.ErrorCode);
+        Assert.Equal(ErrorCodes.InvitationCodeRevoked, ex.ErrorCode);
     }
 
     [Fact]

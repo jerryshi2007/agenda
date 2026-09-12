@@ -49,7 +49,7 @@ public static class ErrorCodes
     public const string InvalidInvitationCode = "INVALID_INVITATION_CODE";
     public const string InvitationCodeExpired = "INVITATION_CODE_EXPIRED";
     public const string InvitationCodeUsed = "INVITATION_CODE_USED";
-    public const string InvitationCodeRedeemed = "INVITATION_CODE_REDEEMED";
+    public const string InvitationCodeRevoked = "INVITATION_CODE_REVOKED";
     public const string InvitationCannotRevoke = "INVITATION_CANNOT_REVOKE";
     public const string InvitationCodeGenerationFailed = "INVITATION_CODE_GENERATION_FAILED";
 
@@ -121,7 +121,7 @@ public static class ErrorCodes
         [InvalidInvitationCode] = "邀请码无效，请检查后重试",
         [InvitationCodeExpired] = "邀请码已失效，请联系家长重新获取",
         [InvitationCodeUsed] = "邀请码已被使用",
-        [InvitationCodeRedeemed] = "邀请码已被撤销",
+        [InvitationCodeRevoked] = "邀请码已被撤销",
         [InvitationCannotRevoke] = "邀请码已使用，无法撤销",
         [InvitationCodeGenerationFailed] = "邀请码生成冲突，请稍后重试",
         [TemplateNameEmpty] = "模板名称不能为空",
@@ -224,7 +224,7 @@ public static class ErrorCodes
         [InvalidInvitationCode] = 400,
         [InvitationCodeExpired] = 400,
         [InvitationCodeUsed] = 400,
-        [InvitationCodeRedeemed] = 400,
+        [InvitationCodeRevoked] = 400,
         [InvitationCannotRevoke] = 400,
         [InvitationCodeGenerationFailed] = 503,
         [TemplateNameEmpty] = 400,
