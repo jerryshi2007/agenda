@@ -1,20 +1,20 @@
 ---
 name: openspec-apply-change
 description: Implement tasks from an OpenSpec change. Use when the user wants to start implementing, continue implementation, or work through tasks.
+allowed-tools: Bash(openspec:*)
 license: MIT
 compatibility: Requires openspec CLI.
-rules: [dev-code-quality, dev-security]
 metadata:
   author: openspec
   version: "1.0"
-  generatedBy: "1.2.0"
+  generatedBy: "1.11.0"
 ---
 
 Implement tasks from an OpenSpec change.
 
-**与 `dev-sdd` 的关系**：本 skill 是轻量级实现路径（直接实现，适合简单变更，task 数 ≤2）。复杂变更（多 task / 大 task）应使用 `dev-sdd` skill（子代理驱动开发）。选择规则见 `dev-sdd` skill。
+**Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `schemas`, `view`). Once selected, treat `--store <id>` as sticky for the rest of the workflow. Every unscoped example of those commands below is shorthand: before running it, append the flag. For example, run `openspec status --change "<name>" --json --store "<id>"`, not the unscoped form shown below. Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
 
-**Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
+**Input**: Optionally specify a change name (e.g., `/opsx:apply add-auth`). If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
 **Steps**
 
@@ -23,7 +23,7 @@ Implement tasks from an OpenSpec change.
    If a name is provided, use it. Otherwise:
    - Infer from conversation context if the user mentioned a change
    - Auto-select if only one active change exists
-   - If ambiguous, run `openspec list --json` to get available changes and use the **AskUserQuestion tool** to let the user select
+   - If ambiguous, run `openspec list --json` to get available changes and ask the user to select one
 
    Always announce: "Using change: <name>" and how to override (e.g., `/opsx:apply <other>`).
 
@@ -33,6 +33,7 @@ Implement tasks from an OpenSpec change.
    ```
    Parse the JSON to understand:
    - `schemaName`: The workflow being used (e.g., "spec-driven")
+   - `planningHome`, `changeRoot`, and `actionContext`: planning scope and edit constraints
    - Which artifact contains the tasks (typically "tasks" for spec-driven, check status for others)
 
 3. **Get apply instructions**
@@ -42,22 +43,42 @@ Implement tasks from an OpenSpec change.
    ```
 
    This returns:
-   - Context file paths (varies by schema - could be proposal/specs/design/tasks or spec/tests/implementation/docs)
+   - `contextFiles`: artifact ID -> array of concrete file paths (varies by schema - could be proposal/specs/design/tasks or spec/tests/implementation/docs)
    - Progress (total, complete, remaining)
    - Task list with status
    - Dynamic instruction based on current state
+   - Optional `context`: current required project instruction input from the selected root
+   - Optional `operationGuidance`: current advisory guidance for apply
 
    **Handle states:**
-   - If `state: "blocked"` (missing artifacts): show message, suggest using openspec-propose
-   - If `state: "all_done"`: congratulate, then引导收尾链：dev-verification → dev-code-review → dev-finishing-branch（不归档，归档由 Stage 5 archiver 负责）
+   - If `state: "blocked"` (missing artifacts): show message, suggest using `/opsx:continue` (if it is not installed, run `openspec status --change "<name>" --json` to see the next artifact and `openspec instructions <artifact-id> --change "<name>" --json` for how to create it)
+   - If `state: "all_done"`: congratulate, suggest archive
    - Otherwise: proceed to implementation
+
+   Treat `context` as a required prompt-level input. Read and consider it, and
+   apply relevant project facts, conventions, and constraints while implementing.
+   Treat `operationGuidance` as optional additive advice. Read and consider every
+   entry, and follow entries that are applicable and compatible with the built-in
+   workflow.
+
+   Keep both fields separate from CLI-returned state, missing artifacts, tasks,
+   progress, `contextFiles`, and the built-in `instruction`. They are not
+   evidence of task completion, do not replace the built-in instruction, and do
+   not permit bypassing a blocked state. If context conflicts with the built-in
+   instruction, an explicit user choice, or a CLI-controlled value, report the
+   conflict and preserve the controlling value. If guidance is inapplicable or
+   conflicts with those controlling inputs, do not follow it and explain why.
+   These are prompt-level behavior contracts, not enforceable checks.
 
 4. **Read context files**
 
-   Read the files listed in `contextFiles` from the apply instructions output.
+   Read every file path listed under `contextFiles` from the apply instructions output.
    The files depend on the schema being used:
    - **spec-driven**: proposal, specs, design, tasks
    - Other schemas: follow the contextFiles from CLI output
+
+   Do not copy `context` or `operationGuidance` verbatim into implementation
+   files or planning artifacts unless the user separately asks for that content.
 
 5. **Show current progress**
 
@@ -79,6 +100,7 @@ Implement tasks from an OpenSpec change.
    **Pause if:**
    - Task is unclear → ask for clarification
    - Implementation reveals a design issue → suggest updating artifacts
+   - A task needs work beyond what the spec and tasks describe, or you are tempted to drop, narrow, defer, or accept exceptions to specified behavior to make it fit → surface the added scope and ask; do not absorb it silently
    - Error or blocker encountered → report and wait for guidance
    - User interrupts
 
@@ -87,7 +109,7 @@ Implement tasks from an OpenSpec change.
    Display:
    - Tasks completed this session
    - Overall progress: "N/M tasks complete"
-   - If all done: suggest 交还主代理调度 archiver 归档
+   - If all done: suggest archive
    - If paused: explain why and wait for guidance
 
 **Output During Implementation**
@@ -118,14 +140,7 @@ Working on task 4/7: <task description>
 - [x] Task 2
 ...
 
-All tasks complete! 接下来进入收尾链（遵循 `dev-sdd` skill 的收尾链定义）：
-
-1. **dev-verification** — 运行完整验证命令（如果本轮尚未运行）确认测试/构建/类型检查全绿
-2. **dev-code-review** — 执行全分支代码审查（如果本轮尚未执行）
-3. **dev-finishing-branch** — 确认 artifacts 完整性、清理遗留文件、合并/PR
-4. **交还主代理 → 调度 archiver** — 最终归档由 Stage 5 的 archiver 执行（openspec-archive-change → staging-archive）
-
-不要跳过这些环节直接归档——跳过会导致 openspec status 报告 artifacts 缺失或遗留文件残留。
+All tasks complete! You can archive this change with `/opsx:archive`.
 ```
 
 **Output On Pause (Issue Encountered)**
@@ -156,7 +171,14 @@ What would you like to do?
 - Keep code changes minimal and scoped to each task
 - Update task checkbox immediately after completing each task
 - Pause on errors, blockers, or unclear requirements - don't guess
+- When a task needs work beyond what the spec describes, surface the added scope and pause - never silently narrow, defer, or simplify away specified behavior
+- Only mark a task `- [x]` when its specified behavior is fully implemented, not when it is partially done or deferred
 - Use contextFiles from CLI output, don't assume specific file names
+- Do not use context or operation guidance as proof that a task is complete
+- Apply relevant project context; report conflicts with controlling workflow inputs
+- Consider every guidance entry; explain any inapplicable or conflicting advice
+- Do not copy runtime context or operation guidance into implementation files or planning artifacts
+- Preserve CLI-controlled blocked/ready/all-done behavior and completion criteria
 
 **Fluid Workflow Integration**
 

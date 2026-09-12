@@ -1,0 +1,34 @@
+schema: spec-driven
+
+# Project context（生成 artifact 时注入给 AI 的上下文）
+context: |
+  技术栈：.NET 10 Web API（C#）+ PostgreSQL（EF Core）；前端微信原生小程序（WXML/WXSS/JS，基础库 ≥ 2.10.0）。
+  账户模型：个人账户 + 家庭绑定，数据按家庭隔离。
+  日程模型：三种类型（课后活动 AfterSchoolActivity / 日常作息 DailyRoutine / 作业任务 HomeworkTask），时间槽按星期几独立配置。
+  遵循 OpenSpec spec-driven 工作流；API 契约单一真相源在 openspec/contracts/。
+  提交遵循约定式提交（feat/fix/refactor/docs/test/chore/perf/ci）。
+
+# Per-artifact rules（写对应 artifact 时的约束，不复制进文件）
+rules:
+  proposal:
+    - MUST 含 Why / What / How 三段；Why 段引用 staging 目录路径与 requirement.md
+    - 用 RFC 2119 关键词（MUST/SHALL/SHOULD/MAY）标明约束强度
+  specs:
+    - delta 用 ADDED / MODIFIED / REMOVED 段落标记，不重写整个 spec
+    - 每个 Requirement 至少一个 Scenario（正常路径 + 至少一个异常路径）
+  design:
+    - 禁止 TBD / TODO / "后续补充" 等占位描述
+    - MUST 含现状对账清单（复用/扩展/新建标注），增量设计不重写已有代码
+  tasks:
+    - 每个 task ≤ 3 个文件变更、有验证命令、有依赖标注、无占位符
+    - 标注负责 agent（dev-dotnet / dev-miniapp / dev-vue3）
+
+# Per-operation guidance（apply / archive 的咨询性建议，与 artifact rules 分离）
+operations:
+  apply:
+    guidance:
+      - 实现前确认 openspec/contracts/<domain>/ 契约文件存在并从其中引用枚举值/错误码/DTO
+      - 外部输入必校验、不硬编码密钥、参数化查询、敏感数据不进日志
+  archive:
+    guidance:
+      - 归档前确认 delta spec 已同步到主 spec，openspec validate 通过
