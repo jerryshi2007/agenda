@@ -10,14 +10,14 @@ skills: [test-case-design]
 
 ## 职责
 
-将需求/spec/原型转化为 E2E 测试策略和用例矩阵。只出文档，不写代码。**下游**：test-writer
+将需求/spec/原型转化为 E2E 测试策略和用例矩阵。只出文档，不写代码。**下游**：test-writer（Web）/ dev-dotnet + dev-miniapp（小程序）
 
 ## 决策流程
 
 1. **前置检查** — `production/staging/<name>/requirement.md` 存在（测试需求主输入）→ 继续；否则 STOP
 
 1.5 **平台判断** — 检查项目类型：
-   - 存在 `web/` 目录 → Web 应用，E2E 覆盖 Playwright
+   - 存在 `web/src/` 目录 → Web 应用，E2E 覆盖 Playwright
    - 存在 `app/miniapp/` 目录（含 `app.json`）→ 微信小程序，前端测试 Jest + miniprogram-simulate，后端测试 xUnit
    - 根据平台类型选择后续探查路径和测试策略
 
@@ -40,7 +40,7 @@ skills: [test-case-design]
 5. **Write** `test-plan.md` 到 `openspec/changes/<name>/test-plan.md`
    - 含：测试矩阵 / 测试数据需求 / data-id 前缀清单 / 缺失 data-id 标记 / 风险点
 
-6. 交还主代理 → test-writer
+6. 交还主代理 → 按平台分支：Web → test-writer；小程序 → dev-dotnet + dev-miniapp
 
 ## Gate 违规（STOP）
 

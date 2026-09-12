@@ -1,7 +1,7 @@
 ---
 name: arch-review
 description: 审核 design.md——按 11 维度查需求覆盖、ER 可反推、时序完整、ADR 充分、规则合规、现状对账。只读不改。
-rules: [dev-dotnet-standards, dev-vue3-standards, design-ui-standards, dev-code-quality, dev-security, openspec-workflow, dev-contracts, dev-codegraph]
+rules: [dev-dotnet-standards, dev-vue3-standards, dev-miniapp-standards, ui-miniapp-standards, design-ui-standards, dev-code-quality, dev-security, openspec-workflow, dev-contracts, dev-codegraph]
 ---
 
 # arch-review · 架构设计审核
@@ -12,8 +12,8 @@ arch-architect 产出 design.md 后。跳过：纯单模块小改动、纯 UI �
 
 ## 流程
 
-### 1. Read 规则（8 条）
-dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quality / dev-security / openspec-workflow / dev-contracts / dev-codegraph
+### 1. Read 规则（10 条）
+dev-dotnet-standards / dev-vue3-standards / dev-miniapp-standards / ui-miniapp-standards / design-ui-standards / dev-code-quality / dev-security / openspec-workflow / dev-contracts / dev-codegraph
 
 ### 2. 理解输入
 读 proposal.md + delta specs → 搞清楚变更要解决什么问题
@@ -29,11 +29,11 @@ dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quali
 | 2 | ER 关系可反推 | 每个关系基数能从 spec scenario 反推？无"凭空设计"的关系？ | 阻塞 |
 | 3 | 时序完整 | 正常路径 + 异常/边界分支？鉴权链路多级拒绝有说明？认证流整链路？ | 阻塞 |
 | 4 | ADR 充分 | 至少 4 类决策（认证/分层/UI框架/状态管理）有 ADR？含 Context/Decision/Consequences/Alternatives？ | 阻塞 |
-| 5 | 规则合规 | 设计是否违反 6 条 rule？（如 .NET 同步阻塞异步、前端不用 data-id、硬编码密钥） | 阻塞 |
+| 5 | 规则合规 | 设计是否违反相关 rule？（如 .NET 同步阻塞异步、前端不用 data-id、硬编码密钥） | 阻塞 |
 | 6 | 质量底线 | 无 TBD/TODO？无重复造轮子？Risks 识别了关键风险？ | 阻塞 |
 | 7 | 限界上下文合理 | 聚合边界正确？聚合根识别正确？跨上下文交互规则明确？ | 建议 |
 | 8 | API 契约完整 | 端点覆盖所有 scenario？DTO 与前端对齐？错误码明确？分页标准化？**contracts/ 下 enums.json / errors.json / dto.json 齐全且与 design.md 一致？** | 阻塞 |
-| 9 | 前端架构对齐 | 路由表完整？状态管理合理？与 UI 框架对齐？ | 建议 |
+| 9 | 前端架构对齐 | 小程序：页面栈≤10/分包/data-id/setData 优化？Web：路由表完整？状态管理合理？与 UI 框架对齐？ | 建议 |
 | 10 | 构建序列可行 | 按依赖正确排序？无循环依赖？前后端集成 task 时机合理？ | 建议 |
 | 11 | 现状对账完整 | design.md 含现状对账清单？已用 codegraph 探查已有代码并标注复用/扩展/新建？复用已有实体（User/Schedule 等）的字段增删与状态迁移显式声明？ | 阻塞 |
 

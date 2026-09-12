@@ -12,6 +12,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 三层正交：存储/扩展独立，运行时通过"引用"组合——agent 调 skill，skill 显式 Read 其声明的 rule。详见 `INDEX.md`。
 
+> **外部框架组件（冻结）**：`skills/openspec-*` 与 `commands/opsx/*` 来自开源 openspec 框架，属于冻结的第三方组件——**禁止修改**。其中 `/opsx:*` 命令是用户直接入口，`openspec-*` skill 仅由项目 agent 调用（不作为用户直接入口）。与 openspec 的集成/适配只能落在项目自有文件（agents、rules、INDEX.md、openspec/config.yaml、本文件）上，不得改动 openspec 框架文件。
+
 ## 主代理职责
 
 主代理是流水线的编排者，负责按 SDLC 阶段顺序调度各 agent，不直接执行具体阶段任务。职责包括：
@@ -42,8 +44,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | 子 track | Agent | Skill |
 |----------|-------|-------|
-| 架构设计 | arch-architect | arch-design, arch-planning, openspec-propose |
+| 架构设计 | arch-architect | arch-design, arch-planning |
 | 架构审核 | arch-architect-reviewer | arch-review |
+
+> **openspec 用于两条路径**：技术产物（proposal/specs/design/tasks）统一落在 `openspec/changes/<name>/`。简单变更（单模块小改动/纯 UI 调整/纯 bug 修复）直接用 `openspec-propose` 一次性生成；复杂变更走 SDLC 五阶段，其中 Stage 2 的 design/tasks/delta specs 仍由 arch-architect 按 openspec schema 产出（openspec-* skill 仅由 agent 调用，非用户入口）。
 
 ### 研发 track
 

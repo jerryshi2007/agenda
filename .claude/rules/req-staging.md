@@ -33,6 +33,7 @@ production/staging/
     requirement.md    # 本次需求变更内容，引用 requirements/ 已有内容，只写新增/修改
     epic-story.md     # Epic/Story 拆解清单
     STATUS.md         # 状态标记 + Stage 进度表 + OpenSpec 关联
+    review.md         # req-reviewer 审核报告
 ```
 
 | 文件 | 用途 |
@@ -40,6 +41,7 @@ production/staging/
 | `requirement.md` | 聚焦本次变更，已有内容用 Markdown 链接引用（如 `详见 [用户角色](../../../requirements/index.md#用户角色)`），减少重复 |
 | `epic-story.md` | Epic/Story 拆解清单，含本地 ID、标题、描述、优先级、状态 |
 | `STATUS.md` | 外层状态追踪：粗粒度状态机 + Stage 进度表 + OpenSpec 关联 |
+| `review.md` | req-reviewer 审核报告（冲突/缺口/一致性结论 + 审批建议） |
 
 - **命名唯一性**：`YYYY-MM-DD-概要` 中"概要"需确保同日唯一。若同日已有同名概要，追加数字后缀（如 `2026-08-04-日程管理-2`）。创建前先检查 `production/staging/` 中是否已有同名目录。
 - **⚠️ 路径格式（Windows）**：创建目录时 MUST 使用相对路径 + 正斜杠（`mkdir -p production/staging/2026-08-19-概要`），禁止在 Bash 中使用 Windows 绝对路径（`d:\...`）——反斜杠会被 Bash 解释为转义字符，导致路径压扁成单个畸形目录名。
@@ -201,7 +203,7 @@ staging 是 SDLC 外层容器，OpenSpec 管理 Stage 2 设计、Stage 3 研发�
 
 Stage 4 测试流水线按项目类型分两条路径，主代理进入 Stage 4 前 MUST 判断项目类型并选择正确分支。
 
-### Web 应用（存在 `web/` 目录）
+### Web 应用（存在 `web/src/` 目录）
 
 ```
 test-planner → test-writer → test-reviewer → test-runner → 人审批
@@ -211,7 +213,7 @@ test-planner → test-writer → test-reviewer → test-runner → 人审批
 - test-runner 多浏览器执行 + 失败分类（真实 bug / 环境问题 / 脚本错误 / flaky）
 - 产物：`testing/e2e/specs/*.spec.ts` + `testing/e2e/reports/test-report.md`
 
-### 微信小程序（存在 `app/` 目录，无 `web/`）
+### 微信小程序（存在 `app/miniapp/` 目录且含 `app.json`）
 
 ```
 test-planner → 已有测试评估 → 按需补充后端(dev-dotnet)/前端(dev-miniapp) → test-reviewer → 主代理执行测试 → 人审批

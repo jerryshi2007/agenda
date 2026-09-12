@@ -43,7 +43,7 @@ openspec status --change "<name>"                           # 变更状态
 openspec archive <name>                                     # 归档变更
 ```
 
-完整命令参考见 [`.claude/operations-manual.md`](.claude/operations-manual.md) §8.2。
+完整命令参考见 [`.claude/CLAUDE.md`](.claude/CLAUDE.md) 工具组合速查。
 
 ## 目录导航
 
@@ -78,7 +78,7 @@ Stage 5 归档: archiver（两步：先 openspec archive 代码 → 再 staging 
 
 **Gate 原则**：三层人审批不可跳过（需求审核 + 架构审核 + E2E 测试后），任一 gate 未通过禁止进入下一阶段。git commit 是阶段间硬性交接点。
 
-完整编排规则见 [`.claude/CLAUDE.md`](.claude/CLAUDE.md)、[`.claude/INDEX.md`](.claude/INDEX.md)，操作手册见 [`.claude/operations-manual.md`](.claude/operations-manual.md)。
+完整编排规则见 [`.claude/CLAUDE.md`](.claude/CLAUDE.md)、[`.claude/INDEX.md`](.claude/INDEX.md)。
 
 ## 三层编排系统
 

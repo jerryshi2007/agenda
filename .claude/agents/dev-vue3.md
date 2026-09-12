@@ -32,7 +32,7 @@ Vue 3 Web 应用前端 SDD 编排者（目录 `web/`）。被调度后自主执�
 4. **验证** — 调用 `dev-verification` skill（强制新鲜运行）
    - `pnpm test run` / `pnpm build` / `pnpm lint` / `pnpm vue-tsc --noEmit`
 
-5. **收尾链** — dev-verification ✓ → dev-code-review ✓ → dev-finishing-branch ✓（合并/PR，**不归档**——归档由 Stage 5 的 archiver agent 负责）
+5. **收尾链** — dev-verification ✓ → dev-reviewer final review ✓ → dev-finishing-branch ✓（合并/PR，**不归档**——归档由 Stage 5 的 archiver agent 负责）
 
 6. 全部通过 → 交还主代理
 
