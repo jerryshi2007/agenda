@@ -7,15 +7,11 @@ description: Vue 3 编码规范——编写或审查 Vue 3 代码时遵循。
 ## 约束
 
 ### 可测试性
-- **`data-id` 共同契约**——所有可交互元素必须添加 `data-id` 属性。`data-id` 由开发与测试双方共同约定、共同维护：开发在组件中写入，测试通过它定位元素，任何一方变更需要与另一方对齐。**禁止**测试代码依赖 CSS 类名、标签嵌套路径、原生 `id`、或文本内容来定位——那些会随设计和重构变动。
-- **`data-id` 是共享锚点**——开发可以用它做事件委托、交互追踪、埋点；测试用它做定位。一个属性，双方共识，不存在"这是测试的，我不能动"或"这是开发的，测试别碰"的模糊地带。
-- **命名规范**：`data-id` 值遵循 `<组件缩写>-<元素角色>` 模式。用 kebab-case 串联，从大到小描述：`"user-list-search-input"`、`"user-card-delete-btn"`、`"position-form-save-btn"`。组件缩写从组件文件名推导（`UserList.vue` → `user-list`），元素角色描述该元素在组件中的用途。命名详见文末速查表。
-- **可交互元素必加**：按钮（含 icon-button）、输入框（input/textarea/select）、复选框（checkbox）、单选框（radio）、开关（switch）、链接（router-link/a）、弹窗容器、表格行/单元格、菜单项、Tab、分页控件——**必须**有 `data-id`。
-- **纯展示元素按需**：纯展示文本（`<span>`、`<p>`）、装饰图标、布局容器（`<div>` 仅做 flex/grid 用）——不需要 `data-id`。
+
+> `data-id` 契约（命名/必加清单/禁止定位方式/动态唯一性/速查表）的权威定义见 `test-standards` rule。以下为 Vue 3 特有写法。
+
 - **组件库透传**：`data-id` 写在 UI 框架组件标签上（如 `<el-input data-id="...">` 或 `<a-input data-id="...">`）时，属性会透传到该组件的根 DOM 节点（通常是 wrapper `<div>`），而非内部实际 `<input>`。测试代码应先定位 wrapper 再找内部交互元素：`wrapper.find('[data-id="xxx"]').find('input')`。若要直接定位内部元素，将 `data-id` 写在原生 HTML 标签上而非组件标签上。
-- **动态列表唯一性**：`v-for` 渲染的行内 `data-id` 必须包含唯一标识符（如行数据 id），保证集合内不重复：` :data-id="'user-list-row-' + user.id"`。仅当行无 id 时才可用 `index`，但应优先使用业务 id。
-- **不依赖 CSS 类名定位**——测试代码禁止用 `.btn-primary`、`.el-input` 等类选择器定位元素。CSS 是设计师的领地，改类名不应触动测试。也不依赖 UI 组件库（如 Element Plus、Ant Design Vue）的内部类名——组件库升级可能改动内部实现。
-- **不改原生 `id`**——HTML `id` 属性和 `data-id` 是两个东西。原生 `id` 用于 DOM 锚点、label `for` 关联、无障碍——那些有各自用途。测试定位统一走 `data-id`，不混用。
+- **不依赖组件库内部类名**——测试代码禁止用 `.btn-primary`、`.el-input` 等类选择器定位元素，也不依赖 UI 组件库（Element Plus / Ant Design Vue）的内部类名——组件库升级可能改动内部实现。
 - **测试文件与源码同结构放置**——测试文件放在被测文件同目录的 `__tests__/` 下，命名 `<源码文件名>.test.ts`。组件改名/移动时，测试文件跟着改名/移动——范围可控、路径可预测。
 
 ### 组件组织
@@ -107,24 +103,4 @@ const emit = defineEmits<{ (e: 'delete', id: number): void }>()
 
 ## `data-id` 命名速查
 
-| 元素 | 命名模式 | 示例 |
-|---|---|---|
-| 搜索输入框 | `<组件>-search-input` | `user-list-search-input` |
-| 新增按钮 | `<组件>-add-btn` | `user-list-add-btn` |
-| 删除按钮（行内带 id） | `<组件>-delete-btn-<id>` | `user-list-delete-btn-42` |
-| 删除按钮（单实例，无 id） | `<组件>-delete-btn` | `user-card-delete-btn` |
-| 编辑按钮（行内带 id） | `<组件>-edit-btn-<id>` | `user-list-edit-btn-42` |
-| 编辑按钮（单实例，无 id） | `<组件>-edit-btn` | `user-card-edit-btn` |
-| 表单提交 | `<组件>-save-btn` | `position-form-save-btn` |
-| 表单取消 | `<组件>-cancel-btn` | `position-form-cancel-btn` |
-| 弹窗容器 | `<组件>-dialog` | `user-list-dialog` |
-| 弹窗确认 | `<组件>-confirm-btn` | `user-list-confirm-btn` |
-| 表格行 | `<组件>-row-<id>` | `org-tree-row-42` |
-| 分页控件 | `<组件>-pagination` | `user-list-pagination` |
-| 菜单项 | `<组件>-menu-<key>` | `sidebar-menu-org` |
-| Tab 项 | `<组件>-tab-<key>` | `detail-tab-permission` |
-| 加载骨架 | `<组件>-loading` | `user-list-loading` |
-| 错误提示 | `<组件>-error` | `user-list-error` |
-| 空态提示 | `<组件>-empty` | `user-list-empty` |
-| 展开/收起触发器 | `<组件>-expand-trigger` | `user-list-expand-trigger` |
-| 查看更多 | `<组件>-load-more` | `user-list-load-more` |
+> 命名速查表已上收至 `test-standards` rule「data-id 契约」节（权威定义），本文件不再重复。
