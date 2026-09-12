@@ -12,7 +12,7 @@ api/
 
 微信小程序后端，采用**云函数 / 云开发**架构。首期提供：微信登录、家庭 CRUD、成员管理、日程 CRUD、模板 CRUD、打卡记录、完成统计、订阅消息推送、权限校验。
 
-> **状态**：待开发。开始编码前先完成 Stage 2 架构设计（`arch-architect`），本文件届时补充构建/部署/测试命令。
+> **状态**：已完成。Schedule + Auth + Family + Checkin + Template 六模块后端已开发并归档（对应 OpenSpec 变更均已 archive）。
 
 ## 编码约束
 
