@@ -1,0 +1,21 @@
+# 生产环境部署：仅管理 agenda-api 容器。
+#
+# postgres 与 nginx 保持独立容器、不进本 compose，原因：
+#   - postgres 已承载线上 agenda 库（14 张表），纳入 compose 若卷映射有差会导致数据丢失
+#   - nginx 用 --network host 占宿主 80，无法用 compose 默认桥接网络表达
+# 本 compose 仅替代此前易出错的 docker run 长命令。
+#
+# 重部署流程（先本地 build + save/load 传服务器，再）：
+#   docker compose -f docker-compose.prod.yml up -d
+
+services:
+  api:
+    image: agenda-api:1.0.0
+    container_name: agenda-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./api.env
+    volumes:
+      - /opt/agenda/uploads:/app/uploads
