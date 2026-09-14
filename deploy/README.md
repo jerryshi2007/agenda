@@ -1,6 +1,6 @@
-# Agenda API 部署操作指引
+# Agenda 部署操作指引
 
-> 本文档是本次发布（2026-08-20）的部署记录 + 可复用的操作手册。实际采用 **docker run 单容器**方案（非 k8s、非 compose），API 与 PostgreSQL **分署为两个独立容器**。
+> 本文档是服务器整体部署的顶层手册：**nginx 反代 + postgres 数据库 + agenda-api** 三个容器同机分署。API 容器的发布/重部署已拆到 [`deploy/api/README.md`](./api/README.md)（compose 方式），本文档只保留服务器侧一次性准备（建库迁移、nginx、小程序域名）与整体拓扑。
 
 ## 发布记录摘要
 
@@ -11,7 +11,7 @@
 | 公网 / 内网 IP | `115.159.206.106` / `10.0.0.15` |
 | 域名 | `www.paiban.live`（A 记录 → `115.159.206.106`） |
 | nginx | 容器 `nginx`（`--network host`），唯一对外入口（80），反代 API + 伺服头像静态文件 |
-| API | 容器 `agenda-api`，镜像 `agenda-api:1.0.0`，发布 8080（`-p 8080:8080`） |
+| API | 容器 `agenda-api`，镜像 `agenda-api:1.0.0`，发布 8080（compose 管理，见 [`deploy/api/README.md`](./api/README.md)） |
 | 数据库 | 独立容器 `postgres`，库 `agenda`（14 张表），端口 5432 |
 | 环境 | `ASPNETCORE_ENVIRONMENT=Production` |
 | SSL | 无（HTTP 80），仅开发/体验调试用 |
@@ -41,7 +41,7 @@
                     └──────────────────────────────────────────┘
 ```
 
-- nginx / API / postgres 三个容器**同机、分署**，不 compose、不进 pod。
+- nginx / postgres 两个容器为独立 `docker run`；**agenda-api 由 compose 托管**（[`deploy/api/README.md`](./api/README.md)），三者同机、分署。
 - nginx 用 `--network host` 直接占用宿主 80，是唯一对外入口；API 发布 8080 仅由 nginx 反代触达。
 - API 连库走**内网 IP**（`10.0.0.15`），避免绕公网 hairpin NAT。
 
@@ -59,33 +59,7 @@
 
 ## 3. 首次部署步骤
 
-### 3.1 本地构建镜像（Windows，在仓库根目录）
-
-```bash
-docker build -t agenda-api:1.0.0 -f api/Agenda.Api/Dockerfile api/Agenda.Api/
-```
-
-> 镜像用 [api/Agenda.Api/Dockerfile](../../api/Agenda.Api/Dockerfile)，环境由运行时注入（不硬编码 Development）。
-
-### 3.2 打包并传输镜像到服务器
-
-```bash
-docker save agenda-api:1.0.0 | gzip > /tmp/agenda-api.tar.gz   # 约 123MB
-scp /tmp/agenda-api.tar.gz root@115.159.206.106:/tmp/
-```
-
-> PowerShell 里 scp 要用 Windows 绝对路径：`C:\Users\<user>\AppData\Local\Temp\agenda-api.tar.gz`。
-
-### 3.3 服务器导入镜像
-
-```bash
-gunzip -c /tmp/agenda-api.tar.gz | sudo docker load
-sudo docker images | grep agenda-api
-```
-
-> 服务器上 docker 命令需 `sudo`，或一次性 `sudo usermod -aG docker $USER` 后重登。
-
-### 3.4 建库 + 迁移
+### 3.1 建库 + 迁移
 
 **建库**（服务器，postgres 容器名为 `postgres`）：
 
@@ -106,14 +80,11 @@ dotnet ef database update --project api/Agenda.Api/ --startup-project api/Agenda
 sudo docker exec postgres psql -U postgres -d agenda -c "\dt"
 ```
 
-### 3.5 启动容器
+### 3.2 部署 API（compose）
 
-先准备头像目录并设权限（镜像内 app 用户 UID=1654）：
+API 容器的构建、传输、导入、`api.env` 准备、启动见 [`deploy/api/README.md`](./api/README.md)。
 
-```bash
-sudo mkdir -p /opt/agenda/uploads
-sudo chown -R 1654:1654 /opt/agenda/uploads
-```
+### 3.3 准备并启动 nginx
 
 准备 nginx 配置目录：
 
@@ -153,29 +124,6 @@ http {
 }
 ```
 
-生成 JWT 密钥：
-
-```bash
-openssl rand -base64 48
-```
-
-启动 API（发布 8080，头像 URL 走 nginx）：
-
-```bash
-sudo docker run -d \
-  --name agenda-api \
-  --restart unless-stopped \
-  -p 8080:8080 \
-  -v /opt/agenda/uploads:/app/uploads \
-  -e ASPNETCORE_ENVIRONMENT=Production \
-  -e Storage__AvatarBaseUrl='https://paiban.live/uploads/avatars' \
-  -e JWT_SECRET_KEY='<JWT密钥>' \
-  -e WeChat__AppId='wxbf3f337f41dfef10' \
-  -e WeChat__AppSecret='<AppSecret>' \
-  -e ConnectionStrings__DefaultConnection='Host=10.0.0.15;Port=5432;Database=agenda;Username=postgres;Password=<DB密码>' \
-  agenda-api:1.0.0
-```
-
 启动 nginx（宿主网络，唯一对外入口）：
 
 ```bash
@@ -192,14 +140,12 @@ sudo docker run -d \
 
 > `--network host` 让 nginx 直接占用宿主 80，`proxy_pass http://127.0.0.1:8080` 打到 API 发布的 8080；Linux（Ubuntu）上为标准用法。
 
-### 3.6 验证
+### 3.4 验证
 
 ```bash
 sudo docker ps                       # nginx / agenda-api 状态 Up
-sudo docker logs agenda-api          # 看 API 启动日志有无异常
 sudo docker logs nginx               # 看 nginx 启动日志有无异常
-curl http://127.0.0.1/health         # 服务器内（绕过 nginx 直连 8080：curl http://127.0.0.1:8080/health）
-curl http://www.paiban.live/health   # 公网，应返回 {"status":"healthy",...}
+curl http://www.paiban.live/health   # 公网经 nginx，应返回 {"status":"healthy",...}
 # 上传头像后，curl -I https://paiban.live/uploads/avatars/<userId>.png 应返回 200，而非 404
 ```
 
@@ -217,63 +163,14 @@ const BASE_URL = 'https://paiban.live';
 
 ---
 
-## 5. 日常重部署（改代码后）
+## 5. 日常重部署
 
-```bash
-# 1. 本地构建（换新 tag 或用 :latest + Always）
-docker build -t agenda-api:1.0.0 -f api/Agenda.Api/Dockerfile api/Agenda.Api/
-
-# 2. 打包传输
-docker save agenda-api:1.0.0 | gzip > /tmp/agenda-api.tar.gz
-scp /tmp/agenda-api.tar.gz root@115.159.206.106:/tmp/
-
-# 3. 服务器导入 + 重启容器
-gunzip -c /tmp/agenda-api.tar.gz | sudo docker load
-sudo docker rm -f agenda-api
-# 重新执行 3.5 的 docker run（或把启动命令存成脚本/别名）
-```
-
-> 只改环境变量、不动镜像时，直接 `docker rm -f agenda-api` 后重 `docker run` 即可，无需重传镜像。nginx 容器不随 API 代码变动，无需重建。
+- **API 重部署**（改后端代码）：见 [`deploy/api/README.md`](./api/README.md)。
+- **nginx 容器**：不随 API 代码变动，无需重建；改 nginx 配置后 `sudo docker exec nginx nginx -s reload`（或 `sudo docker restart nginx`）。
 
 ---
 
-## 6. 环境变量与密钥清单
-
-| 环境变量 | 说明 | 来源 |
-|---|---|---|
-| `ASPNETCORE_ENVIRONMENT` | `Production` | 固定 |
-| `JWT_SECRET_KEY` | JWT 签名密钥（`openssl rand -base64 48` 生成） | 机密 |
-| `WeChat__AppId` | `wxbf3f337f41dfef10` | 半公开 |
-| `WeChat__AppSecret` | 微信小程序 AppSecret | **机密**（已随 git 泄露，上线前重置） |
-| `Storage__AvatarBaseUrl` | `https://paiban.live/uploads/avatars` | 配置 |
-| `ConnectionStrings__DefaultConnection` | `Host=10.0.0.15;...;Database=agenda` | 含 DB 密码 |
-
-⚠️ **密钥管理**：AppSecret、JWT 密钥、DB 密码均经 `docker run -e` 注入，**不要**写进 git。`appsettings.Development.json` 里的 AppSecret 已泄露，正式上线前去微信公众平台重置。
-
----
-
-## 7. 回滚
-
-```bash
-# 保留旧镜像即可回滚。查看可用镜像：
-sudo docker images agenda-api
-
-# 回滚到旧版本：用旧 tag 重新 docker run
-sudo docker rm -f agenda-api
-sudo docker run -d --name agenda-api --restart unless-stopped -p 8080:8080 \
-  -v /opt/agenda/uploads:/app/uploads \
-  -e ASPNETCORE_ENVIRONMENT=Production \
-  -e Storage__AvatarBaseUrl='https://paiban.live/uploads/avatars' \
-  -e JWT_SECRET_KEY='<原密钥>' -e WeChat__AppId='...' -e WeChat__AppSecret='...' \
-  -e ConnectionStrings__DefaultConnection='Host=10.0.0.15;...' \
-  agenda-api:<旧tag>
-```
-
-> 数据（库 + `/opt/agenda/uploads`）独立于容器，删容器重建不影响数据。
-
----
-
-## 8. 生产上线前必做（TODO）
+## 6. 生产上线前必做（TODO）
 
 1. **SSL + 备案**：微信小程序 `release` 强制 HTTPS + ICP 备案 + 后台「request 合法域名」配置。届时在 nginx 加 443 server + 证书终结，并把 `Storage__AvatarBaseUrl` 与小程序 `BASE_URL` 切到 `https://www.paiban.live`。
 2. **重置 AppSecret**（已泄露）。
@@ -282,32 +179,22 @@ sudo docker run -d --name agenda-api --restart unless-stopped -p 8080:8080 \
 
 ---
 
-## 9. 常见问题排查
+## 7. 常见问题排查
 
 | 现象 | 排查 |
 |---|---|
 | `curl /health` 不通 | 轻量防火墙是否放行 80；`docker ps` 看容器是否 Up |
-| Pod/容器 `CrashLoop` | `docker logs agenda-api`；最常见是 JWT 密钥为空或 DB 连不上 |
-| 迁移 `fail` 报错 | 看 `ORDER BY` 之后的 Npgsql 异常：`28P01` 密码错 / `3D000` 库不存在 / `42P01` 首次正常 |
 | 头像 404 | 检查 nginx `location /uploads/` 的 `alias` 是否指向 `/opt/agenda/uploads/`、`Storage__AvatarBaseUrl` 是否为绝对 URL |
 | 小程序提示域名不合法 | 开发勾「不校验合法域名」；生产须 HTTPS + 备案 + 合法域名 |
 | 本机连不上内网 IP | 迁移等从本机直连操作，DB 地址用**公网** `115.159.206.106`，不是 `10.0.0.15` |
 
+> API 容器自身的启动失败 / 回滚 / 环境变量问题，见 [`deploy/api/README.md`](./api/README.md)。
+
 ---
 
-## 附：docker run 启动命令模板
+## 附：目录结构
 
-```bash
-sudo docker run -d --name agenda-api --restart unless-stopped \
-  -p 8080:8080 \
-  -v /opt/agenda/uploads:/app/uploads \
-  -e ASPNETCORE_ENVIRONMENT=Production \
-  -e Storage__AvatarBaseUrl='https://paiban.live/uploads/avatars' \
-  -e JWT_SECRET_KEY='<JWT密钥>' \
-  -e WeChat__AppId='wxbf3f337f41dfef10' \
-  -e WeChat__AppSecret='<AppSecret>' \
-  -e ConnectionStrings__DefaultConnection='Host=10.0.0.15;Port=5432;Database=agenda;Username=postgres;Password=<DB密码>' \
-  agenda-api:1.0.0
-```
-
-> 另见 [`deploy/k8s/`](./k8s/) —— 备选的 k3s/pod 部署清单（本次未采用，留作将来多副本/正式容器化时启用）。
+- [`deploy/api/`](./api/) —— agenda-api 的 compose 部署（`docker-compose.prod.yml` + `api.env` + 操作手册）
+- [`deploy/db/`](./db/) —— 数据库迁移指引
+- [`deploy/nginx/`](./nginx/) —— nginx 配置
+- [`deploy/k8s/`](./k8s/) —— 备选的 k3s/pod 部署清单（本次未采用，留作将来多副本/正式容器化时启用）
