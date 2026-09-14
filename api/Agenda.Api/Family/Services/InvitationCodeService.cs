@@ -139,9 +139,9 @@ public class InvitationCodeService : IInvitationCodeService
         if (family.Status == FamilyStatus.Dissolved)
             throw new DomainException(ErrorCodes.FamilyAlreadyDissolved);
 
-        // 用户已经在任意家庭（active）则不能加入。
+        // 用户已在该家庭则不能重复加入；已属于其他家庭不受限。
         var alreadyInFamily = await _db.FamilyMembers
-            .AnyAsync(m => m.UserId == userId && m.IsDeleted == false, ct);
+            .AnyAsync(m => m.FamilyId == family.Id && m.UserId == userId && m.IsDeleted == false, ct);
         if (alreadyInFamily)
             throw new DomainException(ErrorCodes.UserAlreadyInFamily);
 

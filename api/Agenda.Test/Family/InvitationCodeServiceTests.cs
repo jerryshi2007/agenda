@@ -12,7 +12,7 @@ namespace Agenda.Test.Family;
 /// <summary>
 /// 邀请码服务测试。覆盖 GWT 场景：
 /// - 生成：6 位 2-9、24h 有效、唯一、5 次碰撞重试、家庭满 10 人拒绝
-/// - 加入：正常/过期/已使用/已撤销/不存在/家庭满
+/// - 加入：正常/跨家庭/同家庭重复加入/过期/已使用/已撤销/不存在/家庭满
 /// - 撤销：仅邀请人/仅待使用
 /// - 列表：返回所有邀请记录
 /// </summary>
@@ -431,27 +431,59 @@ public class InvitationCodeServiceTests
     }
 
     [Fact]
-    public async Task JoinByCodeAsync_UserAlreadyInAnyFamily_ThrowsUserAlreadyInFamily()
+    public async Task JoinByCodeAsync_UserInAnotherFamily_JoinsSuccessfully()
     {
         var db = CreateDbContext();
-        var (family, _) = await SeedFamilyAsync(db);
-        var svc = CreateService(db);
+        var (familyA, _) = await SeedFamilyAsync(db, "家庭A");
+        var (familyB, creatorB) = await SeedFamilyAsync(db, "家庭B");
         var joiner = await SeedUserAsync(db);
+        // joiner 已是家庭 A 的成员
         db.FamilyMembers.Add(new DomainFamilyMember
         {
             Id = Guid.NewGuid(),
-            FamilyId = Guid.NewGuid(),
+            FamilyId = familyA.Id,
             UserId = joiner.Id,
             Role = UserRole.Parent,
             DisplayMode = DisplayMode.Primary,
             JoinedAt = Now()
         });
         await db.SaveChangesAsync();
-        var resp = await svc.GenerateAsync(family.Id, family.CreatorId, new GenerateInviteCodeRequest { TargetRole = UserRole.Parent }, Now());
+        var resp = await CreateService(db).GenerateAsync(familyB.Id, creatorB.Id, new GenerateInviteCodeRequest { TargetRole = UserRole.Parent }, Now());
+
+        var result = await CreateService(db).JoinByCodeAsync(new JoinByCodeRequest { Code = resp.Code }, joiner.Id, Now());
+
+        Assert.Equal(familyB.Id, result.FamilyId);
+        var member = await db.FamilyMembers.FirstAsync(m => m.UserId == joiner.Id && m.FamilyId == familyB.Id);
+        Assert.Equal(UserRole.Parent, member.Role);
+        // 用户仍保留家庭 A 的成员关系
+        Assert.True(await db.FamilyMembers.AnyAsync(m => m.UserId == joiner.Id && m.FamilyId == familyA.Id));
+    }
+
+    [Fact]
+    public async Task JoinByCodeAsync_AlreadyInThisFamily_ThrowsUserAlreadyInFamily()
+    {
+        var db = CreateDbContext();
+        var (family, creator) = await SeedFamilyAsync(db);
+        var joiner = await SeedUserAsync(db);
+        // joiner 已是该家庭成员
+        db.FamilyMembers.Add(new DomainFamilyMember
+        {
+            Id = Guid.NewGuid(),
+            FamilyId = family.Id,
+            UserId = joiner.Id,
+            Role = UserRole.Parent,
+            DisplayMode = DisplayMode.Primary,
+            JoinedAt = Now()
+        });
+        await db.SaveChangesAsync();
+        var resp = await CreateService(db).GenerateAsync(family.Id, creator.Id, new GenerateInviteCodeRequest { TargetRole = UserRole.Parent }, Now());
 
         var ex = await Assert.ThrowsAsync<DomainException>(
-            () => svc.JoinByCodeAsync(new JoinByCodeRequest { Code = resp.Code }, joiner.Id, Now()));
+            () => CreateService(db).JoinByCodeAsync(new JoinByCodeRequest { Code = resp.Code }, joiner.Id, Now()));
         Assert.Equal(ErrorCodes.UserAlreadyInFamily, ex.ErrorCode);
+        // 邀请码保持待使用
+        var code = await db.InvitationCodes.SingleAsync(c => c.Code == resp.Code);
+        Assert.Equal(InvitationCodeStatus.Pending, code.Status);
     }
 
     [Fact]
