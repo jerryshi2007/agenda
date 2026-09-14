@@ -37,16 +37,20 @@ docker build -t agenda-api:1.0.0 -f api/Agenda.Api/Dockerfile api/Agenda.Api/
 ### 2. 打包传输
 
 ```bash
-docker save agenda-api:1.0.0 | gzip > /tmp/agenda-api.tar.gz   # 约 123MB
-scp /tmp/agenda-api.tar.gz root@115.159.206.106:/tmp/
+docker save -o deploy/tmp/agenda-api.tar agenda-api:1.0.0
+
+scp deploy/tmp/agenda-api.tar ubuntu@115.159.206.106:/tmp/
 ```
 
-> PowerShell 里 scp 要用 Windows 绝对路径：`C:\Users\<user>\AppData\Local\Temp\agenda-api.tar.gz`。
+> `docker save -o` 产出的是**未压缩 tar**（镜像层本身已 gzip 压缩），无需再 `gzip`；服务器端直接 `docker load -i`，不要 `gunzip`。
+>
+> PowerShell 里 scp 本地路径**不要用 `/` 开头的 Unix 绝对路径**（会被 `scp.exe` 当作当前盘符根目录下的路径而找不到文件）。用相对路径（`deploy/tmp/agenda-api.tar`）或 `盘符:/...`（如 `D:/GitCode/Github/agenda/deploy/tmp/agenda-api.tar`）。另外 PowerShell 没有 `gzip` 命令。
 
 ### 3. 服务器导入镜像
 
 ```bash
-gunzip -c /tmp/agenda-api.tar.gz | sudo docker load
+sudo docker load -i /tmp/agenda-api.tar
+
 sudo docker images | grep agenda-api
 ```
 
@@ -61,11 +65,15 @@ sudo mkdir -p /opt/agenda/uploads
 sudo chown -R 1654:1654 /opt/agenda/uploads
 ```
 
-准备 compose 目录：
+准备 compose 目录（`/opt` 归 root，`ubuntu` 直接 scp 进去会 `Permission denied`——先传到可写目录，再 ssh 上去 `sudo` 移入）：
 
 ```bash
+# 本地：scp 到可写目录
+scp deploy/api/docker-compose.prod.yml ubuntu@115.159.206.106:/tmp/
+
+# 服务器：sudo 建目录并移入
 sudo mkdir -p /opt/agenda/deploy/api
-scp deploy/api/docker-compose.prod.yml root@115.159.206.106:/opt/agenda/deploy/api/
+sudo mv /tmp/docker-compose.prod.yml /opt/agenda/deploy/api/
 ```
 
 生成 JWT 密钥：
@@ -91,6 +99,7 @@ Storage__AvatarBaseUrl=https://paiban.live/uploads/avatars
 
 ```bash
 cd /opt/agenda/deploy/api
+
 sudo docker compose -f docker-compose.prod.yml up -d
 ```
 
@@ -112,17 +121,26 @@ curl http://127.0.0.1:8080/health                           # 服务器内直连
 # 1. 本地构建（tag 不变）
 docker build -t agenda-api:1.0.0 -f api/Agenda.Api/Dockerfile api/Agenda.Api/
 
-# 2. 打包传输
-docker save agenda-api:1.0.0 | gzip > /tmp/agenda-api.tar.gz
-scp /tmp/agenda-api.tar.gz root@115.159.206.106:/tmp/
+# 2. 打包传输（未压缩 tar，无需 gzip）
+docker save -o deploy/tmp/agenda-api.tar agenda-api:1.0.0
+scp deploy/tmp/agenda-api.tar ubuntu@115.159.206.106:/tmp/
 
-# 3. 服务器导入 + 重建容器
-gunzip -c /tmp/agenda-api.tar.gz | sudo docker load
+# 3. 服务器加载新镜像
+sudo docker load -i /tmp/agenda-api.tar
+
+# 4. 停掉旧容器 + 清同名残留
+#    （旧 docker run 时代遗留的同名容器必须先删，否则 compose 因 container_name 冲突起不来）
 cd /opt/agenda/deploy/api
+sudo docker compose -f docker-compose.prod.yml down || true
+sudo docker rm -f agenda-api || true
+
+# 5. 重建并拉起
 sudo docker compose -f docker-compose.prod.yml up -d --force-recreate
 ```
 
 > **tag 不变时 compose 认为无变化、不会重建，必须加 `--force-recreate`**；或每次构建换新 tag（`1.0.1`…）并同步改 compose 的 `image:`。
+>
+> `docker rm -f agenda-api || true`：容器不存在时 `rm` 返回非 0，`|| true` 避免中断；存在同名旧容器时（旧 `docker run` 残留或旧 compose）必须先删。
 
 > 只改环境变量（api.env）不动镜像时：改完 `api.env` 直接 `sudo docker compose -f docker-compose.prod.yml up -d --force-recreate`，无需重传镜像。nginx 容器不随 API 代码变动，无需重建。
 
