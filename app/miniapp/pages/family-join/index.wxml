@@ -7,14 +7,14 @@
         <view wx:for="{{[0,1,2,3,4,5]}}" wx:key="*this" class="code-digit {{codeLength > index ? 'filled' : ''}} {{error ? 'error' : ''}}">
           <text wx:if="{{codeLength > index}}">{{code[index]}}</text>
         </view>
+        <input class="code-hidden-input"
+               type="number"
+               maxlength="6"
+               value="{{code}}"
+               bindinput="onCodeInput"
+               data-id="join-family-code-input"
+               placeholder="点击输入" />
       </view>
-      <input class="code-hidden-input"
-             type="number"
-             maxlength="6"
-             value="{{code}}"
-             bindinput="onCodeInput"
-             data-id="join-family-code-input"
-             placeholder="点击输入" />
       <view class="code-hint">仅使用数字 2-9（避免 0/1 混淆）</view>
     </view>
 

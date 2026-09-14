@@ -59,6 +59,7 @@
   height: 104rpx;
   opacity: 0;
   text-align: center;
+  z-index: 1;
 }
 
 .code-hint {
