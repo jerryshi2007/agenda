@@ -56,5 +56,6 @@
     }
   },
   "requiredPrivateInfos": [],
+  "lazyCodeLoading": "requiredComponents",
   "sitemapLocation": "sitemap.json"
 }
