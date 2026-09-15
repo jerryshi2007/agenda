@@ -3,6 +3,7 @@ const mockAuth = require('../helpers/auth-mock');
 jest.mock('../../../miniapp/services/auth', () => mockAuth);
 
 const auth = require('../../../miniapp/services/auth');
+const STORAGE_KEYS = require('../../../miniapp/utils/storage-keys');
 const { loadPage, createPageContext } = require('../helpers/page');
 const { installWxMock } = require('../helpers/wx-mock');
 
@@ -166,5 +167,22 @@ describe('mine 页面', () => {
     await flush();
     const shouldShowSwitch = ctx.data.families.length >= 2;
     expect(shouldShowSwitch).toBe(true);
+  });
+
+  test('多家庭时 currentFamily 跟随 CURRENT_FAMILY_ID', async () => {
+    auth.getProfile.mockResolvedValue({ nickname: '小明' });
+    auth.getMyFamilies.mockResolvedValue({
+      families: [
+        { familyId: 'f1', familyName: '家1', role: 'Parent', memberCount: 3 },
+        { familyId: 'f2', familyName: '家2', role: 'Parent', memberCount: 2 }
+      ]
+    });
+    wx.getStorageSync.mockImplementation(k =>
+      k === STORAGE_KEYS.CURRENT_FAMILY_ID ? 'f2' : undefined
+    );
+    const ctx = setup();
+    ctx.onShow();
+    await flush();
+    expect(ctx.data.currentFamily.familyId).toBe('f2');
   });
 });

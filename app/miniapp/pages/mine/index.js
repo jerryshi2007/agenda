@@ -35,7 +35,8 @@ Page({
       // 头像 URL 可能为相对路径（旧数据/缓存），解析为 <image> 可加载的完整 URL
       profileData.avatarUrl = api.resolveAssetUrl(profileData.avatarUrl);
       const families = (familiesRes && familiesRes.families) || [];
-      const currentFamily = families.length > 0 ? families[0] : null;
+      const currentId = wx.getStorageSync(STORAGE_KEYS.CURRENT_FAMILY_ID);
+      const currentFamily = families.find(f => f.familyId === currentId) || families[0] || null;
 
       if (profile) {
         wx.setStorageSync(STORAGE_KEYS.USER_PROFILE_CACHE, profile);
