@@ -33,7 +33,7 @@ skills: [dev-miniapp-tdd, dev-sdd, dev-verification, openspec-apply-change, dev-
    - `npm test` / `npm run build` / `npm run lint`
    - 若有类型检查：`npm run type-check` 或框架等效命令
 
-5. **收尾链** — dev-verification ✓ → dev-code-review ✓ → dev-finishing-branch ✓（合并/PR，不归档——归档由 Stage 5 的 archiver agent 负责）
+5. **收尾链** — dev-verification ✓ → dev-reviewer final review ✓ → dev-finishing-branch ✓（合并/PR，不归档——归档由 Stage 5 的 archiver agent 负责）
 
 6. 全部通过 → 交还主代理
 

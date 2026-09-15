@@ -60,14 +60,14 @@ The system SHALL provide a day view with a timeline layout arranged by time on t
 - **WHEN** the user has no schedules at all
 - **THEN** the system SHALL display empty state with illustration and message "还没有日程，点击创建第一个日程吧" and a "创建日程" button
 
-### Requirement: Calendar SHALL filter by child and schedule type
+### Requirement: Calendar SHALL filter by member and schedule type
 
-The system SHALL provide filter controls to narrow displayed schedules by child (single or all) and by schedule type (multiple or all). Filter conditions SHALL persist across view switches (month/week/day).
+The system SHALL provide filter controls to narrow displayed schedules by member (single, all members, or all) and by schedule type (multiple or all). The default filter SHALL be "all members" (parents + children). Filter conditions SHALL persist across view switches (month/week/day).
 
-#### Scenario: Filter by child
+#### Scenario: Filter by member
 
-- **WHEN** a parent selects a specific child "小明" in the filter bar
-- **THEN** the calendar SHALL only display schedules associated with that child
+- **WHEN** a parent selects a specific member (e.g., "爸爸") in the filter bar
+- **THEN** the calendar SHALL only display schedules associated with that member
 
 #### Scenario: Filter by schedule type
 
@@ -79,10 +79,15 @@ The system SHALL provide filter controls to narrow displayed schedules by child 
 - **WHEN** a filter is applied and no schedules match
 - **THEN** the calendar SHALL display empty state "该筛选条件下无日程"
 
-#### Scenario: Family has no children
+#### Scenario: Child view only shows own schedules
 
-- **WHEN** a parent tries to create a schedule but the family has no children
-- **THEN** the "选孩子" step SHALL display empty state "请先添加孩子" with a link to the family management page
+- **WHEN** a child views the calendar (any view)
+- **THEN** only schedules assigned to that child SHALL be displayed; parent schedules SHALL be invisible to the child
+
+#### Scenario: Default all members filter
+
+- **WHEN** a parent views the calendar with no filter applied
+- **THEN** schedules for all members (parents + children) SHALL be displayed by default
 
 ### Requirement: Calendar SHALL respond to slide gestures across time periods
 
@@ -106,4 +111,28 @@ The system SHALL correctly display schedules with cross-day time slots (e.g., 23
 
 - **WHEN** a schedule has a time slot 23:00-01:00 on Friday
 - **THEN** the schedule SHALL appear on Friday with an annotation indicating the next-day end time
+
+### Requirement: 日期导航控件不重叠且可独立点按
+
+日历页顶部日期导航栏 SHALL 同时提供「今天」按钮、上一周期控件（‹）与下一周期控件（›）。三个控件在任意视图（月/周/日）下 SHALL 互不重叠、各自可独立点按；导航栏标题 SHALL 保持水平居中。
+
+#### Scenario: 三个导航控件互不重叠
+
+- **WHEN** 家长在月、周或日任意视图下查看日历页顶部日期导航栏
+- **THEN** 「今天」按钮、上一周期控件（‹）、下一周期控件（›）SHALL 互不重叠，且每个控件均可独立点按
+
+#### Scenario: 导航栏标题水平居中
+
+- **WHEN** 日期导航栏渲染当前周期标题（如「2026年 9月」）
+- **THEN** 标题 SHALL 在导航栏内水平居中，且不与左右两侧控件重叠
+
+#### Scenario: 长标题不截断且控件不重叠
+
+- **WHEN** 周视图标题为跨月日期范围（如「8月31日 - 9月6日」）
+- **THEN** 标题 SHALL 完整显示不被截断，且「今天」、‹、› 三个控件仍互不重叠
+
+#### Scenario: 「今天」与「下一周期」点按互不干扰
+
+- **WHEN** 家长点按「今天」按钮
+- **THEN** 日历 SHALL 跳转到今天，且不触发「下一周期」的周期切换
 

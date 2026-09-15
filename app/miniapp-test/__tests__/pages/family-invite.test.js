@@ -93,12 +93,16 @@ describe('family-invite 页面', () => {
   });
 
   test('onSubmit Parent 模式调 generateInviteCode，body 仅含 targetRole', async () => {
-    family.generateInviteCode.mockResolvedValue({ code: '234567', expiresAt: '2026-08-19T00:00:00Z' });
+    const expiresAt = '2026-08-19T00:00:00Z';
+    family.generateInviteCode.mockResolvedValue({ code: '234567', expiresAt });
     const ctx = setup();
     await ctx.onSubmit();
     expect(family.generateInviteCode).toHaveBeenCalledWith('f-current', { targetRole: 'Parent' });
     expect(ctx.data.code).toBe('234567');
-    expect(ctx.data.expiresAt).toBe('2026-08-19T00:00:00Z');
+    // expiresAt 应格式化为本地可读时间，而非裸 ISO 字符串
+    const d = new Date(expiresAt);
+    const pad = (n) => String(n).padStart(2, '0');
+    expect(ctx.data.expiresAt).toBe(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`);
     expect(ctx.data.codeVisible).toBe(true);
   });
 

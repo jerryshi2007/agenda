@@ -20,7 +20,6 @@ public interface IInvitationCodeService
     Task RevokeAsync(Guid familyId, Guid userId, Guid codeId, CancellationToken ct = default);
     Task<List<InvitationCodeInfo>> ListAsync(Guid familyId, Guid userId, CancellationToken ct = default);
     Task<JoinFamilyResponse> JoinByCodeAsync(JoinByCodeRequest request, Guid userId, DateTimeOffset now, CancellationToken ct = default);
-    Task<InvitationCodeInfo> GetShareInfoAsync(string code, CancellationToken ct = default);
 }
 
 public class InvitationCodeService : IInvitationCodeService
@@ -107,7 +106,7 @@ public class InvitationCodeService : IInvitationCodeService
         if (code.Status != InvitationCodeStatus.Pending)
             throw new DomainException(ErrorCodes.InvitationCannotRevoke);
 
-        code.Status = InvitationCodeStatus.Redeemed;
+        code.Status = InvitationCodeStatus.Revoked;
         await _db.SaveChangesAsync(ct);
     }
 
@@ -130,8 +129,8 @@ public class InvitationCodeService : IInvitationCodeService
 
         if (code.Status == InvitationCodeStatus.Used)
             throw new DomainException(ErrorCodes.InvitationCodeUsed);
-        if (code.Status == InvitationCodeStatus.Redeemed)
-            throw new DomainException(ErrorCodes.InvitationCodeRedeemed);
+        if (code.Status == InvitationCodeStatus.Revoked)
+            throw new DomainException(ErrorCodes.InvitationCodeRevoked);
         if (code.ExpiresAt <= now)
             throw new DomainException(ErrorCodes.InvitationCodeExpired);
 
@@ -140,9 +139,9 @@ public class InvitationCodeService : IInvitationCodeService
         if (family.Status == FamilyStatus.Dissolved)
             throw new DomainException(ErrorCodes.FamilyAlreadyDissolved);
 
-        // 用户已经在任意家庭（active）则不能加入。
+        // 用户已在该家庭则不能重复加入；已属于其他家庭不受限。
         var alreadyInFamily = await _db.FamilyMembers
-            .AnyAsync(m => m.UserId == userId && m.IsDeleted == false, ct);
+            .AnyAsync(m => m.FamilyId == family.Id && m.UserId == userId && m.IsDeleted == false, ct);
         if (alreadyInFamily)
             throw new DomainException(ErrorCodes.UserAlreadyInFamily);
 
@@ -166,27 +165,6 @@ public class InvitationCodeService : IInvitationCodeService
         _db.FamilyMembers.Add(member);
         await _db.SaveChangesAsync(ct);
         return new JoinFamilyResponse { FamilyId = family.Id };
-    }
-
-    public async Task<InvitationCodeInfo> GetShareInfoAsync(string code, CancellationToken ct = default)
-    {
-        var record = await _db.InvitationCodes
-            .Include(c => c.Family)
-            .Include(c => c.Creator)
-            .FirstOrDefaultAsync(c => c.Code == code, ct);
-
-        if (record == null)
-        {
-            // 不暴露码不存在；用无效占位返回 isValid=false。
-            return new InvitationCodeInfo
-            {
-                Code = code,
-                Status = InvitationCodeStatus.Expired,
-                CanRevoke = false
-            };
-        }
-
-        return ToInfo(record, record.Family.Name, record.Creator.Nickname);
     }
 
     private async Task<string> GenerateUniqueCodeAsync(CancellationToken ct)
@@ -221,18 +199,6 @@ public class InvitationCodeService : IInvitationCodeService
     }
 
     private static InvitationCodeInfo ToInfo(DomainInvitationCode c) => new()
-    {
-        Id = c.Id,
-        Code = c.Code,
-        TargetRole = c.TargetRole,
-        TargetChildName = c.TargetChildName,
-        Status = c.Status,
-        CreatedAt = c.CreatedAt,
-        ExpiresAt = c.ExpiresAt,
-        CanRevoke = c.Status == InvitationCodeStatus.Pending
-    };
-
-    private static InvitationCodeInfo ToInfo(DomainInvitationCode c, string familyName, string inviterName) => new()
     {
         Id = c.Id,
         Code = c.Code,

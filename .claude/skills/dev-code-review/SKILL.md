@@ -13,7 +13,7 @@ rules: [dev-code-quality, dev-security, openspec-workflow]
 
 ## 流程
 1. **先 Read `rules/dev-code-quality.md`、`rules/dev-security.md`、`rules/openspec-workflow.md` 并遵守其约束。**
-2. **生成 review package**——将 diff 输出为文件而非贴文本：`git log --oneline` + `git diff --stat` + `git diff -U10`，写入一个文件，reviewer 读文件而非运行 git 命令。
+2. **生成 review package**——将 diff 输出为文件而非贴文本：`git log --oneline` + `git diff --stat` + `git diff -U10`，写入一个文件，reviewer 读文件而非运行 git 命令。**生成责任**：由 dev-sdd 控制器（dev-dotnet / dev-miniapp / dev-vue3）在 dispatch reviewer 前预生成（file handoff）；dev-reviewer 被独立调度（PR review）时用 Bash 自行生成。
 3. **理解改动意图**——读提交信息/PR 描述，搞清楚这次改动的目标与范围。
 4. **按维度扫描**——
    - 正确性：逻辑对吗？边界覆盖了吗？

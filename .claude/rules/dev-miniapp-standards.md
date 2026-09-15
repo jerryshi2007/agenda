@@ -53,11 +53,9 @@ description: 微信小程序编码规范——编写或审查小程序前端代�
 
 ### `data-id` 可测试性契约
 
-- **所有可交互元素必须添加 `data-id`**：按钮（含 icon-button）、输入框（input/textarea）、复选框（checkbox）、单选框（radio）、开关（switch）、导航链接（navigator）、弹窗容器、列表项、菜单项、Tab 项、分页控件——**MUST** 有 `data-id`。
-- **命名规范**：`data-id` 值遵循 `<组件/页面缩写>-<元素角色>` 模式。用 kebab-case 串联，从大到小描述：`"schedule-list-search-input"`、`"schedule-card-delete-btn"`、`"schedule-form-save-btn"`。页面/组件缩写从目录名推导（`pages/schedule-list/` → `schedule-list`），元素角色描述该元素在组件中的用途。
-- **纯展示元素不需要 `data-id`**：纯展示文本、装饰图标、布局容器（仅做 flex/grid 用）。
-- **动态列表唯一性**：`wx:for` 渲染的列表项 `data-id` MUST 包含唯一标识符：`data-id="schedule-list-row-{{item.id}}"`。仅当项无 id 时才可用 `index`，但优先使用业务 id。
-- **测试代码禁止以下定位方式**：CSS 类名（`.btn-primary`）、WXML 标签嵌套路径（`view > view > button:nth-child(2)`）、原生 `id` 属性、文本内容。定位统一走 `data-id`——一个属性，开发与测试双方共识。`data-id` 不替代原生 `id`（用于 DOM 锚点、无障碍等其他用途）。
+> `data-id` 契约（命名/必加清单/禁止定位方式/动态唯一性/速查表）的权威定义见 `test-standards` rule。以下为小程序特有写法。
+
+- **WXML 写法**：`wx:for` 列表项 `data-id` 用插值绑定唯一标识符：`data-id="schedule-list-row-{{item.id}}"`；测试代码用 `component.querySelector('[data-id="..."]')` 定位。
 - **自定义组件上的 data-id**：在自定义组件标签上写 `data-id="xxx"` 时，属性会传递到组件的根节点而非内部具体交互元素。测试代码定位时应定位根节点再查找内部元素。如需直接定位内部元素，在内部原生标签上单独写 `data-id`。
 
 ### 微信平台 API 使用规范

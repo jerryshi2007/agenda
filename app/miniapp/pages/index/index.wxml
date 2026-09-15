@@ -5,17 +5,21 @@
   <!-- 日历头部 -->
   <view class="cal-header">
     <!-- 日期导航栏 -->
-    <view class="date-navigator" style="position: relative;">
-      <view class="date-nav-arrow" data-id="calendar-date-prev" bindtap="onPrev">
-        ‹
+    <view class="date-navigator">
+      <view class="date-nav-side date-nav-side-left">
+        <view class="date-nav-today" data-id="calendar-today-btn" bindtap="onToday">今天</view>
+        <view class="date-nav-arrow" data-id="calendar-date-prev" bindtap="onPrev">
+          ‹
+        </view>
       </view>
       <view class="date-nav-title" data-id="calendar-date-title" bindtap="onDatePicker">
         {{navTitle}}
       </view>
-      <view class="date-nav-arrow" data-id="calendar-date-next" bindtap="onNext">
-        ›
+      <view class="date-nav-side date-nav-side-right">
+        <view class="date-nav-arrow" data-id="calendar-date-next" bindtap="onNext">
+          ›
+        </view>
       </view>
-      <view class="date-nav-today" data-id="calendar-today-btn" bindtap="onToday">今天</view>
     </view>
 
     <!-- 视图切换按钮组 -->
@@ -77,6 +81,7 @@
     currentDate="{{currentDate}}"
     schedules="{{schedules}}"
     loading="{{loading}}"
+    selectedScheduleTypes="{{selectedScheduleTypes}}"
     bind:scheduletap="onScheduleTap"
     bind:checkintap="onQuickCheckin"
   />

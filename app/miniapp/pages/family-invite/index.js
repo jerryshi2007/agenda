@@ -5,6 +5,18 @@ const familyService = require('../../services/family');
 const STORAGE_KEYS = require('../../utils/storage-keys');
 const { UserRole, DisplayMode, DisplayModeLabels, ErrorMessages } = require('../../contracts/family');
 
+/**
+ * 将 ISO 时间字符串格式化为本地可读时间 "YYYY-MM-DD HH:mm"。
+ * 解析失败时原样返回，避免破坏展示。
+ */
+function formatExpiresAt(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 Page({
   data: {
     targetRole: UserRole.Parent,
@@ -81,7 +93,7 @@ Page({
       this.setData({
         submitting: false,
         code: (res && res.code) || '',
-        expiresAt: (res && res.expiresAt) || '',
+        expiresAt: formatExpiresAt((res && res.expiresAt) || ''),
         codeVisible: true,
         error: ''
       });

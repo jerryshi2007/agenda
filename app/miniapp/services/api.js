@@ -6,14 +6,14 @@ const STORAGE_KEYS = require('../utils/storage-keys');
 const crypto = require('../utils/crypto');
 const { ErrorCodes, ErrorMessages } = require('../contracts/auth');
 
-// 小程序环境自动切换 —— 开发/体验版走 HTTP，生产走 HTTPS
+// 小程序环境自动切换 —— 开发版走本机 HTTP，体验版/生产走 HTTPS
 const ENV_VERSION = (typeof __wxConfig !== 'undefined' && __wxConfig.envVersion) || 'develop';
-// API 域名：www.paiban.live → 115.159.206.106（腾讯云轻量）。
-// 开发/体验版用 HTTP（80 端口，无 SSL），微信开发者工具需勾选「不校验合法域名」。
-// 生产（release）必须 HTTPS + ICP 备案 + 小程序后台配置「request 合法域名」——小程序审核硬性要求。
-const BASE_URL = ENV_VERSION === 'release'
-  ? 'https://paiban.live'
-  : 'http://127.0.0.1:5000';
+// API 域名：paiban.live → 115.159.206.106（腾讯云轻量）。
+// 仅开发版（develop）走本机 HTTP（127.0.0.1:5000），微信开发者工具需勾选「不校验合法域名」。
+// 体验版（trial）与生产（release）均走 HTTPS —— 需 ICP 备案 + 小程序后台配置「request 合法域名」，审核硬性要求。
+const BASE_URL = ENV_VERSION === 'develop'
+  ? 'http://127.0.0.1:5000'
+  : 'https://paiban.live';
 const DEFAULT_TIMEOUT = 10000;
 
 // 429 退避重试等待时长（毫秒）

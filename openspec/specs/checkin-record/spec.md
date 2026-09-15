@@ -109,11 +109,27 @@ The system SHALL allow undoing a check-in when the schedule instance is in "已�
 
 ### Requirement: Check-in Record Creation
 
-The system SHALL create a check-in record when a user performs check-in. Each schedule instance SHALL have at most one check-in record.
+The system SHALL create a check-in record when a user performs check-in. Each schedule instance SHALL have at most one check-in record. Check-in targets SHALL be generalized from children to family members: parents MAY check in for any member (themselves, other parents, or children); children MUST only check in for themselves.
 
 #### Scenario: Successful check-in
 - **WHEN** a user (parent or child) performs check-in on an eligible schedule instance
-- **THEN** the system SHALL create a check-in record with: schedule instance ID, check-in user ID, server timestamp, operation source (parent/child). The schedule instance status SHALL change to "已完成".
+- **THEN** the system SHALL create a check-in record with: schedule instance ID, check-in user ID, server timestamp, operation source (parent/child), and the checked-in member's ID. The schedule instance status SHALL change to "已完成".
+
+#### Scenario: Parent checks in for self
+- **WHEN** a parent has their own schedule (uncompleted, not overdue) and taps check-in
+- **THEN** the status changes to "已完成", the check-in record logs the checker = the parent, source=Parent
+
+#### Scenario: Parent checks in for another member
+- **WHEN** parent A views an uncompleted schedule assigned to parent B or child XiaoMing and taps check-in
+- **THEN** the status changes to "已完成", the check-in record logs checker = parent A, checked-in member = parent B / XiaoMing
+
+#### Scenario: Child only checks in for self
+- **WHEN** a child attempts to check in for another member's schedule (parent or other child)
+- **THEN** the system returns 403 CHILD_ACCESS_DENIED, no check-in record is created
+
+#### Scenario: Mixed assignment check-in independent
+- **WHEN** a schedule is mixed-assigned to parent B and child XiaoMing (one row each), and parent B checks in
+- **THEN** only parent B's row changes to "已完成", XiaoMing's row is unaffected (check-in records are independent per row)
 
 #### Scenario: Duplicate check-in (idempotent)
 - **WHEN** multiple users (parent and child) press check-in simultaneously on the same schedule instance

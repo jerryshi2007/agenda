@@ -17,6 +17,7 @@ node_modules/
 .env
 .env.local
 .env.*.local
+deploy/api/api.env
 
 # ---- Logs ----
 *.log
@@ -60,6 +61,7 @@ testing/e2e/test-results
 
 # ---- Docker ----
 docker-data/
+*.tar
 
 # ---- WorkBuddy ----
 production/.workbuddy/

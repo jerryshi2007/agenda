@@ -10,11 +10,12 @@
 | 认证 | ✅ | ✅ | ✅ | ✅ | ✅ | add-auth-module (archived) |
 | 打卡 | ✅ | ✅ | ✅ | ✅ | ✅ | add-checkin-module (archived) |
 | 家庭 | ✅ | ✅ | ✅ | ✅ | ✅ | add-family-module (archived) |
-| 模板 | ✅ | ✅ | ✅ | ⬜ | ⬜ | - |
+| 模板 | ✅ | ✅ | ✅ | ✅ | ✅ | add-template-module (archived) |
 | 展示模式 | ✅ | ✅ | ✅ | ✅ | ✅ | add-display-mode-module (archived) |
+| 日程关联对象泛化 | ✅ | ✅ | ✅ | ✅ | ✅ | generalize-schedule-to-member (archived) |
 
-- `app/miniapp/` 已有日程管理前端代码（4 页面 + 11 组件 + 3 Service + 2 Util），认证模块（mine/privacy-prompt 页面）；`app/miniapp-test/` 为对应 Jest 测试项目
-- `api/` 已有 .NET 10 后端（Schedule + Auth + Family + Domain + Infrastructure 分层），含 EF Core Migration
+- `app/miniapp/` 已有 25 页面 + 13 组件，覆盖日程管理、认证、家庭、模板、打卡、展示模式全模块；`app/miniapp-test/` 为对应 Jest 测试项目
+- `api/` 已有 .NET 10 后端（Schedule + Auth + Family + Checkin + Template + Domain + Infrastructure 分层），含 EF Core Migration
 - `testing/e2e/` 已有 Playwright 测试套件（日程管理 139/140 通过，1 项打卡模块预置 skip）
 
 详细进度见 [`production/CLAUDE.md`](production/CLAUDE.md) 全局模块进度表。
@@ -43,14 +44,14 @@ openspec status --change "<name>"                           # 变更状态
 openspec archive <name>                                     # 归档变更
 ```
 
-完整命令参考见 [`.claude/operations-manual.md`](.claude/operations-manual.md) §8.2。
+完整命令参考见 [`.claude/CLAUDE.md`](.claude/CLAUDE.md) 工具组合速查。
 
 ## 目录导航
 
 | 目录 | 内容 | 说明 |
 |------|------|------|
-| [`api/`](api/CLAUDE.md) | .NET 10 Web API | 开发中：Schedule + Auth + Family 模块 |
-| [`app/`](app/CLAUDE.md) | 微信小程序前端（miniapp 源码 + miniapp-test 测试） | 开发中：日程管理 + 认证页面就绪 |
+| [`api/`](api/CLAUDE.md) | .NET 10 Web API | 已完成：Schedule + Auth + Family + Checkin + Template 模块 |
+| [`app/`](app/CLAUDE.md) | 微信小程序前端（miniapp 源码 + miniapp-test 测试） | 已完成：六模块页面就绪 |
 | [`testing/e2e/`](testing/CLAUDE.md) | Playwright E2E | 日程管理 140 用例 |
 | [`production/`](production/CLAUDE.md) | 产品需求与原型 | 6 模块需求文档已完成 |
 | [`.claude/`](.claude/CLAUDE.md) | 三层编排（agent/skill/rule） | 工作流权威定义 |
@@ -78,7 +79,7 @@ Stage 5 归档: archiver（两步：先 openspec archive 代码 → 再 staging 
 
 **Gate 原则**：三层人审批不可跳过（需求审核 + 架构审核 + E2E 测试后），任一 gate 未通过禁止进入下一阶段。git commit 是阶段间硬性交接点。
 
-完整编排规则见 [`.claude/CLAUDE.md`](.claude/CLAUDE.md)、[`.claude/INDEX.md`](.claude/INDEX.md)，操作手册见 [`.claude/operations-manual.md`](.claude/operations-manual.md)。
+完整编排规则见 [`.claude/CLAUDE.md`](.claude/CLAUDE.md)、[`.claude/INDEX.md`](.claude/INDEX.md)。
 
 ## 三层编排系统
 

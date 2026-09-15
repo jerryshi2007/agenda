@@ -1,38 +1,31 @@
 <!-- components/schedule-card/index.wxml
-     日程卡片 —— 颜色条 + 时间 + 名称 + 孩子头像 + 状态 + 类型标签 + 地点 + 快捷打卡 -->
+     日程卡片 —— 色条 + 时间范围 + 名称 + 状态标签 + 类型标签 + 成员 + 地点 + 备注 + 快捷打卡 -->
 
-<view class="schedule-card"
+<view class="schedule-card {{statusKey === 'cancelled' ? 'schedule-card-cancelled' : ''}}"
       data-id="calendar-schedule-card-{{schedule.scheduleId}}"
       bindtap="onCardTap">
   <view class="schedule-card-stripe schedule-card-stripe-{{stripeClass}}"></view>
 
-  <!-- 左侧时间列（时间线移到卡片内部） -->
-  <view class="schedule-card-timeline">
-    <text class="schedule-card-timeline-time">{{timeMain}}</text>
-    <text wx:if="{{timeSub}}" class="schedule-card-timeline-sub">{{timeSub}}</text>
-  </view>
-
   <view class="schedule-card-body">
-    <!-- 顶部行：名称 + 状态 -->
+    <!-- 顶部行：时间范围 + 状态标签 -->
     <view class="schedule-card-top">
-      <text class="schedule-card-name">{{schedule.name}}</text>
+      <text wx:if="{{timeText}}" class="schedule-card-time">{{timeText}}</text>
       <view class="schedule-card-status">
         <!-- 已完成 -->
-        <text wx:if="{{schedule.status === 'completed' || schedule.status === 'Completed'}}"
-              class="tag tag-routine">已完成</text>
+        <text wx:if="{{statusKey === 'completed'}}" class="tag tag-status-completed">已完成</text>
         <!-- 未完成 -->
-        <text wx:elif="{{schedule.status === 'incomplete' || schedule.status === 'Incomplete'}}"
-              class="tag tag-homework">未完成</text>
+        <text wx:elif="{{statusKey === 'incomplete'}}" class="tag tag-status-incomplete">未完成</text>
         <!-- 已取消 -->
-        <text wx:elif="{{schedule.status === 'cancelled' || schedule.status === 'Cancelled'}}"
-              class="tag" style="background:var(--color-bg-page);color:var(--color-text-placeholder);">已取消</text>
+        <text wx:elif="{{statusKey === 'cancelled'}}" class="tag tag-status-cancelled">已取消</text>
         <!-- 已逾期 -->
-        <text wx:elif="{{schedule.status === 'overdue' || schedule.status === 'Overdue'}}"
-              class="tag" style="background:var(--color-danger-light);color:var(--color-danger);">已逾期</text>
+        <text wx:elif="{{statusKey === 'overdue'}}" class="tag tag-status-overdue">已逾期</text>
       </view>
     </view>
 
-    <!-- 底部信息行 -->
+    <!-- 名称 -->
+    <text class="schedule-card-name {{statusKey === 'cancelled' ? 'schedule-card-name-cancelled' : ''}}">{{schedule.name}}</text>
+
+    <!-- 元信息行 -->
     <view class="schedule-card-meta">
       <!-- 类型标签 -->
       <text wx:if="{{viewType === 'day'}}" class="tag tag-{{stripeClass}}">
@@ -62,8 +55,8 @@
     </view>
   </view>
 
-  <!-- 快捷打卡按钮（日/周视图） -->
-  <view wx:if="{{schedule.status === 'incomplete' || schedule.status === 'Incomplete'}}"
+  <!-- 快捷打卡按钮（未完成态） -->
+  <view wx:if="{{statusKey === 'incomplete'}}"
         class="schedule-card-checkin"
         data-id="calendar-schedule-card-checkin-btn-{{schedule.scheduleId}}"
         catchtap="onCheckinTap">

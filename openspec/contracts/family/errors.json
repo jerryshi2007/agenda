@@ -55,7 +55,7 @@
     "httpStatus": 400,
     "message": "邀请码已失效，请联系家长重新获取"
   },
-  "INVITATION_CODE_REDEEMED": {
+  "INVITATION_CODE_REVOKED": {
     "httpStatus": 400,
     "message": "邀请码已被撤销"
   },

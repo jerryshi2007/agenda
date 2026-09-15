@@ -62,7 +62,7 @@
   background: #F0F0F0;
 }
 
-.status-redeemed {
+.status-revoked {
   color: var(--color-warning);
   background: #FFF7E6;
 }

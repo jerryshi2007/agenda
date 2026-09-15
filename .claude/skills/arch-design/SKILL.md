@@ -1,7 +1,7 @@
 ---
 name: arch-design
-description: 全栈架构设计——覆盖 .NET 后端分层/API 契约 + Vue 3 前端组件树/路由/状态管理，产出 design.md + ADR。
-rules: [dev-dotnet-standards, dev-vue3-standards, design-ui-standards, dev-code-quality, dev-security, openspec-workflow, dev-contracts, dev-codegraph]
+description: 全栈架构设计——覆盖 .NET 后端分层/API 契约 + 前端（小程序为主 / Vue 3 未来）组件树/路由/状态管理，产出 design.md + ADR。
+rules: [dev-dotnet-standards, dev-vue3-standards, dev-miniapp-standards, ui-miniapp-standards, design-ui-standards, dev-code-quality, dev-security, openspec-workflow, dev-contracts, dev-codegraph]
 ---
 
 # arch-design · 全栈架构设计
@@ -12,8 +12,8 @@ rules: [dev-dotnet-standards, dev-vue3-standards, design-ui-standards, dev-code-
 
 ## 流程
 
-### 1. Read 规则（8 条）
-dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quality / dev-security / openspec-workflow / dev-contracts / dev-codegraph
+### 1. Read 规则（10 条）
+dev-dotnet-standards / dev-vue3-standards / dev-miniapp-standards / ui-miniapp-standards / design-ui-standards / dev-code-quality / dev-security / openspec-workflow / dev-contracts / dev-codegraph
 
 ### 2. 理解需求
 读 proposal.md + delta specs → 提取功能/非功能需求 + 跨切面关注点
@@ -36,10 +36,9 @@ dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quali
 - 数据访问策略（EF Core 实体关系、仓储边界、迁移策略）
 - 跨上下文交互规则（ID 引用 vs Service 接口调用）
 
-**前端（Vue 3）：**
-- 组件树与路由结构、状态管理方案（Pinia store 划分）
-- API 对接层（axios 封装、请求取消、错误拦截）
-- UI 框架对齐（Element Plus / Ant Design Vue 选型、主题 token 映射）
+**前端（按目标端）：**
+- **微信小程序（当前主目标）**：页面/组件树与路由（页面栈 ≤10、分包策略）、数据流与 setData 优化、WXSS 设计令牌（tokens.wxss）、data-id 可测试性契约、API 对接层（services/ 封装 + 401 续期）、原生组件选型
+- **Vue 3 Web（未来）**：组件树与路由结构、状态管理方案（Pinia store 划分）、API 对接层（axios 封装、请求取消、错误拦截）、UI 框架对齐（Element Plus / Ant Design Vue 选型、主题 token 映射）
 
 **跨切面：**
 - API 契约形状（前后端共同约定）、数据流方向、错误处理策略
@@ -56,11 +55,7 @@ dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quali
 - API 契约轮廓 + 前端架构 + 核心时序图（正常路径+异常分支）
 - 构建序列 + 风险与权衡
 
-### 8. 生成实现任务
-调用 `arch-planning` skill（基于 design.md 拆解为 bite-sized tasks），产出 `openspec/changes/<name>/tasks.md`。交接 dev-dotnet + dev-miniapp：
-说明：模块→task 映射、集成 task 时机、前置依赖、风险提示
-
-### 9. 自审
+### 8. 自审
 - [ ] spec 覆盖 / ER 可反推 / 时序完整 / 项目结构已对齐
 - [ ] 复用检查 / 无 TBD/TODO / 规则合规 / 文档已落盘
 
@@ -75,4 +70,4 @@ dev-dotnet-standards / dev-vue3-standards / design-ui-standards / dev-code-quali
 - **全栈视角**：前后端一起设计，API 契约是共同约定
 - **ER 从 spec 反推**：每个关系基数必须能从 spec scenario 验证
 - **时序覆盖异常分支**：不只画正常路径
-- **只设计不实现**：产出 design.md + tasks.md 后交接 dev-dotnet + dev-miniapp
+- **只设计不实现**：产出 design.md + delta specs + contracts 后交接 arch-planning（任务分解）→ dev-dotnet + dev-miniapp

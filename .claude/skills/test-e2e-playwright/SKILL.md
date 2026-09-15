@@ -15,7 +15,7 @@ rules: [test-standards, dev-vue3-standards, req-staging]
 - 已有 `test-plan.md`（`test-planner` 产出），含测试矩阵、data-id 清单、测试数据需求
 - Read `production/staging/<name>/requirement.md` + `epic-story.md`（验收标准/边界异常/优先级）
 - Read 项目根目录的 `CLAUDE.md`，了解 `web/src/` 下 Web 应用前端目录约定
-- Read `rules/dev-vue3-standards.md` 了解 `data-id` 命名规范
+- Read `rules/test-standards.md` 了解 `data-id` 命名规范（权威），`rules/dev-vue3-standards.md` 了解 Vue 组件库透传差异
 
 ## 目录结构
 
@@ -80,7 +80,7 @@ export class LoginPage {
 
 ## data-id 定位策略
 
-**定位规范定义见 `rules/dev-vue3-standards.md` data-id 节（权威来源）。** 以下为 Playwright 特有补充：
+**定位规范定义见 `rules/test-standards.md`「data-id 契约」节（权威来源），Vue 组件库透传差异见 `rules/dev-vue3-standards.md`。** 以下为 Playwright 特有补充：
 
 - **Playwright 定位方式**：使用 `page.locator('[data-id="..."]')` 定位元素，禁止 CSS 类名、DOM 索引、原生 `id`、文本内容。
 - **单元测试与 E2E 共用**：同一个 `data-id` 值在 Vitest 和 Playwright 中复用，保证两套测试定位一致性。

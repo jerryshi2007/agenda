@@ -1,5 +1,7 @@
 // components/day-view/index.js
 
+const dateUtils = require('../../utils/date-utils');
+
 Component({
   properties: {
     currentDate: {
@@ -13,11 +15,16 @@ Component({
     loading: {
       type: Boolean,
       value: false
+    },
+    selectedScheduleTypes: {
+      type: Array,
+      value: []
     }
   },
 
   data: {
-    sortedSchedules: []
+    sortedSchedules: [],
+    dateText: ''    // 空态展示用："今天" / "9月2日 周三"
   },
 
   observers: {
@@ -29,12 +36,14 @@ Component({
         return sa.localeCompare(sb);
       });
       this.setData({ sortedSchedules: sorted });
-    }
-  },
+    },
 
-  computed: {
-    dateText() {
-      // 通过 wxs 或 observer 设置
+    'currentDate'(currentDate) {
+      const today = new Date();
+      const dateText = currentDate && dateUtils.isSameDay(currentDate, today)
+        ? '今天'
+        : dateUtils.formatDateChinese(currentDate || today);
+      this.setData({ dateText });
     }
   },
 

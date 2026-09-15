@@ -59,12 +59,19 @@
   height: 104rpx;
   opacity: 0;
   text-align: center;
+  z-index: 1;
 }
 
 .code-hint {
   font-size: 24rpx;
   color: var(--color-text-placeholder);
   margin-top: 16rpx;
+}
+
+.code-digit-placeholder {
+  font-size: 24rpx;
+  font-weight: 400;
+  color: var(--color-text-placeholder);
 }
 
 .error-text {

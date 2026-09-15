@@ -32,7 +32,7 @@ skills: [dev-dotnet-tdd, dev-sdd, dev-verification, openspec-apply-change, dev-d
 4. **验证** — 调用 `dev-verification` skill（强制新鲜运行）
    - `dotnet test` / `dotnet build` / `dotnet format --verify-no-changes`
 
-5. **收尾链** — dev-verification ✓ → dev-code-review ✓ → dev-finishing-branch ✓（合并/PR，不归档——归档由 Stage 5 的 archiver agent 负责）
+5. **收尾链** — dev-verification ✓ → dev-reviewer final review ✓ → dev-finishing-branch ✓（合并/PR，不归档——归档由 Stage 5 的 archiver agent 负责）
 
 6. 全部通过 → 交还主代理
 

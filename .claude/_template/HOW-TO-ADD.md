@@ -27,7 +27,7 @@
 ## 命名约定（双轴）
 
 - **目录 = 层**：`rules/` / `skills/` / `agents/`
-- **前缀 = track**：`req-`（需求）/ `design-`（设计）/ `dev-`（研发）/ `test-`（测试）/ `git-`（横切）
+- **前缀 = track**：`req-`（需求）/ `arch-`（架构设计）/ `ui-`（原型设计）/ `dev-`（研发）/ `test-`（测试）/ `git-`（横切）/ `openspec-`（冻结框架，禁止新增）/ `staging-`（归档）
 - 软约定：rule 名 = 名词（标准域）；skill 名 = 动词/方法；agent 名 = 角色（-er / -ist 结尾）
 - 一文件一关注点
 
