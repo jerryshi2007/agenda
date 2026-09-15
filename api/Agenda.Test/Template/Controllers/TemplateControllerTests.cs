@@ -31,7 +31,7 @@ public class TemplateControllerTests
     {
         templateService ??= new Mock<ITemplateService>();
         familyContext ??= new Mock<IFamilyContextService>();
-        familyContext.Setup(x => x.GetFamilyContextAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+        familyContext.Setup(x => x.GetFamilyContextAsync(It.IsAny<Guid>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((FamilyId, role));
 
         var controller = new TemplateController(

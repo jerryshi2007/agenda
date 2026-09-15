@@ -139,14 +139,29 @@ App({
   /**
    * 加载家庭成员上下文：memberList + userRole
    * 读 currentFamilyId -> getMembers -> 在 parents/children 中按 userId 匹配自身角色
-   * 孩子视角仅保留自身；无家庭/无 userId/自身不在列表/接口失败 -> 清空（防多家庭切换残留）
+   * 孩子视角仅保留自身；无 userId / 自身不在列表 / 接口失败 -> 清空（防多家庭切换残留）
+   * 无当前家庭上下文时拉取用户家庭列表，命中则补写首项兜底（单家庭老用户/首次登录）
    */
   refreshFamilyContext() {
     const familyId = wx.getStorageSync(STORAGE_KEYS.CURRENT_FAMILY_ID) || this.globalData.currentFamilyId;
-    if (!familyId || !this.globalData.userId) {
+    if (!this.globalData.userId) {
       this.globalData.memberList = [];
       this.globalData.userRole = null;
       return Promise.resolve();
+    }
+    if (!familyId) {
+      return familyService.getMyFamilies().then((res) => {
+        const families = (res && res.families) || [];
+        if (families.length > 0) {
+          wx.setStorageSync(STORAGE_KEYS.CURRENT_FAMILY_ID, families[0].familyId);
+          return this.loadFamilyMembers(families[0].familyId);
+        }
+        this.globalData.memberList = [];
+        this.globalData.userRole = null;
+      }).catch(() => {
+        this.globalData.memberList = [];
+        this.globalData.userRole = null;
+      });
     }
     return this.loadFamilyMembers(familyId);
   },

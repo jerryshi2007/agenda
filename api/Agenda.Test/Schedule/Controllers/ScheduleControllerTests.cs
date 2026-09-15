@@ -26,7 +26,7 @@ public class ScheduleControllerTests
     {
         var scheduleMock = scheduleSvc ?? new Mock<IScheduleService>();
         var familyCtx = new Mock<IFamilyContextService>();
-        familyCtx.Setup(s => s.GetFamilyContextAsync(TestUserId, It.IsAny<CancellationToken>()))
+        familyCtx.Setup(s => s.GetFamilyContextAsync(TestUserId, It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((TestFamilyId, role));
         var conflict = new Mock<IConflictDetectionService>();
 

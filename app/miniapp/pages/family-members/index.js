@@ -180,7 +180,7 @@ Page({
           wx.removeStorageSync(STORAGE_KEYS.CURRENT_FAMILY_ID);
           if (app && app.globalData) app.globalData.currentFamilyId = null;
           if (r && r.hasOtherFamilies) {
-            wx.switchTab({ url: '/pages/mine/index' });
+            wx.reLaunch({ url: '/pages/family-switch/index' });
           } else {
             wx.reLaunch({ url: '/pages/family-welcome/index' });
           }
@@ -214,7 +214,17 @@ Page({
           return resolve(familyService.dissolveFamily(familyId, inputName).then(() => {
             wx.removeStorageSync(STORAGE_KEYS.CURRENT_FAMILY_ID);
             if (app && app.globalData) app.globalData.currentFamilyId = null;
-            wx.reLaunch({ url: '/pages/family-welcome/index' });
+            // 解散后若仍有其他家庭，跳转切换页引导显式选择；否则回欢迎页
+            return familyService.getMyFamilies()
+              .then((r) => {
+                const families = (r && r.families) || [];
+                wx.reLaunch({
+                  url: families.length > 0 ? '/pages/family-switch/index' : '/pages/family-welcome/index'
+                });
+              })
+              .catch(() => {
+                wx.reLaunch({ url: '/pages/family-welcome/index' });
+              });
           }).catch((err) => {
             wx.showToast({
               title: (err && err.message) || '解散失败',

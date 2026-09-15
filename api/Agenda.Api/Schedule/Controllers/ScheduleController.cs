@@ -31,7 +31,7 @@ public class ScheduleController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateScheduleRequest request, CancellationToken ct)
     {
-        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
 
         var userId = User.GetUserId();
         var memberIds = request.GetEffectiveMemberIds();
@@ -80,7 +80,7 @@ public class ScheduleController : ControllerBase
     [HttpGet("{scheduleId:guid}")]
     public async Task<IActionResult> GetById(Guid scheduleId, [FromQuery] DateOnly? date, CancellationToken ct)
     {
-        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
 
         try
         {
@@ -100,7 +100,7 @@ public class ScheduleController : ControllerBase
     [HttpPut("{scheduleId:guid}")]
     public async Task<IActionResult> Update(Guid scheduleId, [FromBody] UpdateScheduleRequest request, CancellationToken ct)
     {
-        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
 
         try
         {
@@ -138,7 +138,7 @@ public class ScheduleController : ControllerBase
         [FromQuery] bool force = false,
         CancellationToken ct = default)
     {
-        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
 
         try
         {
@@ -163,7 +163,7 @@ public class ScheduleController : ControllerBase
     [HttpPost("{scheduleId:guid}/cancel")]
     public async Task<IActionResult> Cancel(Guid scheduleId, [FromBody] CancelScheduleInstanceRequest request, CancellationToken ct)
     {
-        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
 
         try
         {
@@ -188,7 +188,7 @@ public class ScheduleController : ControllerBase
     [HttpPost("{scheduleId:guid}/restore")]
     public async Task<IActionResult> Restore(Guid scheduleId, [FromBody] RestoreScheduleInstanceRequest request, CancellationToken ct)
     {
-        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
 
         try
         {
@@ -213,7 +213,7 @@ public class ScheduleController : ControllerBase
     [HttpPost("check-conflict")]
     public async Task<IActionResult> CheckConflict([FromBody] ScheduleConflictCheckRequest request, CancellationToken ct)
     {
-        var (familyId, _) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct); // 鉴权
+        var (familyId, _) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct); // 鉴权
         try
         {
             var result = await _conflictService.CheckConflictAsync(familyId, request, ct);

@@ -76,18 +76,29 @@ describe('family-restore 页面', () => {
     expect(ctx.data.errorMessage).toBe('数据已过期删除，无法恢复');
   });
 
-  test('onSkip 不调用 restoreFamily', () => {
+  test('onSkip 不调用 restoreFamily', async () => {
     const ctx = setup();
     ctx.onLoad({ familyId: 'f1', familyName: '家' });
-    ctx.onSkip();
+    await ctx.onSkip();
     expect(family.restoreFamily).not.toHaveBeenCalled();
   });
 
-  test('onSkip 调用 wx.reLaunch 跳转 welcome 页', () => {
+  test('onSkip 调用 wx.reLaunch 跳转 welcome 页（无其他家庭）', async () => {
+    family.getMyFamilies.mockResolvedValue({ families: [] });
     const ctx = setup();
     ctx.onLoad({ familyId: 'f1', familyName: '家' });
-    ctx.onSkip();
+    await ctx.onSkip();
     expect(wx.reLaunch).toHaveBeenCalledWith({ url: '/pages/family-welcome/index' });
+  });
+
+  test('onSkip 后若仍有其他家庭则跳转 family-switch', async () => {
+    family.getMyFamilies.mockResolvedValue({ families: [
+      { familyId: 'f-other', familyName: '其他家', role: 'Parent', memberCount: 2 }
+    ] });
+    const ctx = setup();
+    ctx.onLoad({ familyId: 'f1', familyName: '家' });
+    await ctx.onSkip();
+    expect(wx.reLaunch).toHaveBeenCalledWith({ url: '/pages/family-switch/index' });
   });
 
   test('restoring 期间防止重复点击', async () => {

@@ -40,7 +40,7 @@ public class ChildScheduleController : ControllerBase
         if (!await EnsureChildAsync(ct))
             return ForbidChild();
 
-        var (familyId, _) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (familyId, _) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
         var today = DateOnly.FromDateTime(DateTime.Today);
         var result = await _childScheduleService.GetDailyListAsync(User.GetUserId(), familyId, today, ct);
         return Ok(result);
@@ -53,7 +53,7 @@ public class ChildScheduleController : ControllerBase
         if (!await EnsureChildAsync(ct))
             return ForbidChild();
 
-        var (familyId, _) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (familyId, _) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
         var weekStart = GetWeekStart(DateOnly.FromDateTime(DateTime.Today));
         var result = await _childScheduleService.GetWeeklyListAsync(User.GetUserId(), familyId, weekStart, ct);
         return Ok(result);
@@ -66,7 +66,7 @@ public class ChildScheduleController : ControllerBase
         if (!await EnsureChildAsync(ct))
             return ForbidChild();
 
-        var (familyId, _) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (familyId, _) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
         var monthStart = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
         var result = await _childScheduleService.GetMonthlyListAsync(User.GetUserId(), familyId, monthStart, ct);
         return Ok(result);
@@ -79,7 +79,7 @@ public class ChildScheduleController : ControllerBase
         if (!await EnsureChildAsync(ct))
             return ForbidChild();
 
-        var (familyId, _) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (familyId, _) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
         try
         {
             var result = await _childScheduleService.GetByIdAsync(id, User.GetUserId(), familyId, ct);
@@ -100,7 +100,7 @@ public class ChildScheduleController : ControllerBase
         if (!await EnsureChildAsync(ct))
             return ForbidChild();
 
-        var (familyId, _) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (familyId, _) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
         var weekStart = GetWeekStart(DateOnly.FromDateTime(DateTime.Today));
         var (percentage, completed, total) =
             await _completionStats.GetChildWeeklyCompletionRateAsync(User.GetUserId(), familyId, weekStart, ct);
@@ -117,15 +117,8 @@ public class ChildScheduleController : ControllerBase
     /// <summary>校验当前用户角色为 Child。返回 true 表示放行,false 表示非 Child。</summary>
     private async Task<bool> EnsureChildAsync(CancellationToken ct)
     {
-        try
-        {
-            var (_, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
-            return role == UserRole.Child;
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return false;
-        }
+        var (_, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
+        return role == UserRole.Child;
     }
 
     private static DateOnly GetWeekStart(DateOnly date)

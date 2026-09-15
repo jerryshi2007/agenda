@@ -16,6 +16,7 @@ beforeEach(() => {
   wx = installWxMock();
   jest.resetAllMocks();
   wx.getStorageSync.mockImplementation((k) => k === STORAGE_KEYS.CURRENT_FAMILY_ID ? 'f-current' : null);
+  family.getMyFamilies.mockResolvedValue({ families: [] });
 });
 
 const flush = () => new Promise(resolve => setImmediate(resolve));
@@ -252,5 +253,25 @@ describe('family-members 页面', () => {
     ctx.setData({ familyName: '我的家' });
     await ctx.onDisbandFamily('我的家');
     expect(wx.reLaunch).not.toHaveBeenCalled();
+  });
+
+  test('onLeaveFamily 退出后若仍有其他家庭则跳转 family-switch', async () => {
+    wx.showModal.mockImplementation(({ success }) => success({ confirm: true }));
+    family.exitFamily.mockResolvedValue({ exited: true, hasOtherFamilies: true });
+    const ctx = setup();
+    await ctx.onLeaveFamily();
+    expect(wx.reLaunch).toHaveBeenCalledWith({ url: '/pages/family-switch/index' });
+  });
+
+  test('onDisbandFamily 解散后若仍有其他家庭则跳转 family-switch', async () => {
+    wx.showModal.mockImplementation(({ success }) => success({ confirm: true, content: '我的家' }));
+    family.dissolveFamily.mockResolvedValue({ dissolved: true });
+    family.getMyFamilies.mockResolvedValue({ families: [
+      { familyId: 'f-other', familyName: '其他家', role: 'Parent', memberCount: 2 }
+    ] });
+    const ctx = setup();
+    ctx.setData({ familyName: '我的家' });
+    await ctx.onDisbandFamily('我的家');
+    expect(wx.reLaunch).toHaveBeenCalledWith({ url: '/pages/family-switch/index' });
   });
 });

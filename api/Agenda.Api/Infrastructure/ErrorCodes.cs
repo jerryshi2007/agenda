@@ -34,6 +34,7 @@ public static class ErrorCodes
     // ---- Family module（从 openspec/contracts/family/errors.json 生成）----
     public const string FamilyNotFound = "FAMILY_NOT_FOUND";
     public const string FamilyAlreadyDissolved = "FAMILY_ALREADY_DISSOLVED";
+    public const string FamilyContextRequired = "FAMILY_CONTEXT_REQUIRED";
     public const string FamilyNotDissolved = "FAMILY_NOT_DISSOLVED";
     public const string DissolvedExpired = "DISSOLVED_EXPIRED";
     public const string FamilyNameMismatch = "FAMILY_NAME_MISMATCH";
@@ -106,6 +107,7 @@ public static class ErrorCodes
         [ScheduleNotFound] = "日程不存在",
         [FamilyNotFound] = "家庭不存在",
         [FamilyAlreadyDissolved] = "家庭已解散",
+        [FamilyContextRequired] = "请选择家庭",
         [FamilyNotDissolved] = "家庭未解散",
         [DissolvedExpired] = "数据已过期删除，无法恢复",
         [FamilyNameMismatch] = "家庭名称不匹配，请重新输入",
@@ -209,6 +211,7 @@ public static class ErrorCodes
         [ScheduleNotFound] = 404,
         [FamilyNotFound] = 404,
         [FamilyAlreadyDissolved] = 400,
+        [FamilyContextRequired] = 400,
         [FamilyNotDissolved] = 400,
         [DissolvedExpired] = 410,
         [FamilyNameMismatch] = 400,

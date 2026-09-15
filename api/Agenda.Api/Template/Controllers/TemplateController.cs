@@ -45,7 +45,7 @@ public class TemplateController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
 
         if (role != UserRole.Parent)
             return Forbid(ErrorCodes.TemplateChildAccessDenied, "孩子不能访问模板");
@@ -63,7 +63,7 @@ public class TemplateController : ControllerBase
     [HttpGet("{templateId:guid}")]
     public async Task<IActionResult> GetById(Guid templateId, CancellationToken ct)
     {
-        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
 
         if (role != UserRole.Parent)
             return Forbid(ErrorCodes.TemplateChildAccessDenied, "孩子不能访问模板");
@@ -79,7 +79,7 @@ public class TemplateController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTemplateRequest request, CancellationToken ct)
     {
-        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
 
         if (role != UserRole.Parent)
             return Forbid(ErrorCodes.TemplateChildAccessDenied, "孩子不能创建模板");
@@ -99,7 +99,7 @@ public class TemplateController : ControllerBase
         [FromBody] UpdateTemplateRequest request,
         CancellationToken ct)
     {
-        var (_, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (_, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
 
         if (role != UserRole.Parent)
             return Forbid(ErrorCodes.TemplateChildAccessDenied, "孩子不能编辑模板");
@@ -116,7 +116,7 @@ public class TemplateController : ControllerBase
     [HttpDelete("{templateId:guid}")]
     public async Task<IActionResult> Delete(Guid templateId, CancellationToken ct)
     {
-        var (_, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (_, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
 
         if (role != UserRole.Parent)
             return Forbid(ErrorCodes.TemplateChildAccessDenied, "孩子不能删除模板");
@@ -132,7 +132,7 @@ public class TemplateController : ControllerBase
         [FromBody] ApplyTemplateRequest request,
         CancellationToken ct)
     {
-        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
 
         if (role != UserRole.Parent)
             return Forbid(ErrorCodes.TemplateChildAccessDenied, "孩子不能使用模板");

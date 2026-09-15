@@ -32,7 +32,7 @@ public class CalendarController : ControllerBase
         [FromQuery] string? scheduleTypes = null,
         CancellationToken ct = default)
     {
-        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), ct);
+        var (familyId, role) = await _familyContext.GetFamilyContextAsync(User.GetUserId(), Request.GetFamilyIdFromHeader(), ct);
 
         var reqStartDate = startDate ?? DateOnly.FromDateTime(DateTime.Today);
         var reqEndDate = endDate ?? reqStartDate.AddMonths(1);

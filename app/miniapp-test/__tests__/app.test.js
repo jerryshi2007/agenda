@@ -1,12 +1,13 @@
 // app/miniapp-test/__tests__/app.test.js
 const mockAuth = require('./helpers/auth-mock');
-const mockFamily = { getMembers: jest.fn() };
+const mockFamily = { getMembers: jest.fn(), getMyFamilies: jest.fn() };
 jest.mock('../../miniapp/services/auth', () => mockAuth);
 jest.mock('../../miniapp/services/family', () => mockFamily);
 jest.mock('../../miniapp/utils/crypto', () => ({ encrypt: (s) => s, decrypt: (s) => s }));
 
 const auth = require('../../miniapp/services/auth');
 const family = require('../../miniapp/services/family');
+const STORAGE_KEYS = require('../../miniapp/utils/storage-keys');
 const { installWxMock } = require('./helpers/wx-mock');
 
 let wx;
@@ -16,6 +17,8 @@ beforeEach(() => {
   // 默认空家庭：既有 doLogin 用例中 getStorageSync 返回统一对象，familyId 会命中 truthy 分支，
   // 需保证 getMembers 返回 Promise 而非 undefined，否则 loadFamilyMembers 的 .then 同步抛错
   family.getMembers.mockResolvedValue({ parents: [], children: [] });
+  // getMyFamilies 同样需默认返回 Promise，否则 refreshFamilyContext 空 familyId 分支的 .then 抛错
+  family.getMyFamilies.mockResolvedValue({ families: [] });
   // 必须在 resetAllMocks 之后注册，否则实现会被清空（resetAllMocks 移除实现）
   global.getCurrentPages = jest.fn(() => []);
 });
@@ -181,7 +184,8 @@ describe('app.js 家庭上下文加载（memberList + userRole）', () => {
     ]);
   });
 
-  test('无家庭时清空 memberList 与 userRole 且不请求', async () => {
+  test('无家庭且用户无任何家庭时清空 memberList 与 userRole', async () => {
+    family.getMyFamilies.mockResolvedValue({ families: [] });
     const ctx = createAppContext(loadApp());
     ctx.globalData.userId = 'u1';
     ctx.globalData.currentFamilyId = null;
@@ -193,6 +197,43 @@ describe('app.js 家庭上下文加载（memberList + userRole）', () => {
     expect(ctx.globalData.memberList).toEqual([]);
     expect(ctx.globalData.userRole).toBeNull();
     expect(family.getMembers).not.toHaveBeenCalled();
+    expect(family.getMyFamilies).toHaveBeenCalled();
+  });
+
+  test('CURRENT_FAMILY_ID 为空且用户有 ≥1 家庭时补写首项并加载成员', async () => {
+    wx.getStorageSync.mockImplementation(() => null);
+    family.getMyFamilies.mockResolvedValue({ families: [
+      { familyId: 'f-first', familyName: '第一个家', role: 'Parent', memberCount: 2 }
+    ] });
+    family.getMembers.mockResolvedValue({
+      parents: [{ userId: 'u1', role: 'Parent', nickname: '爸爸' }],
+      children: []
+    });
+    const ctx = createAppContext(loadApp());
+    ctx.globalData.userId = 'u1';
+    ctx.globalData.currentFamilyId = null;
+
+    await ctx.refreshFamilyContext();
+
+    expect(family.getMyFamilies).toHaveBeenCalled();
+    expect(wx.setStorageSync).toHaveBeenCalledWith(STORAGE_KEYS.CURRENT_FAMILY_ID, 'f-first');
+    expect(family.getMembers).toHaveBeenCalledWith('f-first');
+    expect(ctx.globalData.userRole).toBe('Parent');
+    expect(ctx.globalData.currentFamilyId).toBe('f-first');
+  });
+
+  test('getMyFamilies 失败且无当前家庭时清空 memberList 与 userRole', async () => {
+    family.getMyFamilies.mockRejectedValue({ error: 'NETWORK_ERROR' });
+    const ctx = createAppContext(loadApp());
+    ctx.globalData.userId = 'u1';
+    ctx.globalData.currentFamilyId = null;
+    ctx.globalData.memberList = [{ userId: 'u9', role: 'Parent', name: '残留' }];
+    ctx.globalData.userRole = 'Parent';
+
+    await ctx.refreshFamilyContext();
+
+    expect(ctx.globalData.memberList).toEqual([]);
+    expect(ctx.globalData.userRole).toBeNull();
   });
 
   test('无 userId 时清空 memberList 与 userRole 且不请求', async () => {

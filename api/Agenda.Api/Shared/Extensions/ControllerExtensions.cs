@@ -1,7 +1,5 @@
 using System.Security.Claims;
-using Agenda.Api.Domain.Entities;
-using Agenda.Api.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 
 namespace Agenda.Api.Shared.Extensions;
 
@@ -20,18 +18,13 @@ public static class ControllerExtensions
         return userId;
     }
 
-    public static async Task<(Guid FamilyId, Domain.Enums.UserRole Role)> GetFamilyContextAsync(
-        this ClaimsPrincipal user, AppDbContext db, CancellationToken ct)
+    /// <summary>
+    /// 解析 X-Family-Id 请求头。未携带或解析失败返回 null（由调用方决定是否必填）。
+    /// </summary>
+    public static Guid? GetFamilyIdFromHeader(this HttpRequest request)
     {
-        var userId = user.GetUserId();
-        var membership = await db.FamilyMembers
-            .AsNoTracking()
-            .Include(fm => fm.Family)
-            .FirstOrDefaultAsync(fm => fm.UserId == userId, ct);
-
-        if (membership == null)
-            throw new UnauthorizedAccessException("NOT_FAMILY_MEMBER");
-
-        return (membership.FamilyId, membership.Role);
+        if (!request.Headers.TryGetValue("X-Family-Id", out var values)) return null;
+        var raw = values.ToString();
+        return Guid.TryParse(raw, out var id) ? id : null;
     }
 }

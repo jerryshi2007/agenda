@@ -3,6 +3,7 @@ using Agenda.Api.Checkin.Services;
 using Agenda.Api.Domain.Entities;
 using Agenda.Api.Domain.Enums;
 using Agenda.Api.Domain.Interfaces;
+using Agenda.Api.Infrastructure;
 using Agenda.Api.Schedule.Controllers;
 using Agenda.Api.Schedule.Dtos;
 using Agenda.Api.Schedule.Services;
@@ -64,7 +65,7 @@ public class ChildScheduleControllerTests
     private static Mock<IFamilyContextService> CreateFamilyContextMock(UserRole role = UserRole.Child)
     {
         var mock = new Mock<IFamilyContextService>();
-        mock.Setup(s => s.GetFamilyContextAsync(TestUserId, It.IsAny<CancellationToken>()))
+        mock.Setup(s => s.GetFamilyContextAsync(TestUserId, It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((TestFamilyId, role));
         return mock;
     }
@@ -117,17 +118,16 @@ public class ChildScheduleControllerTests
     }
 
     [Fact]
-    public async Task GetToday_NotFamilyMember_Returns403()
+    public async Task GetToday_NotFamilyMember_ThrowsNotFamilyMember()
     {
         var familyCtx = new Mock<IFamilyContextService>();
-        familyCtx.Setup(s => s.GetFamilyContextAsync(TestUserId, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new UnauthorizedAccessException("NOT_FAMILY_MEMBER"));
+        familyCtx.Setup(s => s.GetFamilyContextAsync(TestUserId, It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DomainException(ErrorCodes.NotFamilyMember));
         var controller = CreateController(familyCtx: familyCtx);
 
-        var result = await controller.GetToday(CancellationToken.None);
-
-        var status = Assert.IsType<ObjectResult>(result);
-        Assert.Equal(403, status.StatusCode);
+        var ex = await Assert.ThrowsAsync<DomainException>(
+            () => controller.GetToday(CancellationToken.None));
+        Assert.Equal(ErrorCodes.NotFamilyMember, ex.ErrorCode);
     }
 
     [Fact]

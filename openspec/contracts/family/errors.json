@@ -11,6 +11,10 @@
     "httpStatus": 400,
     "message": "家庭已解散"
   },
+  "FAMILY_CONTEXT_REQUIRED": {
+    "httpStatus": 400,
+    "message": "请选择家庭"
+  },
   "FAMILY_CREATOR_CANNOT_EXIT": {
     "httpStatus": 403,
     "message": "创建者无法退出，请先解散家庭"

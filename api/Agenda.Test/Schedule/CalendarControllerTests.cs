@@ -24,7 +24,7 @@ public class CalendarControllerTests
     private static CalendarController CreateController(UserRole role, Mock<ICalendarQueryService> calendar)
     {
         var familyCtx = new Mock<IFamilyContextService>();
-        familyCtx.Setup(s => s.GetFamilyContextAsync(TestUserId, It.IsAny<CancellationToken>()))
+        familyCtx.Setup(s => s.GetFamilyContextAsync(TestUserId, It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((TestFamilyId, role));
 
         var controller = new CalendarController(calendar.Object, familyCtx.Object);
