@@ -70,7 +70,7 @@ Page({
   },
 
   onSwitchFamily() {
-    wx.navigateTo({ url: '/pages/family-switch/index' });
+    wx.navigateTo({ url: '/pages/family-switch/index?from=mine' });
   },
 
   onCreateFamily() {

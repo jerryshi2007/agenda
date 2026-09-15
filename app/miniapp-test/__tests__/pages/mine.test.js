@@ -125,7 +125,7 @@ describe('mine 页面', () => {
   test('点击"切换"按钮跳转到 family-switch 页', () => {
     const ctx = setup();
     ctx.onSwitchFamily();
-    expect(wx.navigateTo).toHaveBeenCalledWith({ url: '/pages/family-switch/index' });
+    expect(wx.navigateTo).toHaveBeenCalledWith({ url: '/pages/family-switch/index?from=mine' });
   });
 
   test('点击"创建家庭"跳转到 family-create 页', () => {

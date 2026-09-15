@@ -77,6 +77,21 @@ describe('family-switch 页面', () => {
     expect(wx.reLaunch).toHaveBeenCalled();
   });
 
+  test('onLoad 带 from=mine 时切换成功走 navigateBack（不 reLaunch）', async () => {
+    family.getMyFamilies.mockResolvedValue({ families: [
+      { familyId: 'f-current', familyName: '当前家', role: 'Parent', memberCount: 3 },
+      { familyId: 'f2', familyName: '家2', role: 'Parent', memberCount: 2 }
+    ] });
+    const ctx = setup();
+    ctx.onLoad({ from: 'mine' });
+    await flush();
+    ctx.onSelectFamily({ currentTarget: { dataset: { familyId: 'f2' } } });
+    await flush();
+    expect(wx.setStorageSync).toHaveBeenCalledWith(STORAGE_KEYS.CURRENT_FAMILY_ID, 'f2');
+    expect(wx.navigateBack).toHaveBeenCalled();
+    expect(wx.reLaunch).not.toHaveBeenCalled();
+  });
+
   test('选择当前家庭时不重复切换（不写 storage / 不 reLaunch）', async () => {
     family.getMyFamilies.mockResolvedValue({ families: [
       { familyId: 'f-current', familyName: '当前家', role: 'Parent', memberCount: 3 }

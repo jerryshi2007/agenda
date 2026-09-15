@@ -54,8 +54,8 @@ TBD - created by archiving change add-family-module. Update Purpose after archiv
 
 #### Scenario: 用户属于两个家庭，切换家庭
 
-- **WHEN** 用户属于家庭 A 和家庭 B，当前在家庭 A，上次查看是周视图，日期周一，在"我的"页面点击"切换家庭"，选择家庭 B
-- **THEN** 切换到家庭 B，恢复家庭 B 上次记忆的视图和日期，跳转到日历视图
+- **WHEN** 用户属于家庭 A 和家庭 B，当前在家庭 A，在"我的"页面点击"切换家庭"，选择家庭 B
+- **THEN** 切换到家庭 B，返回"我的"页面，页面显示"当前家庭"为家庭 B
 
 #### Scenario: 用户被移除出家庭，切换列表仍显示该家庭
 

@@ -1,5 +1,6 @@
 // pages/family-switch/index.js
-// 多家庭切换页 —— 拉取我的所有家庭、标记当前家庭、选择后写入 CURRENT_FAMILY_ID 并 reLaunch 首页
+// 多家庭切换页 —— 拉取我的所有家庭、标记当前家庭、选择后写入 CURRENT_FAMILY_ID 并按来源分流：
+//   来源为「我的」页（?from=mine）时 navigateBack 返回；其余来源 reLaunch 首页
 // 单家庭时显示空态提示，不展示可点击列表
 // TC-FSW-05：点击已退出家庭时提示"你已不在该家庭中"并自动从列表移除
 
@@ -16,7 +17,8 @@ Page({
     switching: false
   },
 
-  onLoad() {
+  onLoad(options) {
+    this._from = (options && options.from) || '';
     this._load();
   },
 
@@ -76,7 +78,11 @@ Page({
         return;
       }
       wx.setStorageSync(STORAGE_KEYS.CURRENT_FAMILY_ID, familyId);
-      wx.reLaunch({ url: '/pages/index/index' });
+      if (this._from === 'mine') {
+        wx.navigateBack();
+      } else {
+        wx.reLaunch({ url: '/pages/index/index' });
+      }
     }).catch((err) => {
       this.setData({
         switching: false,
